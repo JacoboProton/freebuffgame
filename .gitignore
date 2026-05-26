@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+out/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python (temporary fix scripts)
+*.py
+__pycache__/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Turbo
+.turbo/
+
+# Prisma
+*.db
+*.db-journal
+
+# Coverage
+coverage/
+# InsForge
+insforge.toml
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
