@@ -10,6 +10,7 @@ import { achievementsRouter } from './routes/achievements.js';
 import { gamesRouter } from './routes/games.js';
 import { shopRouter } from './routes/shop.js';
 import { adminRouter } from './routes/admin.js';
+import { dailyGoalsRouter } from './routes/daily-goals.js';
 import { errorHandler } from './middlewares/error.js';
 
 const app = express();
@@ -37,6 +38,7 @@ app.use('/api/achievements', achievementsRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/shop', shopRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/daily-goals', dailyGoalsRouter);
 
 // Error handler
 app.use(errorHandler);

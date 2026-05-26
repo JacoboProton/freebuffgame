@@ -19,7 +19,7 @@ export default function LoginPage() {
         </div>
 
         {/* Clerk SignIn Component */}
-        <SignIn />
+        <SignIn routing="hash" />
 
         {/* Google Auth Button */}
         <GoogleAuthButton mode="signin" />

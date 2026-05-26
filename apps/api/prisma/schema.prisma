@@ -176,6 +176,8 @@ model Purchase {
 
   user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   item ShopItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
 }
 
 model Friend {

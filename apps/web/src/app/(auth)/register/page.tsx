@@ -19,7 +19,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Clerk SignUp Component */}
-        <SignUp />
+        <SignUp routing="hash" />
 
         {/* Google Auth Button */}
         <GoogleAuthButton mode="signup" />

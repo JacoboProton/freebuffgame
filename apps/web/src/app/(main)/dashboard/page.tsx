@@ -1,55 +1,184 @@
-import type { Metadata } from 'next';
+'use client';
+
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { Trophy, ShoppingBag, User, BookOpen, Zap, Target } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Trophy, ShoppingBag, User, BookOpen, Zap, Target, Flame, TrendingUp, Award, Gamepad2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ProgressBar } from '@/components/ui/progress';
+import { useUserStore, calculateLevel, xpToNextLevel, progressToNextLevel } from '@/stores/user-store';
+import { useAuthStore } from '@/stores/auth-store';
 
-export const metadata: Metadata = { title: 'Dashboard' };
-
-// Demo user stats - in production these would come from the API/store
-const userStats = {
-  name: 'JacoboProton',
-  level: 12,
-  xp: 2450,
-  xpToNextLevel: 3000,
-  coins: 1250,
-  streak: 7,
-  completedCourses: 4,
-  totalAchievements: 15,
-  rank: '#42',
-};
-
-const recentActivity = [
-  { type: 'lesson', text: 'Completó Lección: Introducción a la IA', xp: 20, time: 'hace 2 horas' },
-  { type: 'achievement', text: 'Desbloqueó: Primer Curso', xp: 50, time: 'hace 5 horas' },
-  { type: 'course', text: 'Inició: Python para Todos', xp: 0, time: 'hace 1 día' },
-];
-
-export default function DashboardPage() {
-  const xpProgress = (userStats.xp / userStats.xpToNextLevel) * 100;
+// Progress Ring Component
+function ProgressRing({ progress, size = 120, strokeWidth = 10 }: { progress: number; size?: number; strokeWidth?: number }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className='min-h-screen bg-background'>
-      <header className='bg-white shadow-card sticky top-0 z-50'>
-        <div className='max-w-7xl mx-auto px-4 py-4'>
-          <div className='flex items-center justify-between'>
-            <Link href='/' className='flex items-center gap-3'>
-              <div className='w-10 h-10 bg-primary rounded-xl flex items-center justify-center'>
-                <span className='text-2xl'>🐐</span>
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90" width={size} height={size}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-gray-200"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className="text-primary transition-all duration-500 ease-out"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-2xl font-bold text-primary">{Math.round(progress)}%</span>
+      </div>
+    </div>
+  );
+}
+
+// Daily Goal Card Component
+function DailyGoalCard({ goal, onComplete }: { goal: any; onComplete?: () => void }) {
+  const progress = Math.min((goal.current / goal.target) * 100, 100);
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`p-4 rounded-xl border-2 transition-all ${
+        goal.completed 
+          ? 'border-green-200 bg-green-50' 
+          : 'border-gray-100 bg-white hover:border-primary/50'
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+          goal.completed ? 'bg-green-500 text-white' : 'bg-primary/10 text-primary'
+        }`}>
+          {goal.type === 'xp' && <Zap className="w-5 h-5" />}
+          {goal.type === 'lessons' && <BookOpen className="w-5 h-5" />}
+          {goal.type === 'streak' && <Flame className="w-5 h-5" />}
+          {goal.type === 'games' && <Target className="w-5 h-5" />}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <h4 className="font-semibold text-sm">{goal.title}</h4>
+            {goal.completed && (
+              <Badge variant="success" className="text-xs">Completado</Badge>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 mb-2">{goal.description}</p>
+          <div className="flex items-center gap-2">
+            <ProgressBar value={progress} className="flex-1 h-2" />
+            <span className="text-xs font-medium text-gray-600">
+              {goal.current}/{goal.target}
+            </span>
+          </div>
+          {!goal.completed && (
+            <p className="text-xs text-primary mt-1">+{goal.xpReward} XP</p>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// Streak Flame Component
+function StreakFlame({ streak, isToday }: { streak: number; isToday: boolean }) {
+  return (
+    <motion.div
+      initial={{ scale: 1 }}
+      animate={isToday ? { scale: [1, 1.1, 1] } : {}}
+      transition={{ repeat: isToday ? Infinity : 0, duration: 2 }}
+      className="flex items-center gap-2"
+    >
+      <div className={`relative ${streak >= 7 ? 'drop-shadow-lg' : ''}`}>
+        <Flame className={`w-8 h-8 ${streak > 0 ? 'text-orange-500' : 'text-gray-300'}`} />
+        {streak >= 7 && (
+          <motion.div
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+            className="absolute -inset-1 bg-orange-400 rounded-full blur-md -z-10"
+          />
+        )}
+      </div>
+      <div>
+        <span className="text-2xl font-bold text-orange-500">{streak}</span>
+        <span className="text-sm text-gray-500 ml-1">días</span>
+      </div>
+    </motion.div>
+  );
+}
+
+export default function DashboardPage() {
+  const { stats, dailyGoals, fetchStats, fetchDailyGoals, isLoading } = useUserStore();
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  useEffect(() => {
+    if (stats) {
+      fetchDailyGoals();
+    }
+  }, [stats, fetchDailyGoals]);
+
+  const level = stats ? calculateLevel(stats.xp) : 1;
+  const xpProgress = stats ? progressToNextLevel(stats.xp) : 0;
+  const nextLevelXP = stats ? xpToNextLevel(stats.xp) : 500;
+  const currentXP = stats ? stats.xp % 500 : 0;
+
+  if (isLoading && !stats) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+            className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-gray-500">Cargando tu progreso...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const completedGoals = dailyGoals.filter(g => g.completed).length;
+  const totalGoalsXP = dailyGoals.reduce((acc, g) => acc + (g.completed ? g.xpReward : 0), 0);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="bg-white shadow-card sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                <span className="text-2xl">🐐</span>
               </div>
-              <span className='font-bold text-xl'>Duobi-Jac</span>
+              <span className="font-bold text-xl">Duobi-Jac</span>
             </Link>
-            <div className='flex items-center gap-4'>
-              <Badge variant='secondary' className='gap-1'>
-                <Zap className='w-4 h-4 text-yellow-500' />
-                {userStats.coins} monedas
+            <div className="flex items-center gap-4">
+              <Badge variant="secondary" className="gap-1">
+                <Zap className="w-4 h-4 text-yellow-500" />
+                {stats?.coins || 0} monedas
               </Badge>
-              <Link href='/dashboard/profile/jacoboproton'>
-                <Button variant='ghost' size='sm'>
-                  <User className='w-4 h-4 mr-2' />
-                  {userStats.name}
+              <Link href={`/dashboard/profile/${user?.name?.toLowerCase() || 'profile'}`}>
+                <Button variant="ghost" size="sm">
+                  <User className="w-4 h-4 mr-2" />
+                  {user?.name || 'Mi Perfil'}
                 </Button>
               </Link>
             </div>
@@ -57,163 +186,214 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className='max-w-7xl mx-auto px-4 py-8'>
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold mb-2'>¡Bienvenido de vuelta, {userStats.name}! 🎉</h1>
-          <p className='text-gray-500'>Continúa tu viaje de aprendizaje</p>
-        </div>
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Welcome Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >            <h1 className="text-3xl font-bold mb-2">
+            ¡Bienvenido de nuevo, {user?.name || 'Aprendiz'}! 🎉
+          </h1>
+          <p className="text-gray-500">Continúa tu viaje de aprendizaje</p>
+        </motion.div>
 
-        {/* Stats Grid */}
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-8'>
-          <Card>
-            <CardContent className='p-4 text-center'>
-              <div className='text-3xl font-bold text-primary'>{userStats.level}</div>
-              <div className='text-sm text-gray-500'>Nivel</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className='p-4 text-center'>
-              <div className='text-3xl font-bold text-yellow-500'>{userStats.coins}</div>
-              <div className='text-sm text-gray-500'>Monedas</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className='p-4 text-center'>
-              <div className='text-3xl font-bold text-orange-500'>{userStats.streak} 🔥</div>
-              <div className='text-sm text-gray-500'>Racha</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className='p-4 text-center'>
-              <div className='text-3xl font-bold text-purple-500'>{userStats.rank}</div>
-              <div className='text-sm text-gray-500'>Ranking</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* XP Progress */}
-        <Card className='mb-8'>
-          <CardHeader>
-            <CardTitle className='flex items-center gap-2'>
-              <Target className='w-5 h-5 text-primary' />
-              Progreso de XP
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className='flex items-center gap-4 mb-2'>
-              <span className='font-semibold'>{userStats.xp} XP</span>
-              <ProgressBar value={xpProgress} className='flex-1' />
-              <span className='text-gray-500'>{userStats.xpToNextLevel} XP</span>
+        {/* Daily Goals Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-bold">Metas Diarias</h2>
+              <Badge variant="secondary">{completedGoals}/{dailyGoals.length} completadas</Badge>
             </div>
-            <p className='text-sm text-gray-500'>
-              {userStats.xpToNextLevel - userStats.xp} XP para subir al nivel {userStats.level + 1}
-            </p>
-          </CardContent>
-        </Card>
+            {totalGoalsXP > 0 && (
+              <Badge variant="success" className="gap-1">
+                <Zap className="w-4 h-4" />+{totalGoalsXP} XP hoy
+              </Badge>
+            )}
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {dailyGoals.map((goal) => (
+              <DailyGoalCard key={goal.id} goal={goal} />
+            ))}
+          </div>
+        </motion.div>
 
-        <div className='grid md:grid-cols-2 gap-8'>
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <Zap className='w-5 h-5 text-primary' />
-                Acciones Rápidas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-3'>
-              <Link href='/courses' className='block'>
-                <Button variant='outline' className='w-full justify-start'>
-                  <BookOpen className='w-4 h-4 mr-2' />
-                  Continuar Aprendiendo
-                </Button>
-              </Link>
-              <Link href='/dashboard/leaderboard' className='block'>
-                <Button variant='outline' className='w-full justify-start'>
-                  <Trophy className='w-4 h-4 mr-2' />
-                  Ver Leaderboard
-                </Button>
-              </Link>
-              <Link href='/dashboard/shop' className='block'>
-                <Button variant='outline' className='w-full justify-start'>
-                  <ShoppingBag className='w-4 h-4 mr-2' />
-                  Tienda de recompensas
-                </Button>
-              </Link>
-            </CardContent>
+        {/* Stats Grid with Progress Ring */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid md:grid-cols-4 gap-4 mb-8"
+        >
+          {/* Level with Progress Ring */}
+          <Card className="md:col-span-2 flex items-center gap-6 p-6">
+            <ProgressRing progress={xpProgress} size={100} strokeWidth={8} />
+            <div>
+              <div className="text-4xl font-bold text-primary mb-1">Nivel {level}</div>
+              <p className="text-sm text-gray-500 mb-2">
+                {currentXP} / 500 XP para el siguiente nivel
+              </p>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-green-600">
+                  {nextLevelXP} XP restante
+                </span>
+              </div>
+            </div>
           </Card>
 
-          {/* Recent Activity */}
-          <Card>
+          {/* Streak */}
+          <Card className="p-6">
+            <div className="text-sm text-gray-500 mb-2">Racha Actual</div>
+            <StreakFlame streak={stats?.currentStreak ?? 0} isToday={(stats?.currentStreak ?? 0) > 0} />
+            {(stats?.longestStreak ?? 0) > (stats?.currentStreak ?? 0) && (
+              <p className="text-xs text-gray-400 mt-2">
+                Récord: {stats?.longestStreak} días 🔥
+              </p>
+            )}
+          </Card>
+
+          {/* Coins */}
+          <Card className="p-6">
+            <div className="text-sm text-gray-500 mb-2">Monedas</div>
+            <div className="flex items-center gap-2">
+              <span className="text-4xl font-bold text-yellow-500">{stats?.coins || 0}</span>
+              <span className="text-2xl">🪙</span>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* XP Progress Bar - Full Width */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="mb-8">
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <Zap className='w-5 h-5 text-primary' />
-                Actividad Reciente
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-primary" />
+                Progreso de XP
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='space-y-4'>
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className='flex items-start gap-3 pb-3 border-b border-gray-100 last:border-0'>
-                    <div className='w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center'>
-                      {activity.type === 'lesson' && <BookOpen className='w-4 h-4 text-primary' />}
-                      {activity.type === 'achievement' && <Trophy className='w-4 h-4 text-yellow-500' />}
-                      {activity.type === 'course' && <Target className='w-4 h-4 text-purple-500' />}
-                    </div>
-                    <div className='flex-1'>
-                      <p className='text-sm'>{activity.text}</p>
-                      <p className='text-xs text-gray-400'>{activity.time}</p>
-                    </div>
-                    {activity.xp > 0 && (
-                      <Badge variant='success' className='text-xs'>+{activity.xp} XP</Badge>
-                    )}
+              <div className="flex items-center gap-4 mb-2">
+                <span className="font-semibold text-lg">{stats?.xp || 0} XP</span>
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${xpProgress}%` }}
+                      transition={{ duration: 1, ease: 'easeOut', delay: 0.5 }}
+                      className="h-full bg-gradient-to-r from-primary to-green-400 rounded-full"
+                    />
                   </div>
-                ))}
+                </div>
+                <span className="text-gray-500">{500} XP</span>
               </div>
+              <p className="text-sm text-gray-500">
+                {nextLevelXP} XP para subir al nivel {level + 1}
+              </p>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
 
-        {/* Stats Summary */}
-        <div className='grid grid-cols-2 md:grid-cols-3 gap-4 mt-8'>
-          <Card>
-            <CardContent className='p-4'>
-              <div className='flex items-center gap-3'>
-                <div className='w-12 h-12 rounded-full bg-green-100 flex items-center justify-center'>
-                  <BookOpen className='w-6 h-6 text-green-600' />
+        {/* Quick Actions + Stats Summary */}
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Quick Actions */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-primary" />
+                  Acciones Rápidas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Link href="/courses" className="block">
+                  <Button variant="outline" className="w-full justify-start">
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Continuar Aprendiendo
+                  </Button>
+                </Link>
+                <Link href="/dashboard/leaderboard" className="block">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Trophy className="w-4 h-4 mr-2" />
+                    Ver Leaderboard
+                  </Button>
+                </Link>
+                <Link href="/games" className="block">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Gamepad2 className="w-4 h-4 mr-2" />
+                    Jugar Minijuegos
+                  </Button>
+                </Link>
+                <Link href="/dashboard/shop" className="block">
+                  <Button variant="outline" className="w-full justify-start">
+                    <ShoppingBag className="w-4 h-4 mr-2" />
+                    Tienda de recompensas
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Stats Summary */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-primary" />
+                  Tu Progreso
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <BookOpen className="w-5 h-5 text-green-600" />
+                      </div>
+                      <span className="font-medium">Lecciones completadas</span>
+                    </div>
+                    <span className="text-xl font-bold text-green-600">{stats?.lessonsCompleted || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                        <Trophy className="w-5 h-5 text-yellow-600" />
+                      </div>
+                      <span className="font-medium">Logros obtenidos</span>
+                    </div>
+                    <span className="text-xl font-bold text-yellow-600">{stats?.achievementsUnlocked || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                        <BookOpen className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <span className="font-medium">Cursos completados</span>
+                    </div>
+                    <span className="text-xl font-bold text-purple-600">{stats?.completedCourses || 0}</span>
+                  </div>
                 </div>
-                <div>
-                  <div className='text-2xl font-bold'>{userStats.completedCourses}</div>
-                  <div className='text-sm text-gray-500'>Cursos completados</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className='p-4'>
-              <div className='flex items-center gap-3'>
-                <div className='w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center'>
-                  <Trophy className='w-6 h-6 text-yellow-600' />
-                </div>
-                <div>
-                  <div className='text-2xl font-bold'>{userStats.totalAchievements}</div>
-                  <div className='text-sm text-gray-500'>Logros obtenidos</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className='p-4'>
-              <div className='flex items-center gap-3'>
-                <div className='w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center'>
-                  <Zap className='w-6 h-6 text-orange-600' />
-                </div>
-                <div>
-                  <div className='text-2xl font-bold'>{userStats.xp}</div>
-                  <div className='text-sm text-gray-500'>XP Total</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </main>
     </div>
