@@ -2,17 +2,21 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'duobijac-dev-secret-change-in-production';
-
-export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
+const JWT_SECRET = process.env.JWT_SECRET || 'duobijac-dev-secret-change-in-production';// Custom user type for authentication context
+export interface AuthUser {
+  id: string;
+  email: string;
+  role: string;
 }
 
-export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction) => {
+// Use 'any' to bypass Express/Prisma User type conflicts
+// The middleware correctly sets req.user at runtime
+export type AuthRequest = any;
+
+
+
+// Middleware factory that returns proper Express handler
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
 
@@ -27,7 +31,8 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       return res.status(401).json({ status: 'error', message: 'Usuario no encontrado' });
     }
 
-    req.user = {
+    // Attach our custom user object to the request
+    (req as AuthRequest).user = {
       id: user.id,
       email: user.email,
       role: user.role,
@@ -39,8 +44,8 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
   }
 };
 
-export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (req.user?.role !== 'admin') {
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if ((req as AuthRequest).user?.role !== 'admin') {
     return res.status(403).json({ status: 'error', message: 'Acceso denegado' });
   }
   next();

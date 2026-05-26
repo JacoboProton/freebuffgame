@@ -16,6 +16,30 @@ interface DailyGoal {
   completed: boolean;
 }
 
+interface GoalStats {
+  todayXP: number;
+  todayLessons: number;
+  todayGames: number;
+  isToday: boolean;
+  currentStreak: number;
+}
+
+// Helper function to check if a goal is completed (avoids code duplication)
+function isGoalCompleted(goalId: string, stats: GoalStats): boolean {
+  switch (goalId) {
+    case 'daily_xp':
+      return stats.todayXP >= 50;
+    case 'daily_lessons':
+      return stats.todayLessons >= 3;
+    case 'daily_streak':
+      return stats.currentStreak > 0 && stats.isToday;
+    case 'daily_games':
+      return stats.todayGames >= 1;
+    default:
+      return false;
+  }
+}
+
 // Get user's daily goals
 dailyGoalsRouter.get('/', authenticate, async (req: AuthRequest, res, next) => {
   try {
@@ -65,7 +89,16 @@ dailyGoalsRouter.get('/', authenticate, async (req: AuthRequest, res, next) => {
     const dailyXPGoal = 50;
     const dailyXPProgress = isToday ? Math.min(user.xp % 500, dailyXPGoal) : 0;
 
-    // Build daily goals
+    // Build stats object for helper function
+    const stats: GoalStats = {
+      todayXP: dailyXPProgress,
+      todayLessons: todayLessonsCompleted,
+      todayGames: todayGamesPlayed,
+      isToday,
+      currentStreak: user.currentStreak,
+    };
+
+    // Build daily goals using helper function
     const dailyGoals: DailyGoal[] = [
       {
         id: 'daily_xp',
@@ -75,7 +108,7 @@ dailyGoalsRouter.get('/', authenticate, async (req: AuthRequest, res, next) => {
         target: dailyXPGoal,
         current: dailyXPProgress,
         xpReward: 20,
-        completed: dailyXPProgress >= dailyXPGoal,
+        completed: isGoalCompleted('daily_xp', stats),
       },
       {
         id: 'daily_lessons',
@@ -85,7 +118,7 @@ dailyGoalsRouter.get('/', authenticate, async (req: AuthRequest, res, next) => {
         target: 3,
         current: todayLessonsCompleted,
         xpReward: 30,
-        completed: todayLessonsCompleted >= 3,
+        completed: isGoalCompleted('daily_lessons', stats),
       },
       {
         id: 'daily_streak',
@@ -95,7 +128,7 @@ dailyGoalsRouter.get('/', authenticate, async (req: AuthRequest, res, next) => {
         target: 1,
         current: user.currentStreak > 0 && isToday ? 1 : 0,
         xpReward: 15,
-        completed: user.currentStreak > 0 && isToday,
+        completed: isGoalCompleted('daily_streak', stats),
       },
       {
         id: 'daily_games',
@@ -105,7 +138,7 @@ dailyGoalsRouter.get('/', authenticate, async (req: AuthRequest, res, next) => {
         target: 1,
         current: todayGamesPlayed,
         xpReward: 25,
-        completed: todayGamesPlayed >= 1,
+        completed: isGoalCompleted('daily_games', stats),
       },
     ];
 
@@ -212,27 +245,17 @@ dailyGoalsRouter.post('/claim/:goalId', authenticate, async (req: AuthRequest, r
     });
 
     const isToday = new Date(user.lastActiveAt).toDateString() === todayStart.toDateString();
-    const dailyXPGoal = 50;
-    const dailyXPProgress = isToday ? Math.min(user.xp % 500, dailyXPGoal) : 0;
 
-    // Verify goal completion based on type
-    let goalCompleted = false;
-    switch (goalId) {
-      case 'daily_xp':
-        goalCompleted = dailyXPProgress >= dailyXPGoal;
-        break;
-      case 'daily_lessons':
-        goalCompleted = todayLessonsCompleted >= 3;
-        break;
-      case 'daily_streak':
-        goalCompleted = user.currentStreak > 0 && isToday;
-        break;
-      case 'daily_games':
-        goalCompleted = todayGamesPlayed >= 1;
-        break;
-    }
+    // Build stats and verify goal completion using helper
+    const stats: GoalStats = {
+      todayXP: isToday ? Math.min(user.xp % 500, 50) : 0,
+      todayLessons: todayLessonsCompleted,
+      todayGames: todayGamesPlayed,
+      isToday,
+      currentStreak: user.currentStreak,
+    };
 
-    if (!goalCompleted) {
+    if (!isGoalCompleted(goalId, stats)) {
       throw new AppError('Completa la meta primero antes de reclamar la recompensa', 400);
     }
 

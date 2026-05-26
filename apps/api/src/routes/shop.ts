@@ -5,7 +5,7 @@ import { authenticate, AuthRequest } from '../middlewares/auth.js';
 export const shopRouter = Router();
 
 // Get all shop items
-shopRouter.get('/items', authenticate, async (req, res, next) => {
+shopRouter.get('/items', authenticate, async (req: AuthRequest, res, next) => {
   try {
     const items = await prisma.shopItem.findMany({
       orderBy: { price: 'asc' },
@@ -62,7 +62,7 @@ shopRouter.post('/purchase', authenticate, async (req: AuthRequest, res, next) =
     // Check if user has enough coins
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
-      select: { coins: true },
+      select: { id: true, coins: true },
     });
 
     if (!user || user.coins < item.price) {

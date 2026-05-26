@@ -183,7 +183,7 @@ async function checkAchievements(userId: string) {
 
   if (!user) return;
 
-  const unlockedKeys = new Set(user.achievements.map((a) => a.achievement.key));
+  const unlockedKeys = new Set(user.achievements.map((a) => a.achievementId));
 
   // Check XP achievements
   const xpAchievements = [

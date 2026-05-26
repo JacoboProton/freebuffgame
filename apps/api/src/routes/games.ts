@@ -5,7 +5,7 @@ import { authenticate, AuthRequest } from '../middlewares/auth.js';
 export const gamesRouter = Router();
 
 // Get all available games
-gamesRouter.get('/', authenticate, async (req, res, next) => {
+gamesRouter.get('/', authenticate, async (req: AuthRequest, res, next) => {
   try {
     const games = await prisma.game.findMany({
       orderBy: { title: 'asc' },

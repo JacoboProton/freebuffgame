@@ -127,6 +127,10 @@ authRouter.post('/login', async (req, res, next) => {
       throw new AppError('Este cuenta fue creada con Google. Por favor inicia sesión con Google.', 401);
     }
 
+    if (!user.passwordHash) {
+      throw new AppError('Credenciales inválidas', 401);
+    }
+
     const valid = await bcrypt.compare(data.password, user.passwordHash);
     if (!valid) {
       throw new AppError('Credenciales inválidas', 401);
