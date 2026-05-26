@@ -2,6 +2,7 @@
 
 import { SignIn } from '@clerk/nextjs';
 import { motion } from 'framer-motion';
+import { GoogleAuthButton } from '@/components/google-auth-button';
 
 export default function LoginPage() {
   return (
@@ -17,7 +18,11 @@ export default function LoginPage() {
           <p className="text-muted-foreground">¡Tu cabrito te espera!</p>
         </div>
 
+        {/* Clerk SignIn Component */}
         <SignIn />
+
+        {/* Google Auth Button */}
+        <GoogleAuthButton mode="signin" />
       </motion.div>
     </div>
   );

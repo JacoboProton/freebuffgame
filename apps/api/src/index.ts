@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import passport from 'passport';
 import { authRouter } from './routes/auth.js';
 import { coursesRouter } from './routes/courses.js';
 import { lessonsRouter } from './routes/lessons.js';
@@ -17,6 +18,9 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
 app.use(express.json());
+
+// Initialize Passport
+app.use(passport.initialize());
 
 // Health check
 app.get('/health', (_, res) => {

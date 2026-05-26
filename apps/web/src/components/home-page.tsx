@@ -3,12 +3,12 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Zap, Trophy, Users, BookOpen, Gamepad2, ShoppingBag } from 'lucide-react';
+import { useUser, SignInButton } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAuthStore } from '@/stores/auth-store';
 
 export function HomePage() {
-  const { user } = useAuthStore();
+  const { isSignedIn } = useUser();
 
   return (
     <div className="min-h-screen bg-background">
@@ -24,10 +24,14 @@ export function HomePage() {
               <Link href="/courses">
                 <Button size="lg" className="gap-2"><BookOpen className="w-5 h-5" />Explorar Cursos</Button>
               </Link>
-              {!user && (
-                <Link href="/register">
-                  <Button variant="secondary" size="lg">Crear Cuenta Gratis</Button>
+              {isSignedIn ? (
+                <Link href="/dashboard">
+                  <Button size="lg" className="gap-2"><Zap className="w-5 h-5" />Ir al Dashboard</Button>
                 </Link>
+              ) : (
+                <SignInButton mode="modal">
+                  <Button variant="secondary" size="lg">Iniciar Sesión</Button>
+                </SignInButton>
               )}
             </div>
           </motion.div>
@@ -60,7 +64,9 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Listo para empezar?</h2>
           <p className="text-lg text-white/80 mb-8">Unete a miles de estudiantes que ya estan aprendiendo con Duobi-Jac</p>
-          <Link href="/register"><Button size="lg" variant="secondary" className="gap-2">Crear Cuenta Gratis</Button></Link>
+          {!isSignedIn && (
+            <Link href="/register"><Button size="lg" variant="secondary" className="gap-2">Crear Cuenta Gratis</Button></Link>
+          )}
         </div>
       </section>
     </div>

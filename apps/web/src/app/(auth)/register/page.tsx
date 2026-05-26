@@ -2,6 +2,7 @@
 
 import { SignUp } from '@clerk/nextjs';
 import { motion } from 'framer-motion';
+import { GoogleAuthButton } from '@/components/google-auth-button';
 
 export default function RegisterPage() {
   return (
@@ -17,7 +18,11 @@ export default function RegisterPage() {
           <p className="text-muted-foreground">¡Únete a la aventura de aprender!</p>
         </div>
 
+        {/* Clerk SignUp Component */}
         <SignUp />
+
+        {/* Google Auth Button */}
+        <GoogleAuthButton mode="signup" />
       </motion.div>
     </div>
   );
