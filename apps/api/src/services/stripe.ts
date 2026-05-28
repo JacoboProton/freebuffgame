@@ -51,7 +51,7 @@ export async function createCourseCheckoutSession(data: CoursePaymentData): Prom
       userId,
     },
     success_url: `${FRONTEND_URL}/courses/payment-success?course_purchased=${courseId}&payment=success`,
-    cancel_url: `${FRONTEND_URL}/courses?payment=cancelled`,
+    cancel_url: `${FRONTEND_URL}/courses/payment-cancelled?course=${courseId}`,
   });
 
   return { sessionId: session.id, url: session.url! };
