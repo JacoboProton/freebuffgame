@@ -7,6 +7,9 @@ export const bundlesRouter = Router();
 // Get all active bundles
 bundlesRouter.get('/', async (req: AuthRequest, res, next) => {
   try {
+    // UserId is optional - only check purchase status if logged in
+    const userId = req.user?.id;
+
     const bundles = await prisma.bundle.findMany({
       where: { isActive: true },
       include: {
@@ -22,7 +25,46 @@ bundlesRouter.get('/', async (req: AuthRequest, res, next) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    res.json({ status: 'success', data: { bundles } });
+    // Only check purchase status if user is logged in
+    if (userId) {
+      const purchases = await prisma.bundlePurchase.findMany({
+        where: {
+          userId,
+          bundleId: { in: bundles.map(b => b.id) }
+        }
+      });
+
+      const purchasedBundleIds = new Set(purchases.map(p => p.bundleId));
+
+      // Also check if user has access through individual course purchases
+      const allCourseIds = bundles.flatMap(b => b.courses.map(c => c.courseId));
+      const coursePurchases = await prisma.coursePurchase.findMany({
+        where: {
+          userId,
+          courseId: { in: allCourseIds }
+        }
+      });
+      const purchasedCourseIds = new Set(coursePurchases.map(p => p.courseId));
+
+      // Add isPurchased and hasAccess flags to each bundle
+      const bundlesWithPurchaseStatus = bundles.map(bundle => ({
+        ...bundle,
+        isPurchased: purchasedBundleIds.has(bundle.id),
+        hasAccess: purchasedBundleIds.has(bundle.id) || 
+          (bundle.courses.length > 0 && bundle.courses.every(bc => purchasedCourseIds.has(bc.courseId)))
+      }));
+
+      return res.json({ status: 'success', data: { bundles: bundlesWithPurchaseStatus } });
+    }
+
+    // User not logged in - return bundles without purchase status
+    const bundlesWithoutStatus = bundles.map(bundle => ({
+      ...bundle,
+      isPurchased: false,
+      hasAccess: false
+    }));
+
+    res.json({ status: 'success', data: { bundles: bundlesWithoutStatus } });
   } catch (err) {
     next(err);
   }
