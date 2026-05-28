@@ -11,6 +11,7 @@ import { gamesRouter } from './routes/games.js';
 import { shopRouter } from './routes/shop.js';
 import { adminRouter } from './routes/admin.js';
 import { dailyGoalsRouter } from './routes/daily-goals.js';
+import { paymentsRouter } from './routes/payments.js';
 import { errorHandler } from './middlewares/error.js';
 
 const app = express();
@@ -18,6 +19,16 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
+
+// Raw body for Stripe webhooks - MUST be before express.json() for webhook route
+// This captures the raw buffer before any body parsing
+app.use('/api/payments/webhook', express.json({
+  verify: (req: any, _res, buf) => {
+    req.rawBody = buf;
+  }
+}));
+
+// Standard JSON middleware for all other routes
 app.use(express.json());
 
 // Initialize Passport
@@ -39,6 +50,7 @@ app.use('/api/games', gamesRouter);
 app.use('/api/shop', shopRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/daily-goals', dailyGoalsRouter);
+app.use('/api/payments', paymentsRouter);
 
 // Error handler
 app.use(errorHandler);

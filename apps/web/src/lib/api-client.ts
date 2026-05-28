@@ -2,6 +2,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 interface FetchOptions extends RequestInit {
   params?: Record<string, string>;
+  clerkToken?: string | null;
 }
 
 class APIError extends Error {
@@ -15,7 +16,7 @@ async function fetchAPI<T>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const { params, ...fetchOptions } = options;
+  const { params, clerkToken, ...fetchOptions } = options;
 
   let url = `${API_URL}${endpoint}`;
   if (params) {
@@ -24,12 +25,32 @@ async function fetchAPI<T>(
   }
 
   try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(fetchOptions.headers as Record<string, string>),
+    };
+
+    // Add Clerk token if provided (for Clerk/Google OAuth users)
+    // Priority: 1. clerkToken param, 2. __session cookie (which is a proper JWT)
+    if (clerkToken) {
+      headers['Authorization'] = `Bearer ${clerkToken}`;
+    } else {
+      // Try to get __session cookie directly for Clerk auth
+      // This cookie contains a proper JWT that our backend can verify
+      const cookies = document.cookie.split(';');
+      const sessionCookie = cookies.find(c => c.trim().startsWith('__session='));
+      if (sessionCookie) {
+        const token = sessionCookie.split('=')[1]?.trim();
+        // Only use if it looks like a JWT (starts with eyJ)
+        if (token && token.startsWith('eyJ')) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      }
+    }
+
     const response = await fetch(url, {
       ...fetchOptions,
-      headers: {
-        'Content-Type': 'application/json',
-        ...fetchOptions.headers,
-      },
+      headers,
       credentials: 'include',
     });
 
@@ -88,7 +109,7 @@ export const lessonsAPI = {
     fetchAPI<{ lesson: any; progress: any }>(`/lessons/${id}`),
   
   submitProgress: (lessonId: string, data: { score: number; timeSpent: number; answers?: any[] }) =>
-    fetchAPI<{ progress: any; user?: any; leveledUp?: boolean; newLevel?: number }>(
+    fetchAPI<{ progress: any; user?: any; leveledUp?: boolean; newLevel?: number; courseCompleted?: boolean }>(
       `/lessons/${lessonId}/progress`,
       { method: 'POST', body: JSON.stringify(data) }
     ),
@@ -146,6 +167,40 @@ export const shopAPI = {
       '/shop/checkout',
       { method: 'POST', body: JSON.stringify({ packageId }) }
     ),
+};
+
+// Payments API
+export const paymentsAPI = {
+  getStatus: () =>
+    fetchAPI<{ stripeConfigured: boolean }>('/payments/status'),
+
+  getCoursePrice: (courseId: string, clerkToken?: string) =>
+    fetchAPI<{
+      courseId: string;
+      title: string;
+      isPurchased: boolean;
+      isPro: boolean;
+      price: number;
+      requiredLevel: number;
+      meetsLevelRequirement: boolean;
+      userLevel: number;
+    }>(`/payments/course/${courseId}/price`, { clerkToken }),
+
+  checkout: (courseId: string, clerkToken?: string) =>
+    fetchAPI<{ checkoutUrl: string; sessionId: string }>(
+      `/payments/course/${courseId}/checkout`,
+      { method: 'POST', clerkToken }
+    ),
+
+  confirm: (sessionId: string, courseId: string, clerkToken?: string) =>
+    fetchAPI<{ purchased: boolean; enrollment: any }>('/payments/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ sessionId, courseId }),
+      clerkToken,
+    }),
+
+  getPurchases: (clerkToken?: string) =>
+    fetchAPI<{ purchases: any[] }>('/payments/purchases', { clerkToken }),
 };
 
 export { fetchAPI };

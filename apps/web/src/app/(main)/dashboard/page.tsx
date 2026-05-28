@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Trophy, ShoppingBag, User, BookOpen, Zap, Target, Flame, TrendingUp, Award, Gamepad2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,34 @@ import { Button } from '@/components/ui/button';
 import { ProgressBar } from '@/components/ui/progress';
 import { useUserStore, calculateLevel, xpToNextLevel, progressToNextLevel } from '@/stores/user-store';
 import { useAuthStore } from '@/stores/auth-store';
+import { useToast } from '@/components/ui/toast';
+
+// Separate component for payment success handling (requires Suspense for useSearchParams)
+function PaymentSuccessHandler() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { showSuccess } = useToast();
+  const { fetchStats } = useUserStore();
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    const coursePurchased = searchParams.get('course_purchased');
+    
+    if (paymentStatus === 'success' && coursePurchased) {
+      showSuccess(
+        '¡Compra exitosa! 🎉',
+        'Ahora tienes acceso completo al curso.'
+      );
+      router.replace('/dashboard');
+      fetchStats();
+    } else if (paymentStatus === 'cancelled') {
+      // Just clean the URL, no toast needed for cancellation
+      router.replace('/dashboard');
+    }
+  }, [searchParams, router, showSuccess, fetchStats]);
+
+  return null;
+}
 
 // Progress Ring Component
 function ProgressRing({ progress, size = 120, strokeWidth = 10 }: { progress: number; size?: number; strokeWidth?: number }) {
@@ -161,6 +190,10 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Stripe payment success handler - wrapped in Suspense for useSearchParams */}
+      <Suspense fallback={null}>
+        <PaymentSuccessHandler />
+      </Suspense>
       <header className="bg-white shadow-card sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">

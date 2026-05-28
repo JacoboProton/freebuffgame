@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { JacMascot, ConfettiCelebration, XPPopup } from '@/components/jac-mascot';
 import { lessonsAPI, userAPI } from '@/lib/api-client';
 import { useUserStore } from '@/stores/user-store';
+import { useToast, useLessonCompletion } from '@/components/ui/toast';
 
 interface LessonContent {
   question?: string;
@@ -54,7 +55,11 @@ export default function LessonPage() {
   const [showXP, setShowXP] = useState(false);
   const [xpAmount, setXpAmount] = useState(0);
   const [leveledUp, setLeveledUp] = useState(false);
+  const [courseCompleted, setCourseCompleted] = useState(false);
   const [startTime] = useState(Date.now());
+  
+  // Toast notifications
+  const { showLessonComplete, showCourseComplete, showLevelUp } = useLessonCompletion();
 
   // Fetch lesson from API
   useEffect(() => {
@@ -181,11 +186,20 @@ export default function LessonPage() {
         });
       }
 
-      if (response.leveledUp) {
+      if (response.leveledUp && response.newLevel) {
         setLeveledUp(true);
         setJacMood('celebrating');
         setJacMessage(`¡LEVEL UP! Ahora eres nivel ${response.newLevel} 🎊`);
         setShowConfetti(true);
+        showLevelUp(response.newLevel);
+      }
+
+      if (response.courseCompleted) {
+        setCourseCompleted(true);
+        showCourseComplete(lesson?.courseTitle || 'este curso');
+        setShowConfetti(true);
+      } else if (response.progress?.completed) {
+        showLessonComplete(lesson?.title || 'Lección', response.progress.xpEarned ?? lesson?.xpReward ?? 0);
       }
     } catch (err) {
       console.error('Error submitting progress:', err);

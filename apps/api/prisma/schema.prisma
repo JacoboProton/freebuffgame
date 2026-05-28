@@ -30,6 +30,7 @@ model User {
   achievements   UserAchievement[]
   gameScores     GameScore[]
   purchases      Purchase[]
+  coursePurchases CoursePurchase[]
   friends        Friend[]          @relation("UserFriends")
   inverseFriends Friend[]          @relation("FriendOf")
 }
@@ -43,11 +44,31 @@ model Course {
   difficulty     String   @default("beginner")
   estimatedHours Int      @default(1)
   isPublished    Boolean  @default(false)
+  // PRO features
+  isPro          Boolean  @default(false)
+  price          Int      @default(0) // Price in cents (0 = free)
+  requiredLevel  Int      @default(0) // Minimum level required to access (0 = any)
+  stripePriceId  String?  // Stripe price ID for payments
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   modules     Module[]
   enrollments Enrollment[]
+  purchases   CoursePurchase[]
+}
+
+model CoursePurchase {
+  id              String   @id @default(cuid())
+  userId          String
+  courseId        String
+  stripePaymentId String?
+  amountPaid      Int      @default(0)
+  purchasedAt     DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
 }
 
 model Module {

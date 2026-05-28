@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { authenticate, AuthRequest } from '../middlewares/auth.js';
 import { SubmitProgressSchema } from '@duobijac/shared';
 import { AppError } from '../middlewares/error.js';
+import { sendCourseCompletionEmail, isEmailConfigured } from '../services/email.js';
 
 export const lessonsRouter = Router();
 
@@ -140,6 +141,9 @@ lessonsRouter.post('/:id/progress', authenticate, async (req: AuthRequest, res, 
       // Check achievements
       await checkAchievements(req.user!.id);
 
+      // Check if course is now complete (all lessons done)
+      const isCourseComplete = await checkCourseCompletion(req.user!.id, lesson.module.courseId);
+
       res.json({
         status: 'success',
         data: {
@@ -155,6 +159,7 @@ lessonsRouter.post('/:id/progress', authenticate, async (req: AuthRequest, res, 
           },
           leveledUp,
           newLevel: leveledUp ? newLevel : undefined,
+          courseCompleted: isCourseComplete,
         },
       });
     } else {
@@ -224,4 +229,104 @@ async function checkAchievements(userId: string) {
       }
     }
   }
+}
+
+// Helper function to check if course is complete
+async function checkCourseCompletion(userId: string, courseId: string): Promise<boolean> {
+  // Get all lessons in the course
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+    include: {
+      modules: {
+        include: { lessons: true },
+      },
+    },
+  });
+
+  if (!course) return false;
+
+  const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
+  
+  // Get user's completed lessons for this course
+  const completedProgress = await prisma.lessonProgress.count({
+    where: {
+      userId,
+      completed: true,
+      lesson: {
+        module: { courseId },
+      },
+    },
+  });
+
+  const isComplete = completedProgress >= totalLessons;    // If course is complete, update enrollment and send email
+    if (isComplete) {
+      // Update enrollment to completed
+      await prisma.enrollment.updateMany({
+        where: {
+          userId,
+          courseId,
+        },
+        data: {
+          completed: true,
+        },
+      });
+
+    // Get user and course stats for email
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    
+    if (user && isEmailConfigured()) {
+      // Get total time spent
+      const lessonProgressList = await prisma.lessonProgress.findMany({
+        where: { userId, lesson: { module: { courseId } } },
+      });
+      
+      const totalTimeSpent = lessonProgressList.reduce((acc, p) => acc + p.timeSpent, 0);
+      const totalXP = lessonProgressList.reduce((acc, p) => acc + p.xpEarned, 0);
+      
+      const hours = Math.floor(totalTimeSpent / 3600);
+      const minutes = Math.floor((totalTimeSpent % 3600) / 60);
+      const timeStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
+      sendCourseCompletionEmail({
+        userName: user.name,
+        userEmail: user.email,
+        courseTitle: course.title,
+        completedLessons: totalLessons,
+        totalLessons,
+        totalXP,
+        completionDate: new Date().toLocaleDateString('es-ES', { 
+          year: 'numeric', month: 'long', day: 'numeric' 
+        }),
+        totalTimeSpent: timeStr,
+      }).catch(err => console.error('Failed to send completion email:', err));
+    }
+
+    // Check course completion achievements
+    const completedCourses = await prisma.enrollment.count({
+      where: { userId, completed: true },
+    });
+
+    const courseAchievements = [
+      { key: 'course_complete', requirement: completedCourses >= 1 },
+      { key: 'course_3_complete', requirement: completedCourses >= 3 },
+    ];
+
+    const userAchievements = await prisma.userAchievement.findMany({
+      where: { userId },
+      include: { achievement: true },
+    });
+    const unlockedKeys = new Set(userAchievements.map((ua) => ua.achievement.key));
+
+    for (const ach of courseAchievements) {
+      if (!unlockedKeys.has(ach.key) && ach.requirement) {
+        const dbAchievement = await prisma.achievement.findUnique({ where: { key: ach.key } });
+        if (dbAchievement) {
+          await prisma.userAchievement.create({ data: { userId, achievementId: dbAchievement.id } });
+          await prisma.user.update({ where: { id: userId }, data: { xp: { increment: dbAchievement.xpReward } } });
+        }
+      }
+    }
+  }
+
+  return isComplete;
 }

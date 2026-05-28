@@ -37,6 +37,8 @@ coursesRouter.get('/', async (req, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
 
+    // Get user level if authenticated (from header or just default)
+    // For list view, we show PRO status but don't filter by level
     const coursesWithStats = courses.map((course) => ({
       id: course.id,
       title: course.title,
@@ -45,6 +47,9 @@ coursesRouter.get('/', async (req, res, next) => {
       imageUrl: course.imageUrl,
       difficulty: course.difficulty,
       estimatedHours: course.estimatedHours,
+      isPro: course.isPro,
+      price: course.price,
+      requiredLevel: course.requiredLevel,
       modulesCount: course.modules.length,
       lessonsCount: course.modules.reduce((acc, m) => acc + m.lessons.length, 0),
       studentsCount: course._count.enrollments,
@@ -56,7 +61,7 @@ coursesRouter.get('/', async (req, res, next) => {
   }
 });
 
-// Get course by ID with modules and lessons
+// Get course by ID with modules and lessons (public info, protected content)
 coursesRouter.get('/:id', async (req, res, next) => {
   try {
     const course = await prisma.course.findUnique({
@@ -84,7 +89,77 @@ coursesRouter.get('/:id', async (req, res, next) => {
       throw new AppError('Curso no encontrado', 404);
     }
 
-    res.json({ status: 'success', data: { course } });
+    // Base response - public info
+    const response: any = {
+      course: {
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        category: course.category,
+        imageUrl: course.imageUrl,
+        difficulty: course.difficulty,
+        estimatedHours: course.estimatedHours,
+        isPro: course.isPro,
+        price: course.price,
+        requiredLevel: course.requiredLevel,
+      },
+    };
+
+    // If user is authenticated, check access for full content
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { id: string };
+
+        const user = await prisma.user.findUnique({
+          where: { id: decoded.id },
+          select: { level: true },
+        });
+
+        // Get purchase status
+        const purchase = await prisma.coursePurchase.findUnique({
+          where: {
+            userId_courseId: {
+              userId: decoded.id,
+              courseId: course.id,
+            },
+          },
+        });
+
+        const hasAccess = !course.isPro || !!purchase || (course.requiredLevel > 0 && user && user.level >= course.requiredLevel);
+
+        response.access = {
+          hasAccess,
+          needsPurchase: course.isPro && !purchase,
+          userLevel: user?.level || 1,
+          requiredLevel: course.requiredLevel,
+          isPro: course.isPro,
+          price: course.price,
+        };
+
+        // Only include full content (modules/lessons) if user has access
+        if (hasAccess) {
+          response.course.modules = course.modules;
+        } else {
+          // Show limited preview
+          response.course.modules = course.modules.slice(0, 1).map((m: any) => ({
+            ...m,
+            lessons: m.lessons.slice(0, 1), // Only first lesson preview
+          }));
+          response.previewOnly = true;
+        }
+      } catch (err) {
+        // Invalid token, just show public info
+        response.access = { hasAccess: !course.isPro, needsPurchase: course.isPro };
+      }
+    } else {
+      // Not authenticated
+      response.access = { hasAccess: !course.isPro, needsPurchase: course.isPro };
+    }
+
+    res.json({ status: 'success', data: response });
   } catch (err) {
     next(err);
   }
