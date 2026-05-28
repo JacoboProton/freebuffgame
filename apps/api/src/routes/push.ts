@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authenticate, AuthRequest } from '../middlewares/auth.js';
 import { prisma } from '../lib/prisma.js';
+import { getVapidPublicKey } from '../services/push-notifications.js';
 
 const router = Router();
 
@@ -51,12 +52,6 @@ router.post('/unsubscribe', authenticate, async (req: AuthRequest, res) => {
       return;
     }
 
-    // Remove from memory
-    const sub = pushSubscriptions.get(endpoint);
-    if (sub && sub.userId === userId) {
-      pushSubscriptions.delete(endpoint);
-    }
-
     // Remove from database
     await prisma.pushSubscription.deleteMany({
       where: { endpoint, userId }
@@ -87,6 +82,16 @@ router.get('/status', authenticate, async (req: AuthRequest, res) => {
     console.error('[Push] Status error:', error);
     res.status(500).json({ error: 'Failed to get status' });
   }
+});
+
+// Get VAPID public key for frontend (no auth required)
+router.get('/vapid-public-key', (_req, res) => {
+  const key = getVapidPublicKey();
+  if (!key) {
+    res.status(503).json({ error: 'Push notifications not configured' });
+    return;
+  }
+  res.json({ key });
 });
 
 // Send push notification to a user (internal API)

@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { sendPushNotification } from './push-notifications.js';
 
 interface Connection {
   res: Response;
@@ -63,17 +64,33 @@ export function notifyUser(userId: string, notification: {
   createdAt: Date;
 }): void {
   const connections = userConnections.get(userId);
-  if (!connections || connections.size === 0) {
+  const hasActiveSSEConnection = connections && connections.size > 0;
+  
+  // Send via SSE if user has active connections
+  if (hasActiveSSEConnection) {
+    const message = formatSSEMessage('notification', notification);
+    for (const [res] of connections!) {
+      if (res.writable) {
+        res.write(message);
+      }
+    }
+    // If user has SSE connection, they already get real-time toast - no need for duplicate push
     return;
   }
-
-  const message = formatSSEMessage('notification', notification);
   
-  for (const [res] of connections) {
-    if (res.writable) {
-      res.write(message);
-    }
-  }
+  // Only send web push if user is NOT connected via SSE (no duplicate notifications)
+  sendPushNotification(userId, {
+    title: notification.title,
+    body: notification.message,
+    tag: notification.type,
+    data: {
+      ...notification.data,
+      notificationId: notification.id,
+    },
+  }).catch((err) => {
+    // Silent failure - notification delivery was attempted
+    console.log(`[Push] Push notification could not be sent: ${err}`);
+  });
 }
 
 // Broadcast to all connected users (for system announcements)

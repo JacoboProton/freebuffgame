@@ -2,7 +2,33 @@
 // Note: In production, use environment variables for VAPID keys
 // Generate VAPID keys once: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
-export const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+// First try environment variable, then fallback to fetching from API
+let vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+let vapidKeyCached = false;
+
+// Fetch VAPID public key from API (if not set via env)
+export async function fetchVapidPublicKey(): Promise<string> {
+  if (vapidKeyCached && vapidPublicKey) return vapidPublicKey;
+  
+  if (vapidPublicKey) {
+    vapidKeyCached = true;
+    return vapidPublicKey;
+  }
+  
+  try {
+    const res = await fetch('/api/push/vapid-public-key');
+    if (res.ok) {
+      const data = await res.json();
+      vapidPublicKey = data.key || '';
+      vapidKeyCached = true;
+    }
+  } catch (err) {
+    console.error('[Push] Failed to fetch VAPID key:', err);
+  }
+  return vapidPublicKey;
+}
+
+export const VAPID_PUBLIC_KEY = vapidPublicKey;
 
 // Check if push notifications are supported
 export function isPushSupported(): boolean {
@@ -39,7 +65,9 @@ export function urlBase64ToUint8Array(base64String: string): BufferSource {
 export async function subscribeToPush(
   registration: ServiceWorkerRegistration
 ): Promise<PushSubscription | null> {
-  if (!VAPID_PUBLIC_KEY) {
+  // Fetch VAPID key if not available
+  const vapidKey = await fetchVapidPublicKey();
+  if (!vapidKey) {
     console.error('[Push] VAPID_PUBLIC_KEY not configured');
     return null;
   }
@@ -53,7 +81,7 @@ export async function subscribeToPush(
 
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      applicationServerKey: urlBase64ToUint8Array(vapidKey)
     });
 
     console.log('[Push] Subscribed successfully:', subscription.endpoint);
