@@ -125,12 +125,13 @@ async function main() {
     category: string,
     difficulty: string,
     estimatedHours: number,
+    imageUrl: string,
     options: { isPro?: boolean; price?: number; requiredLevel?: number } = {}
   ) => {
     return prisma.course.upsert({
       where: { id },
-      update: { title, description, category, difficulty, estimatedHours, isPublished: true, ...options },
-      create: { id, title, description, category, difficulty, estimatedHours, isPublished: true, ...options },
+      update: { title, description, category, difficulty, estimatedHours, imageUrl, isPublished: true, ...options },
+      create: { id, title, description, category, difficulty, estimatedHours, imageUrl, isPublished: true, ...options },
     });
   };
 
@@ -162,7 +163,8 @@ async function main() {
     'Aprende los fundamentos de JavaScript, el lenguaje de programación más popular del mundo. Desde variables hasta funciones, domina la base del desarrollo web.',
     'Programación',
     'beginner',
-    15 // Increased from 10
+    15,
+    'https://placehold.co/600x400/2563eb/white?text=JavaScript'
   );
 
   // Module 1: Introducción
@@ -293,7 +295,8 @@ async function main() {
     'Descubre Python, el lenguaje más fácil de aprender y uno de los más potentes. Ideal para automatización, análisis de datos e inteligencia artificial.',
     'Programación',
     'beginner',
-    18 // Increased from 12
+    18,
+    'https://placehold.co/600x400/357214/white?text=Python'
   );
 
   // Module 1: Primeros Pasos
@@ -401,7 +404,8 @@ async function main() {
     'Aprende a crear páginas web stunning. HTML para estructura y CSS para diseño. El primer paso para convertirte en desarrollador web.',
     'Programación',
     'beginner',
-    12 // Increased from 8
+    12,
+    'https://placehold.co/600x400/e65100/white?text=HTML+%26+CSS'
   );
 
   // Module 1: Introducción a HTML
@@ -506,7 +510,8 @@ async function main() {
     'Refresca tus habilidades matemáticas fundamentales. Operaciones básicas, fracciones, porcentajes y más. La base para todo lo demás.',
     'Matemáticas',
     'beginner',
-    10 // Increased from 6
+    10,
+    'https://placehold.co/600x400/7b1fa2/white?text=Matem%C3%A1ticas'
   );
 
   // Module 1: Operaciones Básicas
@@ -628,7 +633,8 @@ async function main() {
     'Domina las ecuaciones y expresiones algebraicas. Aprende a resolver problemas del mundo real usando el lenguaje de las matemáticas.',
     'Matemáticas',
     'intermediate',
-    15 // Increased from 10
+    15,
+    'https://placehold.co/600x400/00838f/white?text=%C3%81lgebra'
   );
 
   // Module 1: Expresiones Algebraicas
@@ -755,7 +761,8 @@ async function main() {
     'Tu primer paso para dominar el inglés. Vocabulario esencial, frases útiles y gramática básica para comunicarte desde el primer día.',
     'Idiomas',
     'beginner',
-    20 // Increased from 15
+    20,
+    'https://placehold.co/600x400/1565c0/white?text=Ingl%C3%A9s'
   );
 
   // Module 1: Saludos y Presentaciones
@@ -877,7 +884,8 @@ async function main() {
     'Mejora tu inglés con gramática más avanzada, vocabulario profesional y frases idiomáticas. Prepárate para conversaciones reales.',
     'Idiomas',
     'intermediate',
-    25 // Increased from 18
+    25,
+    'https://placehold.co/600x400/0d47a1/white?text=Ingl%C3%A9s+Inter'
   );
 
   // Module 1: Tiempos Verbales
@@ -982,7 +990,8 @@ async function main() {
     'Aprende los conceptos básicos de la IA, machine learning y redes neuronales. Ideal para principiantes curious about AI.',
     'IA & Tech',
     'beginner',
-    12 // Increased from 8
+    12,
+    'https://placehold.co/600x400/6a1b9a/white?text=IA+Fundamentos'
   );
 
   // Module 1: ¿Qué es la IA?
@@ -1082,7 +1091,8 @@ async function main() {
     'Aprende a gestionar tu dinero, crear presupuestos y hacer inversiones inteligentes desde cero.',
     'Finanzas',
     'beginner',
-    10 // Increased from 6
+    10,
+    'https://placehold.co/600x400/2e7d32/white?text=Finanzas'
   );
 
   // Module 1: Presupuesto Básico
@@ -1191,6 +1201,7 @@ async function main() {
     'Programación',
     'advanced',
     20,
+    'https://placehold.co/600x400/1a237e/white?text=JS+Avanzado+PRO',
     { isPro: true, price: 2999, requiredLevel: 5 }
   );
 
@@ -1234,6 +1245,7 @@ async function main() {
     'Programación',
     'advanced',
     30,
+    'https://placehold.co/600x400/00acc1/white?text=React+Mastery',
     { isPro: true, price: 4999, requiredLevel: 8 }
   );
 
@@ -1277,6 +1289,7 @@ async function main() {
     'Finanzas',
     'intermediate',
     15,
+    'https://placehold.co/600x400/388e3c/white?text=Trading+PRO',
     { isPro: true, price: 3999, requiredLevel: 3 }
   );
 
@@ -1313,6 +1326,7 @@ async function main() {
     'Programación',
     'advanced',
     25,
+    'https://placehold.co/600x400/1b5e20/white?text=Python+Mastery',
     { isPro: true, price: 3499, requiredLevel: 6 }
   );
 
@@ -1354,6 +1368,7 @@ async function main() {
     'IA & Tech',
     'advanced',
     30,
+    'https://placehold.co/600x400/bf360c/white?text=DevOps+PRO',
     { isPro: true, price: 5999, requiredLevel: 7 }
   );
 
@@ -1397,6 +1412,7 @@ async function main() {
     'IA & Tech',
     'intermediate',
     25,
+    'https://placehold.co/600x400/880e4f/white?text=Data+Science',
     { isPro: true, price: 4499, requiredLevel: 5 }
   );
 
@@ -1433,6 +1449,7 @@ async function main() {
     'Programación',
     'intermediate',
     20,
+    'https://placehold.co/600x400/0a3d62/white?text=SQL+Mastery',
     { isPro: true, price: 2999, requiredLevel: 4 }
   );
 
