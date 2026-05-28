@@ -212,3 +212,70 @@ model Friend {
 
   @@unique([userId, friendId])
 }
+
+// ===========================================
+// CONTENT MODERATION
+// ===========================================
+
+model ContentReport {
+  id          String   @id @default(cuid())
+  reporterId  String
+  targetType  String   // 'course' | 'lesson' | 'module' | 'user'
+  targetId    String
+  reason      String   // 'spam' | 'inappropriate' | 'harassment' | 'other'
+  description String?
+  status      String   @default('pending') // 'pending' | 'reviewed' | 'dismissed' | 'action_taken'
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  actionTaken String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+}
+
+// ===========================================
+// SYSTEM SETTINGS
+// ===========================================
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default('string') // 'string' | 'number' | 'boolean' | 'json'
+  category  String   @default('general') // 'general' | 'features' | 'limits' | 'content'
+  label     String
+  description String?
+  isPublic  Boolean  @default(false) // If true, visible to users
+  updatedAt DateTime @updatedAt
+}
+
+// ===========================================
+// NOTIFICATIONS
+// ===========================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String?
+  type      String   // 'system' | 'achievement' | 'course' | 'streak' | 'broadcast'
+  title     String
+  message   String
+  data      Json?
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NotificationTemplate {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  title     String
+  message   String
+  type      String   // 'system' | 'achievement' | 'course' | 'streak' | 'broadcast'
+  variables Json?    // Array of variable names that can be replaced
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -3,20 +3,24 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Users, BookOpen, Trophy, TrendingUp, Search, 
-  ChevronRight, ChevronDown, Plus, Edit2, Trash2,
-  BarChart3, GraduationCap, DollarSign, Crown
+  Users, BookOpen, ChevronRight, ChevronDown, Plus, Edit2, Trash2,
+  BarChart3, Crown, TrendingUp, GraduationCap, Trophy, DollarSign,
+  Shield, Settings, Bell
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchAPI } from '@/lib/api-client';
 import { CourseModal } from '@/components/admin/course-modal';
 import { ModuleModal } from '@/components/admin/module-modal';
 import { LessonModal } from '@/components/admin/lesson-modal';
 import { DeleteConfirm } from '@/components/admin/delete-confirm';
+import { UserManagement } from '@/components/admin/user-management';
+import { Analytics } from '@/components/admin/analytics';
+import { ContentModeration } from '@/components/admin/content-moderation';
+import { SystemSettings } from '@/components/admin/system-settings';
+import { NotificationManagement } from '@/components/admin/notification-management';
 
 interface DashboardStats {
   totalUsers: number;
@@ -75,10 +79,8 @@ interface AdminStats {
 
 export default function AdminPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userSearch, setUserSearch] = useState('');
   const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -108,9 +110,6 @@ export default function AdminPage() {
       const statsData = await fetchAPI<{ stats: DashboardStats }>('/admin/stats');
       setStats(statsData.stats);
 
-      const usersData = await fetchAPI<{ users: User[] }>('/admin/users');
-      setUsers(usersData.users);
-
       const coursesData = await fetchAPI<{ courses: Course[] }>('/admin/courses');
       setCourses(coursesData.courses);
 
@@ -120,11 +119,6 @@ export default function AdminPage() {
       setLoading(false);
     }
   };
-
-  const filteredUsers = users.filter(u => 
-    u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
-    u.email.toLowerCase().includes(userSearch.toLowerCase())
-  );
 
   const toggleCourseExpand = (courseId: string) => {
     setExpandedCourse(expandedCourse === courseId ? null : courseId);
@@ -232,8 +226,20 @@ export default function AdminPage() {
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" /> Usuarios
             </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <TrendingUp className="w-4 h-4" /> Analytics
+            </TabsTrigger>
             <TabsTrigger value="courses" className="gap-2">
               <BookOpen className="w-4 h-4" /> Cursos
+            </TabsTrigger>
+            <TabsTrigger value="moderation" className="gap-2">
+              <Shield className="w-4 h-4" /> Moderación
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-2">
+              <Settings className="w-4 h-4" /> Settings
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="gap-2">
+              <Bell className="w-4 h-4" /> Notificaciones
             </TabsTrigger>
           </TabsList>
 
@@ -364,72 +370,12 @@ export default function AdminPage() {
 
           {/* Users Tab */}
           <TabsContent value="users">
-            <Card className="mb-6">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <Input
-                      placeholder="Buscar usuarios por nombre o email..."
-                      value={userSearch}
-                      onChange={(e) => setUserSearch(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Badge variant="secondary">{filteredUsers.length} usuarios</Badge>
-                </div>
-              </CardContent>
-            </Card>
+            <UserManagement />
+          </TabsContent>
 
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
-                      <tr>
-                        <th className="text-left p-4 font-semibold">Usuario</th>
-                        <th className="text-left p-4 font-semibold">Nivel</th>
-                        <th className="text-left p-4 font-semibold">XP</th>
-                        <th className="text-left p-4 font-semibold">Racha</th>
-                        <th className="text-left p-4 font-semibold">Cursos</th>
-                        <th className="text-left p-4 font-semibold">Logros</th>
-                        <th className="text-left p-4 font-semibold">Fecha</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredUsers.map((user) => (
-                        <tr key={user.id} className="border-b hover:bg-gray-50">
-                          <td className="p-4">
-                            <div>
-                              <p className="font-medium">{user.name}</p>
-                              <p className="text-sm text-gray-500">{user.email}</p>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <Badge variant="secondary">Nivel {user.level}</Badge>
-                          </td>
-                          <td className="p-4">
-                            <span className="text-yellow-600 font-medium">{user.xp.toLocaleString()} XP</span>
-                          </td>
-                          <td className="p-4">
-                            <span className="text-orange-500">🔥 {user.currentStreak}</span>
-                          </td>
-                          <td className="p-4">
-                            {user._count.enrollments}
-                          </td>
-                          <td className="p-4">
-                            {user._count.achievements}
-                          </td>
-                          <td className="p-4 text-sm text-gray-500">
-                            {new Date(user.createdAt).toLocaleDateString('es-ES')}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Analytics Tab */}
+          <TabsContent value="analytics">
+            <Analytics />
           </TabsContent>
 
           {/* Courses Tab */}
@@ -566,6 +512,21 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Moderation Tab */}
+          <TabsContent value="moderation">
+            <ContentModeration />
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <SystemSettings />
+          </TabsContent>
+
+          {/* Notifications Tab */}
+          <TabsContent value="notifications">
+            <NotificationManagement />
           </TabsContent>
         </Tabs>
       </main>

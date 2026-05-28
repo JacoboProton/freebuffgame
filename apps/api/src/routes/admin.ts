@@ -576,3 +576,409 @@ adminRouter.get('/analytics/users', async (req: AuthRequest, res, next) => {
     next(err);
   }
 });
+
+// ===========================================
+// CONTENT MODERATION
+// ===========================================
+
+adminRouter.get('/moderation/reports', async (req: AuthRequest, res, next) => {
+  try {
+    const { status = 'pending', page = 1, limit = 20 } = req.query;
+
+    const where: any = {};
+    if (status !== 'all') {
+      where.status = String(status);
+    }
+
+    const [reports, total] = await Promise.all([
+      prisma.contentReport.findMany({
+        where,
+        include: {
+          reporter: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
+      }),
+      prisma.contentReport.count({ where }),
+    ]);
+
+    res.json({
+      status: 'success',
+      data: {
+        reports,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          pages: Math.ceil(total / Number(limit)),
+        },
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch('/moderation/reports/:id', async (req: AuthRequest, res, next) => {
+  try {
+    const { status, actionTaken } = req.body;
+
+    const updateData: any = {
+      status,
+      reviewedBy: req.user!.id,
+      reviewedAt: new Date(),
+    };
+    if (actionTaken) {
+      updateData.actionTaken = actionTaken;
+    }
+
+    const report = await prisma.contentReport.update({
+      where: { id: req.params.id },
+      data: updateData,
+    });
+
+    res.json({ status: 'success', data: { report } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete('/moderation/reports/:id', async (req: AuthRequest, res, next) => {
+  try {
+    await prisma.contentReport.delete({
+      where: { id: req.params.id },
+    });
+
+    res.json({ status: 'success', message: 'Reporte eliminado' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post('/moderation/reports', async (req: AuthRequest, res, next) => {
+  try {
+    const { targetType, targetId, reason, description } = req.body;
+
+    const report = await prisma.contentReport.create({
+      data: {
+        reporterId: req.user!.id,
+        targetType,
+        targetId,
+        reason,
+        description,
+        status: 'pending',
+      },
+    });
+
+    res.status(201).json({ status: 'success', data: { report } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ===========================================
+// SYSTEM SETTINGS
+// ===========================================
+
+adminRouter.get('/settings', async (req: AuthRequest, res, next) => {
+  try {
+    const { category } = req.query;
+
+    const where: any = {};
+    if (category) {
+      where.category = String(category);
+    }
+
+    const settings = await prisma.systemSetting.findMany({
+      where,
+      orderBy: [{ category: 'asc' }, { key: 'asc' }],
+    });
+
+    res.json({ status: 'success', data: { settings } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.get('/settings/public', async (req: AuthRequest, res, next) => {
+  try {
+    const settings = await prisma.systemSetting.findMany({
+      where: { isPublic: true },
+    });
+
+    // Convert to key-value object
+    const settingsObj: Record<string, any> = {};
+    settings.forEach((s) => {
+      if (s.type === 'number') settingsObj[s.key] = Number(s.value);
+      else if (s.type === 'boolean') settingsObj[s.key] = s.value === 'true';
+      else if (s.type === 'json') settingsObj[s.key] = JSON.parse(s.value);
+      else settingsObj[s.key] = s.value;
+    });
+
+    res.json({ status: 'success', data: settingsObj });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.put('/settings/:key', async (req: AuthRequest, res, next) => {
+  try {
+    const { value, type, category, label, description, isPublic } = req.body;
+
+    const setting = await prisma.systemSetting.upsert({
+      where: { key: req.params.key },
+      create: {
+        key: req.params.key,
+        value,
+        type: type || 'string',
+        category: category || 'general',
+        label: label || req.params.key,
+        description,
+        isPublic: isPublic || false,
+      },
+      update: {
+        value,
+        ...(type && { type }),
+        ...(category && { category }),
+        ...(label && { label }),
+        ...(description !== undefined && { description }),
+        ...(isPublic !== undefined && { isPublic }),
+      },
+    });
+
+    res.json({ status: 'success', data: { setting } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete('/settings/:key', async (req: AuthRequest, res, next) => {
+  try {
+    await prisma.systemSetting.delete({
+      where: { key: req.params.key },
+    });
+
+    res.json({ status: 'success', message: 'Configuración eliminada' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ===========================================
+// NOTIFICATIONS
+// ===========================================
+
+adminRouter.get('/notifications', async (req: AuthRequest, res, next) => {
+  try {
+    const { type, page = 1, limit = 50 } = req.query;
+
+    const where: any = {};
+    if (type) where.type = String(type);
+
+    const [notifications, total] = await Promise.all([
+      prisma.notification.findMany({
+        where,
+        include: { user: { select: { id: true, name: true, email: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
+      }),
+      prisma.notification.count({ where }),
+    ]);
+
+    res.json({
+      status: 'success',
+      data: {
+        notifications,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          pages: Math.ceil(total / Number(limit)),
+        },
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post('/notifications', async (req: AuthRequest, res, next) => {
+  try {
+    const { userId, type, title, message, data } = req.body;
+
+    const notification = await prisma.notification.create({
+      data: {
+        userId: userId || null,
+        type: type || 'broadcast',
+        title,
+        message,
+        data: data || null,
+      },
+    });
+
+    res.status(201).json({ status: 'success', data: { notification } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post('/notifications/broadcast', async (req: AuthRequest, res, next) => {
+  try {
+    const { title, message, data } = req.body;
+
+    // Get all user IDs
+    const users = await prisma.user.findMany({
+      select: { id: true },
+      where: { role: 'user' },
+    });
+
+    // Create notifications for all users
+    const notifications = await prisma.notification.createMany({
+      data: users.map((user) => ({
+        userId: user.id,
+        type: 'broadcast',
+        title,
+        message,
+        data: data || null,
+      })),
+    });
+
+    res.status(201).json({
+      status: 'success',
+      data: {
+        count: notifications.count,
+        message: `Notificación enviada a ${notifications.count} usuarios`,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch('/notifications/:id/read', async (req: AuthRequest, res, next) => {
+  try {
+    const notification = await prisma.notification.update({
+      where: { id: req.params.id },
+      data: {
+        isRead: true,
+        readAt: new Date(),
+      },
+    });
+
+    res.json({ status: 'success', data: { notification } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch('/notifications/read-all', async (req: AuthRequest, res, next) => {
+  try {
+    const result = await prisma.notification.updateMany({
+      where: { isRead: false },
+      data: {
+        isRead: true,
+        readAt: new Date(),
+      },
+    });
+
+    res.json({ status: 'success', data: { count: result.count } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete('/notifications/:id', async (req: AuthRequest, res, next) => {
+  try {
+    await prisma.notification.delete({
+      where: { id: req.params.id },
+    });
+
+    res.json({ status: 'success', message: 'Notificación eliminada' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete('/notifications/clear-all', async (req: AuthRequest, res, next) => {
+  try {
+    const result = await prisma.notification.deleteMany({
+      where: { isRead: true },
+    });
+
+    res.json({ status: 'success', data: { count: result.count } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ===========================================
+// NOTIFICATION TEMPLATES
+// ===========================================
+
+adminRouter.get('/notifications/templates', async (req: AuthRequest, res, next) => {
+  try {
+    const templates = await prisma.notificationTemplate.findMany({
+      orderBy: { key: 'asc' },
+    });
+
+    res.json({ status: 'success', data: { templates } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post('/notifications/templates', async (req: AuthRequest, res, next) => {
+  try {
+    const { key, title, message, type, variables, isActive } = req.body;
+
+    const template = await prisma.notificationTemplate.create({
+      data: {
+        key,
+        title,
+        message,
+        type: type || 'system',
+        variables: variables || [],
+        isActive: isActive !== false,
+      },
+    });
+
+    res.status(201).json({ status: 'success', data: { template } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.put('/notifications/templates/:key', async (req: AuthRequest, res, next) => {
+  try {
+    const { title, message, type, variables, isActive } = req.body;
+
+    const template = await prisma.notificationTemplate.update({
+      where: { key: req.params.key },
+      data: {
+        ...(title && { title }),
+        ...(message && { message }),
+        ...(type && { type }),
+        ...(variables && { variables }),
+        ...(isActive !== undefined && { isActive }),
+      },
+    });
+
+    res.json({ status: 'success', data: { template } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete('/notifications/templates/:key', async (req: AuthRequest, res, next) => {
+  try {
+    await prisma.notificationTemplate.delete({
+      where: { key: req.params.key },
+    });
+
+    res.json({ status: 'success', message: 'Plantilla eliminada' });
+  } catch (err) {
+    next(err);
+  }
+});
