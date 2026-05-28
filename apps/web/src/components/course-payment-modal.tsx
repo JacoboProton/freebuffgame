@@ -33,6 +33,7 @@ export function CoursePaymentModal({
   onSuccess,
 }: CoursePaymentModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [priceData, setPriceData] = useState<{
     isPurchased: boolean;
@@ -115,9 +116,17 @@ export function CoursePaymentModal({
       if (checkoutData?.checkoutUrl) {
         const checkoutUrl = checkoutData.checkoutUrl;
         console.log('[CHECKOUT] Redirecting to:', checkoutUrl);
+        // Show redirecting state before opening
+        setIsRedirecting(true);
         // Open Stripe checkout in a new tab (avoids popup blockers)
-        window.open(checkoutUrl, '_blank');
-        onClose();
+        const opened = window.open(checkoutUrl, '_blank');
+        if (opened) {
+          showSuccess('Redirigiendo a Stripe...');
+          onClose();
+        } else {
+          setError('No se pudo abrir Stripe. Permite ventanas emergentes para este sitio e intenta de nuevo.');
+          setIsRedirecting(false);
+        }
       } else {
         console.log('[CHECKOUT] No checkoutUrl in response:', checkoutData);
         setError('No se pudo obtener la página de pago. Intenta de nuevo.');
@@ -129,6 +138,7 @@ export function CoursePaymentModal({
       showError(message);
     } finally {
       setIsLoading(false);
+      setIsRedirecting(false);
     }
   };
 
@@ -281,14 +291,23 @@ export function CoursePaymentModal({
                   {!isPurchased && !(priceData?.isPurchased) && (
                     <Button
                       onClick={handlePurchase}
-                      isLoading={isLoading}
-                      disabled={priceData ? !priceData.meetsLevelRequirement : ((course.requiredLevel || 0) > 0 && userLevel < (course.requiredLevel || 0))}
+                      isLoading={isLoading || isRedirecting}
+                      disabled={isLoading || isRedirecting || (priceData ? !priceData.meetsLevelRequirement : ((course.requiredLevel || 0) > 0 && userLevel < (course.requiredLevel || 0)))}
                       className="flex-1 gap-2"
                       style={{
                         background: 'linear-gradient(to right, #f59e0b, #ea580c)',
                       }}
                     >
-                      {(priceData?.price || course.price || 0) > 0 ? (
+                      {(isLoading || isRedirecting) ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                            className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                          />
+                          {isRedirecting ? 'Abriendo Stripe...' : 'Procesando...'}
+                        </>
+                      ) : (priceData?.price || course.price || 0) > 0 ? (
                         <>
                           <Crown className="w-4 h-4" />
                           Desbloquear por ${((priceData?.price || course.price || 0) / 100).toFixed(2)}
