@@ -154,9 +154,10 @@ export default function CoursesPage() {
 
       // Get purchased PRO courses
       try {
-        const purchasesResponse = await paymentsAPI.getPurchases();
-        if (purchasesResponse.purchases) {
-          const purchasedIds = new Set(purchasesResponse.purchases.map((p: any) => p.courseId));
+        const purchasesResponse = await paymentsAPI.getPurchases() as any;
+        const purchases = purchasesResponse?.data?.purchases || purchasesResponse?.purchases || [];
+        if (purchases.length > 0) {
+          const purchasedIds = new Set<string>(purchases.map((p: any) => p.courseId));
           setPurchasedCourseIds(purchasedIds);
         }
       } catch (err) {
