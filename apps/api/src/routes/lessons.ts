@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
+import type { Prisma } from '@prisma/client';
 import { authenticate, AuthRequest } from '../middlewares/auth.js';
 import { SubmitProgressSchema } from '@duobijac/shared';
 import { AppError } from '../middlewares/error.js';
@@ -138,8 +139,19 @@ lessonsRouter.post('/:id/progress', authenticate, async (req: AuthRequest, res, 
       const newLevel = Math.floor(user.xp / 500) + 1;
       const leveledUp = newLevel > oldLevel;
 
-      // Check achievements
-      await checkAchievements(req.user!.id);
+      // Send level up notification (fire-and-forget)
+      if (leveledUp) {
+        sendNotification(
+          req.user!.id,
+          'achievement',
+          `⬆️ ¡Subiste al Nivel ${newLevel}!`,
+          `¡Felicidades! Has alcanzado el nivel ${newLevel}. Tu conocimiento sigue creciendo. Sigue así, champion!`,
+          { oldLevel, newLevel, totalXP: user.xp }
+        );
+      }
+
+      // Check achievements (pass lessonId, score, timeSpent for first_lesson, perfect_score, speed_demon)
+      await checkAchievements(req.user!.id, lesson.id, data.score, data.timeSpent);
 
       // Check if course is now complete (all lessons done)
       const isCourseComplete = await checkCourseCompletion(req.user!.id, lesson.module.courseId);
@@ -179,16 +191,38 @@ lessonsRouter.post('/:id/progress', authenticate, async (req: AuthRequest, res, 
   }
 });
 
+// Helper function to send notification to user (fire-and-forget, errors logged but not thrown)
+async function sendNotification(
+  userId: string,
+  type: string,
+  title: string,
+  message: string,
+  data?: Record<string, unknown> | null
+) {
+  try {
+    const notificationData: Prisma.NotificationCreateInput = {
+      user: { connect: { id: userId } },
+      type,
+      title,
+      message,
+      ...(data && { data: data as Prisma.InputJsonValue }),
+    };
+    await prisma.notification.create({ data: notificationData });
+  } catch (err) {
+    console.error('Failed to send notification:', err);
+  }
+}
+
 // Helper function to check achievements
-async function checkAchievements(userId: string) {
+async function checkAchievements(userId: string, lessonId?: string, score?: number, timeSpent?: number) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: { achievements: true },
+    include: { achievements: { include: { achievement: true } } },
   });
 
   if (!user) return;
 
-  const unlockedKeys = new Set(user.achievements.map((a) => a.achievementId));
+  const unlockedKeys = new Set(user.achievements.map((a) => a.achievement.key));
 
   // Check XP achievements
   const xpAchievements = [
@@ -196,6 +230,7 @@ async function checkAchievements(userId: string) {
     { key: 'xp_100', requirement: user.xp >= 100 },
     { key: 'xp_500', requirement: user.xp >= 500 },
     { key: 'xp_1000', requirement: user.xp >= 1000 },
+    { key: 'xp_5000', requirement: user.xp >= 5000 },
   ];
 
   // Check streak achievements
@@ -205,7 +240,25 @@ async function checkAchievements(userId: string) {
     { key: 'streak_30', requirement: user.currentStreak >= 30 },
   ];
 
-  const achievementsToCheck = [...xpAchievements, ...streakAchievements];
+  // Check lesson-based achievements
+  const lessonAchievements = [];
+  
+  if (lessonId) {
+    // first_lesson: complete first lesson ever
+    lessonAchievements.push({ key: 'first_lesson', requirement: true }); // Check handled in unlock logic
+    
+    // perfect_score: get 100% on a lesson
+    if (score !== undefined && score === 100) {
+      lessonAchievements.push({ key: 'perfect_score', requirement: true });
+    }
+    
+    // speed_demon: complete lesson in less than 60 seconds
+    if (timeSpent !== undefined && timeSpent < 60) {
+      lessonAchievements.push({ key: 'speed_demon', requirement: true });
+    }
+  }
+
+  const achievementsToCheck = [...xpAchievements, ...streakAchievements, ...lessonAchievements];
 
   for (const achievement of achievementsToCheck) {
     if (!unlockedKeys.has(achievement.key) && achievement.requirement) {
@@ -226,6 +279,15 @@ async function checkAchievements(userId: string) {
           where: { id: userId },
           data: { xp: { increment: dbAchievement.xpReward } },
         });
+
+        // Send achievement unlock notification
+        sendNotification(
+          userId,
+          'achievement',
+          `🏆 ¡Logro Desbloqueado: ${dbAchievement.title}!`,
+          `Has desbloqueado "${dbAchievement.title}" y ganas ${dbAchievement.xpReward} XP extra. ${dbAchievement.description}`,
+          { achievementKey: dbAchievement.key, achievementTitle: dbAchievement.title, xpReward: dbAchievement.xpReward, icon: dbAchievement.icon }
+        );
       }
     }
   }
@@ -246,7 +308,7 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
   if (!course) return false;
 
   const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
-  
+
   // Get user's completed lessons for this course
   const completedProgress = await prisma.lessonProgress.count({
     where: {
@@ -258,31 +320,33 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
     },
   });
 
-  const isComplete = completedProgress >= totalLessons;    // If course is complete, update enrollment and send email
-    if (isComplete) {
-      // Update enrollment to completed
-      await prisma.enrollment.updateMany({
-        where: {
-          userId,
-          courseId,
-        },
-        data: {
-          completed: true,
-        },
-      });
+  const isComplete = completedProgress >= totalLessons;
+
+  // If course is complete, update enrollment and send email
+  if (isComplete) {
+    // Update enrollment to completed
+    await prisma.enrollment.updateMany({
+      where: {
+        userId,
+        courseId,
+      },
+      data: {
+        completed: true,
+      },
+    });
 
     // Get user and course stats for email
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    
+
     if (user && isEmailConfigured()) {
       // Get total time spent
       const lessonProgressList = await prisma.lessonProgress.findMany({
         where: { userId, lesson: { module: { courseId } } },
       });
-      
+
       const totalTimeSpent = lessonProgressList.reduce((acc, p) => acc + p.timeSpent, 0);
       const totalXP = lessonProgressList.reduce((acc, p) => acc + p.xpEarned, 0);
-      
+
       const hours = Math.floor(totalTimeSpent / 3600);
       const minutes = Math.floor((totalTimeSpent % 3600) / 60);
       const timeStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
@@ -294,8 +358,8 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
         completedLessons: totalLessons,
         totalLessons,
         totalXP,
-        completionDate: new Date().toLocaleDateString('es-ES', { 
-          year: 'numeric', month: 'long', day: 'numeric' 
+        completionDate: new Date().toLocaleDateString('es-ES', {
+          year: 'numeric', month: 'long', day: 'numeric'
         }),
         totalTimeSpent: timeStr,
       }).catch(err => console.error('Failed to send completion email:', err));
@@ -323,9 +387,30 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
         if (dbAchievement) {
           await prisma.userAchievement.create({ data: { userId, achievementId: dbAchievement.id } });
           await prisma.user.update({ where: { id: userId }, data: { xp: { increment: dbAchievement.xpReward } } });
+
+          // Dynamic message based on which course achievement was unlocked
+          const courseCountMsg = ach.key === 'course_3_complete' ? '3 cursos' : 'tu primer curso';
+          
+          // Send course completion achievement notification
+          sendNotification(
+            userId,
+            'achievement',
+            `🎓 ¡Logro de Curso: ${dbAchievement.title}!`,
+            `Has desbloqueado "${dbAchievement.title}" por completar ${courseCountMsg}. Ganas ${dbAchievement.xpReward} XP extra.`,
+            { achievementKey: dbAchievement.key, achievementTitle: dbAchievement.title, xpReward: dbAchievement.xpReward, completedCourses }
+          );
         }
       }
     }
+
+    // Send course completion notification
+    sendNotification(
+      userId,
+      'course',
+      `🎉 ¡Curso Completado: ${course.title}!`,
+      `Has completado todas las lecciones de "${course.title}". ¡Excelente trabajo! Sigue aprendiendo.`,
+      { courseId, courseTitle: course.title }
+    );
   }
 
   return isComplete;
