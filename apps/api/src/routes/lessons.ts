@@ -132,8 +132,13 @@ lessonsRouter.post('/:id/progress', authenticate, async (req: AuthRequest, res, 
         data: {
           xp: { increment: xpEarned },
           coins: { increment: Math.floor(xpEarned / 10) },
+          weeklyXp: { increment: xpEarned },
+          weeklyXpUpdated: new Date(),
         },
       });
+
+      // Mark any pending referral as completed when user completes their first course
+      await checkReferralCompletion(req.user!.id);
 
       // Check for level up
       const oldLevel = Math.floor((user.xp - xpEarned) / 500) + 1;
@@ -301,6 +306,45 @@ async function checkAchievements(userId: string, lessonId?: string, score?: numb
         );
       }
     }
+  }
+}
+
+// Helper function to mark referral as completed when referee completes first course
+async function checkReferralCompletion(userId: string) {
+  try {
+    // Find pending referral for this user
+    const referral = await prisma.referral.findFirst({
+      where: { refereeId: userId, status: 'pending' }
+    });
+
+    if (!referral) return;
+
+    // Count user's completed courses
+    const completedCourses = await prisma.enrollment.count({
+      where: { userId, completed: true }
+    });
+
+    // If first course completed, mark referral as completed
+    if (completedCourses === 1) {
+      await prisma.referral.update({
+        where: { id: referral.id },
+        data: { status: 'completed', completedAt: new Date() }
+      });
+
+      // Notify referrer
+      const referrer = await prisma.user.findUnique({ where: { id: referral.referrerId } });
+      if (referrer) {
+        sendNotification(
+          referral.referrerId,
+          'system',
+          '🎁 ¡Referido completó su primer curso!',
+          `${referrer.name}, tu amigo completó su primer curso. Ya puedes reclamar tu recompensa de ${referral.rewardValue || 50} XP.`,
+          { referralId: referral.id, refereeId: userId }
+        );
+      }
+    }
+  } catch (err) {
+    console.error('Error checking referral completion:', err);
   }
 }
 

@@ -14,6 +14,12 @@ import { dailyGoalsRouter } from './routes/daily-goals.js';
 import { paymentsRouter } from './routes/payments.js';
 import { notificationsRouter } from './routes/notifications.js';
 import pushRouter from './routes/push.js';
+import { certificatesRouter } from './routes/certificates.js';
+import { reviewsRouter } from './routes/reviews.js';
+import { referralsRouter } from './routes/referrals.js';
+import { bundlesRouter } from './routes/bundles.js';
+import { weeklyLeaderboardRouter } from './routes/weekly-leaderboard.js';
+import { instructorsRouter } from './routes/instructors.js';
 import { errorHandler } from './middlewares/error.js';
 import { startCronService, triggerDailyEmails } from './services/cron.js';
 
@@ -75,6 +81,12 @@ app.use('/api/daily-goals', dailyGoalsRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/push', pushRouter);
+app.use('/api/certificates', certificatesRouter);
+app.use('/api/reviews', reviewsRouter);
+app.use('/api/referrals', referralsRouter);
+app.use('/api/bundles', bundlesRouter);
+app.use('/api/weekly-leaderboard', weeklyLeaderboardRouter);
+app.use('/api/instructors', instructorsRouter);
 
 // Error handler
 app.use(errorHandler);
