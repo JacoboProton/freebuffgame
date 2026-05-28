@@ -332,3 +332,244 @@ paymentsRouter.get('/purchases', authenticate, async (req: AuthRequest, res, nex
     next(err);
   }
 });
+
+// ===========================================
+// ADMIN WEBHOOK TEST ENDPOINTS
+// ===========================================
+
+// List recent Stripe checkout sessions (for debugging/testing)
+paymentsRouter.get('/admin/sessions', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    // Verify admin role
+    if (req.user!.role !== 'admin') {
+      throw new AppError('Acceso denegado', 403);
+    }
+
+    if (!isStripeConfigured()) {
+      return res.json({
+        status: 'success',
+        data: {
+          sessions: [],
+          message: 'Stripe no está configurado',
+        },
+      });
+    }
+
+    const { limit = 20 } = req.query;
+
+    // List recent checkout sessions
+    const sessions = await stripe.checkout.sessions.list({
+      limit: Number(limit),
+    });
+
+    res.json({
+      status: 'success',
+      data: {
+        sessions: sessions.data.map((s) => ({
+          id: s.id,
+          paymentStatus: s.payment_status,
+          status: s.status,
+          amountTotal: s.amount_total,
+          currency: s.currency,
+          customerEmail: s.customer_email,
+          courseId: s.metadata?.courseId,
+          userId: s.metadata?.userId,
+          createdAt: new Date(s.created * 1000).toISOString(),
+          completedAt: s.payment_status === 'paid' ? new Date(s.payment_intent ? (s.payment_intent as any).created * 1000 : s.created * 1000).toISOString() : null,
+        })),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// List all course purchases for admin
+paymentsRouter.get('/admin/purchases', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    if (req.user!.role !== 'admin') {
+      throw new AppError('Acceso denegado', 403);
+    }
+
+    const { page = 1, limit = 50 } = req.query;
+
+    const [purchases, total] = await Promise.all([
+      prisma.coursePurchase.findMany({
+        include: {
+          user: {
+            select: { id: true, name: true, email: true },
+          },
+          course: {
+            select: { id: true, title: true, category: true },
+          },
+        },
+        orderBy: { purchasedAt: 'desc' },
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
+      }),
+      prisma.coursePurchase.count(),
+    ]);
+
+    res.json({
+      status: 'success',
+      data: {
+        purchases,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          pages: Math.ceil(total / Number(limit)),
+        },
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Manually verify and process a purchase (for testing when webhook fails)
+paymentsRouter.post('/admin/verify-purchase', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    if (req.user!.role !== 'admin') {
+      throw new AppError('Acceso denegado', 403);
+    }
+
+    const { sessionId, courseId, userId } = req.body;
+
+    if (!sessionId && !courseId && !userId) {
+      throw new AppError('Se requiere sessionId, courseId o userId', 400);
+    }
+
+    let session;
+    let purchaseData: any = {};
+
+    // If sessionId provided, verify with Stripe
+    if (sessionId) {
+      if (!isStripeConfigured()) {
+        throw new AppError('Stripe no está configurado', 503);
+      }
+
+      session = await stripe.checkout.sessions.retrieve(sessionId);
+      
+      if (session.payment_status !== 'paid') {
+        return res.json({
+          status: 'success',
+          data: {
+            verified: false,
+            message: 'El pago no fue completado',
+            session: {
+              id: session.id,
+              paymentStatus: session.payment_status,
+            },
+          },
+        });
+      }
+
+      const resolvedCourseId = courseId || session.metadata?.courseId;
+      const resolvedUserId = userId || session.metadata?.userId;
+
+      if (!resolvedCourseId || !resolvedUserId) {
+        throw new AppError('No se encontró courseId o userId en los metadatos', 400);
+      }
+
+      // Record the purchase
+      const purchase = await prisma.coursePurchase.upsert({
+        where: {
+          userId_courseId: { userId: resolvedUserId, courseId: resolvedCourseId },
+        },
+        update: {
+          stripePaymentId: session.payment_intent as string,
+          amountPaid: session.amount_total || 0,
+          purchasedAt: new Date(),
+        },
+        create: {
+          userId: resolvedUserId,
+          courseId: resolvedCourseId,
+          stripePaymentId: session.payment_intent as string,
+          amountPaid: session.amount_total || 0,
+        },
+      });
+
+      // Auto-enroll
+      await prisma.enrollment.upsert({
+        where: {
+          userId_courseId: { userId: resolvedUserId, courseId: resolvedCourseId },
+        },
+        update: {},
+        create: { userId: resolvedUserId, courseId: resolvedCourseId },
+      });
+
+      purchaseData = { purchase, enrolled: true };
+    }
+    // Otherwise, manually create purchase without Stripe verification
+    else if (courseId && userId) {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        throw new AppError('Usuario no encontrado', 404);
+      }
+
+      const course = await prisma.course.findUnique({ where: { id: courseId } });
+      if (!course) {
+        throw new AppError('Curso no encontrado', 404);
+      }
+
+      const purchase = await prisma.coursePurchase.upsert({
+        where: {
+          userId_courseId: { userId, courseId },
+        },
+        update: {
+          amountPaid: course.price,
+          purchasedAt: new Date(),
+        },
+        create: {
+          userId,
+          courseId,
+          stripePaymentId: 'manual-test-' + Date.now(),
+          amountPaid: course.price,
+        },
+      });
+
+      await prisma.enrollment.upsert({
+        where: {
+          userId_courseId: { userId, courseId },
+        },
+        update: {},
+        create: { userId, courseId },
+      });
+
+      purchaseData = { purchase, enrolled: true };
+    }
+
+    res.json({
+      status: 'success',
+      data: {
+        verified: true,
+        message: sessionId ? 'Compra verificada y registrada desde Stripe' : 'Compra registrada manualmente',
+        ...purchaseData,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Get Stripe configuration status
+paymentsRouter.get('/admin/stripe-status', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    if (req.user!.role !== 'admin') {
+      throw new AppError('Acceso denegado', 403);
+    }
+
+    const configured = isStripeConfigured();
+
+    res.json({
+      status: 'success',
+      data: {
+        stripeConfigured: configured,
+        webhookSecretSet: !!process.env.STRIPE_WEBHOOK_SECRET,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});

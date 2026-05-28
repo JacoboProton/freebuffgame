@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { 
   Users, BookOpen, ChevronRight, ChevronDown, Plus, Edit2, Trash2,
   BarChart3, Crown, TrendingUp, GraduationCap, Trophy, DollarSign,
-  Shield, Settings, Bell
+  Shield, Settings, Bell, CreditCard
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import { Analytics } from '@/components/admin/analytics';
 import { ContentModeration } from '@/components/admin/content-moderation';
 import { SystemSettings } from '@/components/admin/system-settings';
 import { NotificationManagement } from '@/components/admin/notification-management';
+import { WebhookTest } from '@/components/admin/webhook-test';
 
 interface DashboardStats {
   totalUsers: number;
@@ -240,6 +241,9 @@ export default function AdminPage() {
             </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2">
               <Bell className="w-4 h-4" /> Notificaciones
+            </TabsTrigger>
+            <TabsTrigger value="webhook" className="gap-2">
+              <CreditCard className="w-4 h-4" /> Webhooks
             </TabsTrigger>
           </TabsList>
 
@@ -527,6 +531,11 @@ export default function AdminPage() {
           {/* Notifications Tab */}
           <TabsContent value="notifications">
             <NotificationManagement />
+          </TabsContent>
+
+          {/* Webhooks Tab */}
+          <TabsContent value="webhook">
+            <WebhookTest />
           </TabsContent>
         </Tabs>
       </main>
