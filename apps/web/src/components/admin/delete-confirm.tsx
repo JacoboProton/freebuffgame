@@ -6,15 +6,24 @@ import { AlertTriangle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface DeleteConfirmProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  itemName: string;
-  itemType: 'course' | 'module' | 'lesson';
+  isOpen?: boolean;
+  onClose?: () => void;
+  onConfirm?: () => void;
+  title?: string;
+  itemName?: string;
+  itemType?: 'course' | 'module' | 'lesson' | 'user';
+  message?: string;
 }
 
-export function DeleteConfirm({ isOpen, onClose, onConfirm, title, itemName, itemType }: DeleteConfirmProps) {
+export function DeleteConfirm({
+  isOpen = false,
+  onClose = () => {},
+  onConfirm = () => {},
+  title = 'Confirmar eliminación',
+  itemName = '',
+  itemType = 'course',
+  message
+}: DeleteConfirmProps) {
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
@@ -28,7 +37,7 @@ export function DeleteConfirm({ isOpen, onClose, onConfirm, title, itemName, ite
 
   if (!isOpen) return null;
 
-  const messages = {
+  const messages: Record<string, { description: string; warning: string | null }> = {
     course: {
       description: 'Este curso será eliminado permanentemente, incluyendo todos sus módulos y lecciones.',
       warning: 'Los estudiantes perderán acceso a este curso.',
@@ -41,9 +50,13 @@ export function DeleteConfirm({ isOpen, onClose, onConfirm, title, itemName, ite
       description: 'Esta lección será eliminada permanentemente.',
       warning: null,
     },
+    user: {
+      description: 'Este usuario será eliminado permanentemente, incluyendo todos sus datos.',
+      warning: 'Esta acción no se puede deshacer.',
+    },
   };
 
-  const msg = messages[itemType];
+  const msg = messages[itemType] || messages.course;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -64,10 +77,16 @@ export function DeleteConfirm({ isOpen, onClose, onConfirm, title, itemName, ite
           </div>
 
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <p className="font-medium text-lg mb-2">{itemName}</p>
-            <p className="text-sm text-gray-600">{msg.description}</p>
-            {msg.warning && (
-              <p className="text-sm text-red-600 mt-2 font-medium">{msg.warning}</p>
+            {itemName && <p className="font-medium text-lg mb-2">{itemName}</p>}
+            {message ? (
+              <p className="text-sm text-gray-600">{message}</p>
+            ) : (
+              <>
+                <p className="text-sm text-gray-600">{msg.description}</p>
+                {msg.warning && (
+                  <p className="text-sm text-red-600 mt-2 font-medium">{msg.warning}</p>
+                )}
+              </>
             )}
           </div>
 
