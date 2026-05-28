@@ -187,7 +187,7 @@ export const paymentsAPI = {
     }>(`/payments/course/${courseId}/price`, { clerkToken }),
 
   checkout: (courseId: string, clerkToken?: string) =>
-    fetchAPI<{ checkoutUrl: string; sessionId: string }>(
+    fetchAPI<{ status: string; data: { checkoutUrl: string; sessionId: string } }>(
       `/payments/course/${courseId}/checkout`,
       { method: 'POST', clerkToken }
     ),

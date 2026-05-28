@@ -108,13 +108,13 @@ export function CoursePaymentModal({
 
       console.log('[CHECKOUT] Calling paymentsAPI.checkout...');
       // Create checkout session with Clerk token
-      const checkoutData = await paymentsAPI.checkout(course.id, clerkToken || undefined);
-      console.log('[CHECKOUT] Response received:', checkoutData);
-      console.log('[CHECKOUT] checkoutUrl from response:', checkoutData?.checkoutUrl);
-      console.log('[CHECKOUT] Full response structure:', JSON.stringify(checkoutData, null, 2));
+      const response = await paymentsAPI.checkout(course.id, clerkToken || undefined);
+      console.log('[CHECKOUT] Response received:', response);
+      console.log('[CHECKOUT] checkoutUrl from response:', response?.data?.checkoutUrl);
+      console.log('[CHECKOUT] Full response structure:', JSON.stringify(response, null, 2));
 
-      if (checkoutData?.checkoutUrl) {
-        const checkoutUrl = checkoutData.checkoutUrl;
+      if (response?.data?.checkoutUrl) {
+        const checkoutUrl = response.data.checkoutUrl;
         console.log('[CHECKOUT] Redirecting to:', checkoutUrl);
         // Show redirecting state before opening
         setIsRedirecting(true);
@@ -128,7 +128,7 @@ export function CoursePaymentModal({
           setIsRedirecting(false);
         }
       } else {
-        console.log('[CHECKOUT] No checkoutUrl in response:', checkoutData);
+        console.log('[CHECKOUT] No checkoutUrl in response:', response);
         setError('No se pudo obtener la página de pago. Intenta de nuevo.');
       }
     } catch (err: any) {
