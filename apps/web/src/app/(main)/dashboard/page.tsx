@@ -4,7 +4,7 @@ import { useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Trophy, ShoppingBag, User, BookOpen, Zap, Target, Flame, TrendingUp, Award, Gamepad2 } from 'lucide-react';
+import { Trophy, ShoppingBag, User, BookOpen, Zap, Target, Flame, TrendingUp, Award, Gamepad2, Bell } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -363,6 +363,12 @@ export default function DashboardPage() {
                   <Button variant="outline" className="w-full justify-start">
                     <Trophy className="w-4 h-4 mr-2" />
                     Ver Leaderboard
+                  </Button>
+                </Link>
+                <Link href="/dashboard/notifications" className="block">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Bell className="w-4 h-4 mr-2" />
+                    Historial de notificaciones
                   </Button>
                 </Link>
                 <Link href="/games" className="block">

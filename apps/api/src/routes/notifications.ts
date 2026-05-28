@@ -42,26 +42,43 @@ notificationsRouter.get('/stream', authenticate, (req: AuthRequest, res) => {
   });
 });
 
-// Get user's notifications (with optional unread filter)
+// Get user's notifications (with optional unread filter and pagination)
 notificationsRouter.get('/', authenticate, async (req: AuthRequest, res, next) => {
   try {
     const userId = req.user!.id;
-    const { unread } = req.query;
+    const { unread, page = '1', limit = '20' } = req.query;
+    
+    const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit as string, 10) || 20));
+    const skip = (pageNum - 1) * limitNum;
     
     const where: any = { userId };
     if (unread === 'true') {
       where.readAt = null;
     }
     
-    const notifications = await prisma.notification.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    });
+    const [notifications, total] = await Promise.all([
+      prisma.notification.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limitNum,
+        skip,
+      }),
+      prisma.notification.count({ where }),
+    ]);
     
     res.json({
       status: 'success',
-      data: { notifications },
+      data: {
+        notifications,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum),
+          hasMore: skip + notifications.length < total,
+        },
+      },
     });
   } catch (err) {
     next(err);
