@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { authenticate, AuthRequest } from '../middlewares/auth.js';
 import { AppError } from '../middlewares/error.js';
 import { createCourseCheckoutSession, verifyPaymentSession, isStripeConfigured, stripe } from '../services/stripe.js';
+import { sendPurchaseConfirmationEmail, isEmailConfigured } from '../services/email.js';
 
 export const paymentsRouter = Router();
 
@@ -500,6 +501,27 @@ paymentsRouter.post('/admin/verify-purchase', authenticate, async (req: AuthRequ
       });
 
       purchaseData = { purchase, enrolled: true };
+
+      // Get user and course info for email notification
+      const [userForEmail, courseForEmail] = await Promise.all([
+        prisma.user.findUnique({ where: { id: resolvedUserId }, select: { name: true, email: true } }),
+        prisma.course.findUnique({ where: { id: resolvedCourseId }, select: { title: true, category: true, id: true } }),
+      ]);
+
+      // Send purchase confirmation email (async - don't block if email fails)
+      if (userForEmail && courseForEmail && isEmailConfigured()) {
+        void sendPurchaseConfirmationEmail({
+          userName: userForEmail.name,
+          userEmail: userForEmail.email,
+          courseTitle: courseForEmail.title,
+          courseCategory: courseForEmail.category,
+          courseId: courseForEmail.id,
+          amountPaid: session.amount_total || 0,
+          paymentId: session.payment_intent as string || session.id,
+          purchaseDate: new Date().toLocaleString('es-ES'),
+          isManual: false,
+        }).catch((err) => console.error('Failed to send purchase email:', err));
+      }
     }
     // Otherwise, manually create purchase without Stripe verification
     else if (courseId && userId) {
@@ -538,6 +560,21 @@ paymentsRouter.post('/admin/verify-purchase', authenticate, async (req: AuthRequ
       });
 
       purchaseData = { purchase, enrolled: true };
+
+      // Send purchase confirmation email for manual verification (async - don't block if email fails)
+      if (isEmailConfigured()) {
+        void sendPurchaseConfirmationEmail({
+          userName: user.name,
+          userEmail: user.email,
+          courseTitle: course.title,
+          courseCategory: course.category,
+          courseId: course.id,
+          amountPaid: course.price,
+          paymentId: 'manual-test-' + Date.now(),
+          purchaseDate: new Date().toLocaleString('es-ES'),
+          isManual: true,
+        }).catch((err) => console.error('Failed to send purchase email:', err));
+      }
     }
 
     res.json({
