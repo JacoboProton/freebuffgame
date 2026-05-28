@@ -31,6 +31,8 @@ model User {
   gameScores     GameScore[]
   purchases      Purchase[]
   coursePurchases CoursePurchase[]
+  contentReports ContentReport[]
+  notifications  Notification[]
   friends        Friend[]          @relation("UserFriends")
   inverseFriends Friend[]          @relation("FriendOf")
 }
@@ -224,7 +226,7 @@ model ContentReport {
   targetId    String
   reason      String   // 'spam' | 'inappropriate' | 'harassment' | 'other'
   description String?
-  status      String   @default('pending') // 'pending' | 'reviewed' | 'dismissed' | 'action_taken'
+  status      String   @default("pending") // 'pending' | 'reviewed' | 'dismissed' | 'action_taken'
   reviewedBy  String?
   reviewedAt  DateTime?
   actionTaken String?
@@ -242,8 +244,8 @@ model SystemSetting {
   id        String   @id @default(cuid())
   key       String   @unique
   value     String
-  type      String   @default('string') // 'string' | 'number' | 'boolean' | 'json'
-  category  String   @default('general') // 'general' | 'features' | 'limits' | 'content'
+  type      String   @default("string") // 'string' | 'number' | 'boolean' | 'json'
+  category  String   @default("general") // 'general' | 'features' | 'limits' | 'content'
   label     String
   description String?
   isPublic  Boolean  @default(false) // If true, visible to users

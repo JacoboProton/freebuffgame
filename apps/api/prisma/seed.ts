@@ -1045,6 +1045,93 @@ async function main() {
   console.log('✅ Demo enrollments and progress created');
 
   // ===========================================
+  // SYSTEM SETTINGS (Default Configuration)
+  // ===========================================
+  console.log('\n⚙️ Creating system settings...');
+
+  const systemSettings = [
+    // General settings
+    { key: 'site_name', value: 'FreeBuffGame', type: 'string', category: 'general', label: 'Nombre del Sitio', description: 'Nombre público de la plataforma', isPublic: true },
+    { key: 'site_description', value: 'Aprende jugando con cursos interactivos, juegos y recompensas', type: 'string', category: 'general', label: 'Descripción del Sitio', description: 'Descripción para SEO y páginas públicas', isPublic: true },
+    { key: 'contact_email', value: 'soporte@freebuffgame.com', type: 'string', category: 'general', label: 'Email de Contacto', description: 'Email para contacto del admin', isPublic: true },
+    { key: 'maintenance_mode', value: 'false', type: 'boolean', category: 'general', label: 'Modo Mantenimiento', description: 'Bloquea el acceso a usuarios no-admin', isPublic: false },
+
+    // Feature flags
+    { key: 'enable_google_auth', value: 'true', type: 'boolean', category: 'features', label: 'Autenticación Google', description: 'Permite login con Google OAuth', isPublic: true },
+    { key: 'enable_stripe_payments', value: 'false', type: 'boolean', category: 'features', label: 'Pagos con Stripe', description: 'Habilita compras con Stripe', isPublic: true },
+    { key: 'enable_achievements', value: 'true', type: 'boolean', category: 'features', label: 'Sistema de Logros', description: 'Habilita el sistema de logros y recompensas XP', isPublic: true },
+    { key: 'enable_leaderboard', value: 'true', type: 'boolean', category: 'features', label: 'Tabla de Posiciones', description: 'Muestra ranking de usuarios por XP', isPublic: true },
+    { key: 'enable_shop', value: 'true', type: 'boolean', category: 'features', label: 'Tienda Virtual', description: 'Habilita la tienda de avatares y temas', isPublic: true },
+    { key: 'enable_friends', value: 'true', type: 'boolean', category: 'features', label: 'Sistema de Amigos', description: 'Permite agregar y gestionar amigos', isPublic: true },
+    { key: 'enable_streaks', value: 'true', type: 'boolean', category: 'features', label: 'Sistema de Rachas', description: 'Tracking de racha diaria de estudio', isPublic: true },
+
+    // Limits
+    { key: 'max_upload_size_mb', value: '10', type: 'number', category: 'limits', label: 'Tamaño Máximo de Upload (MB)', description: 'Tamaño máximo de archivos subidos por usuario', isPublic: false },
+    { key: 'daily_xp_cap', value: '500', type: 'number', category: 'limits', label: 'Límite Diario de XP', description: 'XP máximo que un usuario puede ganar por día (0 = sin límite)', isPublic: false },
+    { key: 'max_friends', value: '100', type: 'number', category: 'limits', label: 'Máximo de Amigos', description: 'Límite de amigos que un usuario puede tener', isPublic: false },
+    { key: 'cooldown_hours_shop', value: '24', type: 'number', category: 'limits', label: 'Cooldown de Compra (horas)', description: 'Horas entre compras en la tienda', isPublic: false },
+
+    // Content moderation
+    { key: 'auto_moderation', value: 'false', type: 'boolean', category: 'content', label: 'Auto-Moderación', description: 'Revisa contenido automáticamente con IA', isPublic: false },
+    { key: 'report_threshold', value: '3', type: 'number', category: 'content', label: 'Umbral de Reportes', description: 'Reportes antes de revisar automáticamente', isPublic: false },
+    { key: 'require_approval_courses', value: 'true', type: 'boolean', category: 'content', label: 'Aprobación de Cursos', description: 'Requiere aprobación de admin para publicar cursos', isPublic: false },
+  ];
+
+  for (const setting of systemSettings) {
+    await prisma.systemSetting.upsert({
+      where: { key: setting.key },
+      update: setting,
+      create: setting,
+    });
+  }
+  console.log('✅ System settings created');
+
+  // ===========================================
+  // NOTIFICATION TEMPLATES
+  // ===========================================
+  console.log('\n📬 Creating notification templates...');
+
+  const notificationTemplates = [
+    // System notifications
+    { key: 'welcome_user', title: '¡Bienvenido a FreeBuffGame!', message: '¡Hola {name}! Bienvenido a la plataforma de aprendizaje gamificado. Empieza tu primera lección y ganar XP desde el primer momento.', type: 'system', variables: ['name'] },
+    { key: 'account_locked', title: 'Tu cuenta ha sido bloqueada', message: 'Hola {name}, tu cuenta ha sido bloqueada temporalmente. Contacta a soporte si crees que es un error.', type: 'system', variables: ['name'] },
+    { key: 'maintenance_scheduled', title: 'Mantenimiento Programado', message: 'Hola {name}, el sistema estará en mantenimiento el {date} de {time}. Gracias por tu paciencia.', type: 'system', variables: ['name', 'date', 'time'] },
+
+    // Achievement notifications
+    { key: 'achievement_unlocked', title: '🏆 ¡Nuevo Logro Desbloqueado!', message: '¡Felicidades {name}! Has desbloqueado "{achievement}" y ganas {xp} XP extra.', type: 'achievement', variables: ['name', 'achievement', 'xp'] },
+    { key: 'level_up', title: '⬆️ ¡Subiste de Nivel!', message: '¡Increíble {name}! Has alcanzado el nivel {level}. Sigue así, champion!', type: 'achievement', variables: ['name', 'level'] },
+    { key: 'streak_milestone', title: '🔥 ¡Racha de {streak} días!', message: '{name}, has mantenido una racha de {streak} días. Estás en racha, no pares!', type: 'streak', variables: ['name', 'streak'] },
+
+    // Course notifications
+    { key: 'course_completed', title: '🎓 ¡Curso Completado!', message: '¡Felicidades {name}! Has completado "{course}". Tu conocimiento sigue creciendo!', type: 'course', variables: ['name', 'course'] },
+    { key: 'new_course_enrolled', title: '📚 Nuevo Curso Disponible', message: '{name}, te has inscrito en "{course}". Empieza ahora y gana XP!', type: 'course', variables: ['name', 'course'] },
+    { key: 'course_unlock', title: '🔓 ¡Curso Desbloqueado!', message: '{name}, el curso "{course}" ya está disponible para ti. Empieza tu aventura de aprendizaje!', type: 'course', variables: ['name', 'course'] },
+    { key: 'pro_course_unlock', title: '👑 ¡Acceso PRO Desbloqueado!', message: '{name}, has desbloqueado acceso al curso PRO "{course}". Prepárate para dominar habilidades avanzadas!', type: 'course', variables: ['name', 'course'] },
+
+    // Broadcast notifications
+    { key: 'system_announcement', title: '📢 Anuncio del Sistema', message: '{message}', type: 'broadcast', variables: ['message'] },
+    { key: 'event_reminder', title: '🎯 Recordatorio de Evento', message: '{name}, no olvides tu evento: {event}. ¡Te esperamos!', type: 'broadcast', variables: ['name', 'event'] },
+    { key: 'weekly_challenge', title: '⚡ Desafío Semanal', message: '{name}, un nuevo desafío semanal ha comenzado. Complétalo para ganar {xp} XP extra!', type: 'broadcast', variables: ['name', 'xp'] },
+
+    // Shop notifications
+    { key: 'purchase_complete', title: '🛒 Compra Completada', message: '{name}, has comprado "{item}" exitosamente. Disfruta tu nueva adquisición!', type: 'system', variables: ['name', 'item'] },
+    { key: 'purchase_failed', title: '❌ Compra Fallida', message: '{name}, tu compra de "{item}" no pudo ser procesada. Intenta de nuevo más tarde.', type: 'system', variables: ['name', 'item'] },
+
+    // Streak notifications
+    { key: 'streak_lost', title: '💔 Racha Perdida', message: '{name}, tu racha de {streak} días se ha roto. ¡Pero no te preocupes, puedes empezar una nueva hoy!', type: 'streak', variables: ['name', 'streak'] },
+    { key: 'streak_warning', title: '⚠️ ¡Tu racha está en peligro!', message: '{name}, recuerda hacer tu lección diaria. Tu racha de {streak} días está por cumplirse, no la pierdas!', type: 'streak', variables: ['name', 'streak'] },
+  ];
+
+  for (const template of notificationTemplates) {
+    await prisma.notificationTemplate.upsert({
+      where: { key: template.key },
+      update: template,
+      create: template,
+    });
+  }
+  console.log('✅ Notification templates created');
+
+  // ===========================================
   // SUMMARY
   // ===========================================
   console.log('\n🎉 Seed completed successfully!');
