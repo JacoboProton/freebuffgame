@@ -15,6 +15,7 @@ import { paymentsRouter } from './routes/payments.js';
 import { notificationsRouter } from './routes/notifications.js';
 import pushRouter from './routes/push.js';
 import { errorHandler } from './middlewares/error.js';
+import { startCronService, triggerDailyEmails } from './services/cron.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -41,6 +42,25 @@ app.get('/health', (_, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Manual trigger for daily emails (admin only, for testing)
+app.post('/api/cron/daily-emails', async (req, res) => {
+  // In production, add admin auth check here
+  if (process.env.NODE_ENV === 'production') {
+    // Check for secret header or admin auth
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret || req.headers['x-cron-secret'] !== cronSecret) {
+      return res.status(403).json({ status: 'error', message: 'Forbidden' });
+    }
+  }
+
+  try {
+    const result = await triggerDailyEmails();
+    res.json({ status: 'success', data: result });
+  } catch (error: any) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api/courses', coursesRouter);
@@ -58,6 +78,9 @@ app.use('/api/push', pushRouter);
 
 // Error handler
 app.use(errorHandler);
+
+// Start cron service for scheduled jobs
+startCronService();
 
 app.listen(PORT, () => {
   console.log(`🚀 API server running on http://localhost:${PORT}`);
