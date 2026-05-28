@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { 
   Users, BookOpen, Trophy, TrendingUp, Search, 
   ChevronRight, ChevronDown, Plus, Edit2, Trash2,
-  BarChart3, GraduationCap
+  BarChart3, GraduationCap, DollarSign, Crown
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchAPI } from '@/lib/api-client';
+import { CourseModal } from '@/components/admin/course-modal';
+import { ModuleModal } from '@/components/admin/module-modal';
+import { LessonModal } from '@/components/admin/lesson-modal';
+import { DeleteConfirm } from '@/components/admin/delete-confirm';
 
 interface DashboardStats {
   totalUsers: number;
@@ -33,6 +37,22 @@ interface User {
   _count: { enrollments: number; achievements: number };
 }
 
+interface Module {
+  id: string;
+  title: string;
+  order: number;
+  _count: { lessons: number };
+}
+
+interface Lesson {
+  id: string;
+  title: string;
+  type: string;
+  content: any;
+  xpReward: number;
+  order: number;
+}
+
 interface Course {
   id: string;
   title: string;
@@ -41,7 +61,10 @@ interface Course {
   difficulty: string;
   estimatedHours: number;
   isPublished: boolean;
-  modules: { id: string; title: string; _count: { lessons: number } }[];
+  isPro?: boolean;
+  price?: number;
+  requiredLevel?: number;
+  modules: Module[];
   _count: { enrollments: number };
 }
 
@@ -59,6 +82,21 @@ export default function AdminPage() {
   const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Modal states
+  const [courseModalOpen, setCourseModalOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  
+  const [moduleModalOpen, setModuleModalOpen] = useState(false);
+  const [editingModule, setEditingModule] = useState<{ courseId: string; module: Module } | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  
+  const [lessonModalOpen, setLessonModalOpen] = useState(false);
+  const [editingLesson, setEditingLesson] = useState<{ moduleId: string; lesson: Lesson } | null>(null);
+  const [selectedModuleId, setSelectedModuleId] = useState<string>('');
+  
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deletingItem, setDeletingItem] = useState<{ type: 'course' | 'module' | 'lesson'; id: string; name: string } | null>(null);
+
   useEffect(() => {
     loadAdminData();
   }, []);
@@ -67,15 +105,12 @@ export default function AdminPage() {
     try {
       setLoading(true);
       
-      // Load stats
       const statsData = await fetchAPI<{ stats: DashboardStats }>('/admin/stats');
       setStats(statsData.stats);
 
-      // Load users
       const usersData = await fetchAPI<{ users: User[] }>('/admin/users');
       setUsers(usersData.users);
 
-      // Load courses
       const coursesData = await fetchAPI<{ courses: Course[] }>('/admin/courses');
       setCourses(coursesData.courses);
 
@@ -101,6 +136,62 @@ export default function AdminPage() {
       case 'intermediate': return 'bg-yellow-100 text-yellow-700';
       case 'advanced': return 'bg-red-100 text-red-700';
       default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  // CRUD Handlers
+  const handleOpenCourseModal = (course?: Course) => {
+    setEditingCourse(course || null);
+    setCourseModalOpen(true);
+  };
+
+  const handleOpenModuleModal = (courseId: string, module?: Module) => {
+    setSelectedCourseId(courseId);
+    setEditingModule(module ? { courseId, module } : null);
+    setModuleModalOpen(true);
+  };
+
+  const handleOpenLessonModal = async (moduleId: string, lesson?: Lesson) => {
+    setSelectedModuleId(moduleId);
+    
+    if (lesson) {
+      // Fetch full lesson data including content
+      try {
+        const data = await fetchAPI<{ lesson: Lesson }>(`/admin/lessons/${lesson.id}`);
+        setEditingLesson({ moduleId, lesson: data.lesson });
+      } catch {
+        setEditingLesson({ moduleId, lesson });
+      }
+    } else {
+      setEditingLesson(null);
+    }
+    setLessonModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingItem) return;
+    
+    try {
+      let endpoint = '';
+      switch (deletingItem.type) {
+        case 'course':
+          endpoint = `/admin/courses/${deletingItem.id}`;
+          break;
+        case 'module':
+          endpoint = `/admin/modules/${deletingItem.id}`;
+          break;
+        case 'lesson':
+          endpoint = `/admin/lessons/${deletingItem.id}`;
+          break;
+      }
+      
+      await fetchAPI(endpoint, { method: 'DELETE' });
+      setDeleteConfirmOpen(false);
+      setDeletingItem(null);
+      loadAdminData();
+    } catch (err) {
+      console.error('Error deleting:', err);
+      alert('Error al eliminar');
     }
   };
 
@@ -148,7 +239,6 @@ export default function AdminPage() {
 
           {/* Overview Tab */}
           <TabsContent value="overview">
-            {/* Stats Cards */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -201,6 +291,43 @@ export default function AdminPage() {
                   </div>
                 </div>
               </Card>
+            </motion.div>
+
+            {/* PRO Courses Stats */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
+            >
+              {courses.filter(c => c.isPro).length > 0 && (
+                <>
+                  <Card className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <Crown className="w-6 h-6 text-purple-500" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{courses.filter(c => c.isPro).length}</p>
+                        <p className="text-sm text-gray-500">Cursos PRO</p>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <DollarSign className="w-6 h-6 text-green-500" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">
+                          ${(courses.filter(c => c.isPro).reduce((sum, c) => sum + (c.price || 0), 0) / 100).toFixed(0)}
+                        </p>
+                        <p className="text-sm text-gray-500">Total precios</p>
+                      </div>
+                    </div>
+                  </Card>
+                </>
+              )}
             </motion.div>
 
             {/* Recent Users */}
@@ -307,6 +434,13 @@ export default function AdminPage() {
 
           {/* Courses Tab */}
           <TabsContent value="courses">
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-sm text-gray-500">{courses.length} cursos</p>
+              <Button onClick={() => handleOpenCourseModal()}>
+                <Plus className="w-4 h-4 mr-1" /> Nuevo Curso
+              </Button>
+            </div>
+
             <Card>
               <CardContent className="p-0">
                 <div className="divide-y">
@@ -328,6 +462,11 @@ export default function AdminPage() {
                               <Badge className={getDifficultyColor(course.difficulty)} variant="secondary">
                                 {course.difficulty}
                               </Badge>
+                              {course.isPro && (
+                                <Badge variant="default" className="bg-purple-500">
+                                  <Crown className="w-3 h-3 mr-1" /> PRO
+                                </Badge>
+                              )}
                               {course.isPublished ? (
                                 <Badge variant="default" className="bg-green-500">Publicado</Badge>
                               ) : (
@@ -339,9 +478,9 @@ export default function AdminPage() {
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="text-sm text-gray-500">{course._count.enrollments} estudiantes</span>
-                          <span className="text-sm text-gray-500">{course.modules.length} módulos</span>
+                          <span className="text-sm text-gray-500">{course.modules?.length || 0} módulos</span>
                           <Badge variant="secondary">
-                            {course.modules.reduce((acc, m) => acc + m._count.lessons, 0)} lecciones
+                            {course.modules?.reduce((acc, m) => acc + (m._count?.lessons || 0), 0) || 0} lecciones
                           </Badge>
                           {expandedCourse === course.id ? (
                             <ChevronDown className="w-5 h-5 text-gray-400" />
@@ -359,29 +498,65 @@ export default function AdminPage() {
                           className="px-4 pb-4 bg-gray-50"
                         >
                           <div className="space-y-2 pt-2">
-                            {course.modules.map((module, mIndex) => (
-                              <div key={module.id} className="bg-white p-3 rounded-lg flex items-center justify-between">
-                                <div>
+                            {course.modules?.map((module, mIndex) => (
+                              <div key={module.id} className="bg-white p-3 rounded-lg">
+                                <div className="flex items-center justify-between mb-2">
                                   <p className="font-medium">Módulo {mIndex + 1}: {module.title}</p>
-                                  <p className="text-sm text-gray-500">{module._count.lessons} lecciones</p>
+                                  <div className="flex gap-1">
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenModuleModal(course.id, module);
+                                      }}
+                                    >
+                                      <Edit2 className="w-4 h-4" />
+                                    </Button>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDeletingItem({ type: 'module', id: module.id, name: module.title });
+                                        setDeleteConfirmOpen(true);
+                                      }}
+                                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
                                 </div>
-                                <div className="flex gap-2">
-                                  <Button size="sm" variant="ghost">
-                                    <Edit2 className="w-4 h-4" />
-                                  </Button>
-                                  <Button size="sm" variant="ghost">
-                                    <Plus className="w-4 h-4" />
-                                  </Button>
-                                </div>
+                                <p className="text-sm text-gray-500 mb-2">{module._count?.lessons || 0} lecciones</p>
+                                {/* Lessons would be loaded separately if needed */}
                               </div>
                             ))}
                           </div>
-                          <div className="flex gap-2 mt-4">
-                            <Button size="sm" variant="outline">
+                          <div className="flex gap-2 mt-4 flex-wrap">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleOpenModuleModal(course.id)}
+                            >
                               <Plus className="w-4 h-4 mr-1" /> Añadir módulo
                             </Button>
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleOpenCourseModal(course)}
+                            >
                               <Edit2 className="w-4 h-4 mr-1" /> Editar curso
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                              onClick={() => {
+                                setDeletingItem({ type: 'course', id: course.id, name: course.title });
+                                setDeleteConfirmOpen(true);
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" /> Eliminar curso
                             </Button>
                           </div>
                         </motion.div>
@@ -394,6 +569,42 @@ export default function AdminPage() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Modals */}
+      <CourseModal
+        isOpen={courseModalOpen}
+        onClose={() => setCourseModalOpen(false)}
+        onSuccess={loadAdminData}
+        course={editingCourse || undefined}
+      />
+
+      <ModuleModal
+        isOpen={moduleModalOpen}
+        onClose={() => setModuleModalOpen(false)}
+        onSuccess={loadAdminData}
+        courseId={selectedCourseId}
+        module={editingModule?.module}
+      />
+
+      <LessonModal
+        isOpen={lessonModalOpen}
+        onClose={() => setLessonModalOpen(false)}
+        onSuccess={loadAdminData}
+        moduleId={selectedModuleId}
+        lesson={editingLesson?.lesson}
+      />
+
+      <DeleteConfirm
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+          setDeletingItem(null);
+        }}
+        onConfirm={handleDelete}
+        title="Confirmar eliminación"
+        itemName={deletingItem?.name || ''}
+        itemType={deletingItem?.type || 'course'}
+      />
     </div>
   );
 }
