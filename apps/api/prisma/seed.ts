@@ -296,7 +296,7 @@ async function main() {
     'Programación',
     'beginner',
     18,
-    'https://placehold.co/600x400/357214/white?text=Python'
+    'https://placehold.co/600x400/43a047/white?text=Python'
   );
 
   // Module 1: Primeros Pasos
@@ -1092,7 +1092,7 @@ async function main() {
     'Finanzas',
     'beginner',
     10,
-    'https://placehold.co/600x400/2e7d32/white?text=Finanzas'
+    'https://placehold.co/600x400/388e3c/white?text=Finanzas'
   );
 
   // Module 1: Presupuesto Básico
