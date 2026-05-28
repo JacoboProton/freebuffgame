@@ -347,6 +347,11 @@ export default function CoursesPage() {
                               PRO
                             </Badge>
                           )}
+                          {(course.price || 0) > 0 && (
+                            <Badge className="bg-emerald-500 text-white gap-1 shadow-lg">
+                              ${((course.price || 0) / 100).toFixed(2)}
+                            </Badge>
+                          )}
                           <Badge className={difficulty.color}>
                             {difficulty.icon} {difficulty.label}
                           </Badge>

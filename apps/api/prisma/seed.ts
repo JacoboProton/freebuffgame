@@ -1478,6 +1478,80 @@ async function main() {
 
   console.log('✅ SQL Mastery PRO created');
 
+  // ===========================================
+  // CARPINTERÍA COURSE
+  // ===========================================
+  console.log('\n🪵 Creating Carpintería course...');
+
+  const carpinteriaCourse = await createCourse(
+    'course-carpinteria-pro',
+    'Carpintería para Principiantes',
+    'Aprende los fundamentos de la carpintería, desde el uso de herramientas básicas hasta proyectos prácticos. Ideal para quienes quieren adquirir habilidades en oficios.',
+    'Oficios',
+    'beginner',
+    12,
+    'https://placehold.co/600x400/8d6e63/white?text=Carpinter%C3%ADa',
+    { isPro: true, price: 999, requiredLevel: 1 }
+  );
+
+  // Module 1: Herramientas Básicas
+  const carpModule1 = await createModule('carp-module-1', carpinteriaCourse.id, 'Herramientas Básicas', 1);
+  await createLesson('carp-lesson-1-1', carpModule1.id, 'El Martillo', 'multiple_choice', {
+    question: '¿Para qué se usa principalmente un martillo de carpintero?',
+    options: ['Para medir', 'Para golpear y clavar', 'Para cortar', 'Para lijar'],
+    correctIndex: 1,
+  }, 15, 1);
+  await createLesson('carp-lesson-1-2', carpModule1.id, 'El Serrucho', 'true_false', {
+    statement: 'El serrucho de costilla es ideal para cortes rectos en madera.',
+    correctAnswer: true,
+  }, 15, 2);
+  await createLesson('carp-lesson-1-3', carpModule1.id, 'El Destornillador', 'multiple_choice', {
+    question: '¿Cuántos tipos básicos de destornilladores existen?',
+    options: ['1', '2', '3', '4'],
+    correctIndex: 1,
+  }, 15, 3);
+
+  // Module 2: Medición y Trazado
+  const carpModule2 = await createModule('carp-module-2', carpinteriaCourse.id, 'Medición y Trazado', 2);
+  await createLesson('carp-lesson-2-1', carpModule2.id, 'La Cinta Métrica', 'multiple_choice', {
+    question: '¿Cuál es la unidad de medida más común en carpintería?',
+    options: ['Centímetros', 'Pulgadas y centímetros', 'Metros', 'Kilómetros'],
+    correctIndex: 1,
+  }, 15, 1);
+  await createLesson('carp-lesson-2-2', carpModule2.id, 'El Lápiz de Carpintero', 'true_false', {
+    statement: 'El lápiz de carpintero tiene forma plana para no rodar.',
+    correctAnswer: true,
+  }, 15, 2);
+  await createLesson('carp-lesson-2-3', carpModule2.id, 'Técnicas de Trazado', 'fill_blank', {
+    sentence: 'Para trazar líneas rectas usamos una ___ junto con el lápiz.',
+    correctAnswer: 'escuadra',
+    hint: 'Herramienta en forma de L',
+  }, 20, 3);
+
+  // Module 3: Proyectos Prácticos
+  const carpModule3 = await createModule('carp-module-3', carpinteriaCourse.id, 'Proyectos Prácticos', 3);
+  await createLesson('carp-lesson-3-1', carpModule3.id, 'Construir una Cajita', 'multiple_choice', {
+    question: '¿Qué tipo de unión se usa para las esquinas de una cajita simple?',
+    options: ['Unión a 45 grados', 'Unión a 90 grados con clavosen', 'Unión con pegamento solo', 'No importa el tipo'],
+    correctIndex: 1,
+  }, 25, 1);
+  await createLesson('carp-lesson-3-2', carpModule3.id, 'Lijado y Acabado', 'true_false', {
+    statement: 'Se debe lijar en dirección de la veta de la madera para un mejor acabado.',
+    correctAnswer: true,
+  }, 20, 2);
+  await createLesson('carp-lesson-3-3', carpModule3.id, 'Aplicación de Barniz', 'fill_blank', {
+    sentence: 'Antes de aplicar barniz, la madera debe estar ___ y limpia.',
+    correctAnswer: 'lijada',
+    hint: 'Suave al tacto',
+  }, 20, 3);
+  await createLesson('carp-lesson-3-4', carpModule3.id, 'Seguridad en el Taller', 'multiple_choice', {
+    question: '¿Por qué es importante usar gafas de protección al cortar madera?',
+    options: ['Para ver mejor', 'Para proteger los ojos de astillas y polvo', 'Es solo moda', 'No es necesario'],
+    correctIndex: 1,
+  }, 20, 4);
+
+  console.log('✅ Carpintería para Principiantes PRO created (3 módulos, 10 lecciones)');
+
   console.log('\n👑 PRO Courses Summary:');
   console.log('   - JavaScript Avanzado: $29.99 (Nivel 5+) - 3 módulos, 4 lecciones');
   console.log('   - React Mastery: $49.99 (Nivel 8+) - 3 módulos, 4 lecciones');
