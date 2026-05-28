@@ -77,8 +77,11 @@ export function CoursePaymentModal({
     setError(null);
 
     try {
+      console.log('[CHECKOUT] Starting checkout for course:', course.id);
+      
       // Get Clerk token for authentication
       const clerkToken = await getToken();
+      console.log('[CHECKOUT] Clerk token obtained:', clerkToken ? 'yes' : 'no');
 
       // Use priceData from API if available, otherwise use course props
       const purchaseData = priceData || {
@@ -88,6 +91,7 @@ export function CoursePaymentModal({
         requiredLevel: course.requiredLevel || 0,
         meetsLevelRequirement: true,
       };
+      console.log('[CHECKOUT] Purchase data:', purchaseData);
 
       if (purchaseData.isPurchased) {
         showSuccess('¡Ya tienes este curso!');
@@ -101,14 +105,25 @@ export function CoursePaymentModal({
         return;
       }
 
+      console.log('[CHECKOUT] Calling paymentsAPI.checkout...');
       // Create checkout session with Clerk token
       const checkoutData = await paymentsAPI.checkout(course.id, clerkToken || undefined);
+      console.log('[CHECKOUT] Response received:', checkoutData);
+      console.log('[CHECKOUT] checkoutUrl from response:', checkoutData?.checkoutUrl);
+      console.log('[CHECKOUT] Full response structure:', JSON.stringify(checkoutData, null, 2));
 
-      if (checkoutData.checkoutUrl) {
-        // Redirect to Stripe checkout
-        window.location.href = checkoutData.checkoutUrl;
+      if (checkoutData?.checkoutUrl) {
+        const checkoutUrl = checkoutData.checkoutUrl;
+        console.log('[CHECKOUT] Redirecting to:', checkoutUrl);
+        // Open Stripe checkout in a new tab (avoids popup blockers)
+        window.open(checkoutUrl, '_blank');
+        onClose();
+      } else {
+        console.log('[CHECKOUT] No checkoutUrl in response:', checkoutData);
+        setError('No se pudo obtener la página de pago. Intenta de nuevo.');
       }
     } catch (err: any) {
+      console.error('[CHECKOUT] Error:', err);
       const message = err?.message || 'Error al procesar el pago';
       setError(message);
       showError(message);
