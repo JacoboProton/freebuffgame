@@ -50,7 +50,7 @@ export async function createCourseCheckoutSession(data: CoursePaymentData): Prom
       courseId,
       userId,
     },
-    success_url: `${FRONTEND_URL}/dashboard?course_purchased=${courseId}&payment=success`,
+    success_url: `${FRONTEND_URL}/courses/payment-success?course_purchased=${courseId}&payment=success`,
     cancel_url: `${FRONTEND_URL}/courses?payment=cancelled`,
   });
 
