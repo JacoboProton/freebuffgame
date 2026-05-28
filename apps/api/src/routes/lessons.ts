@@ -5,6 +5,7 @@ import { authenticate, AuthRequest } from '../middlewares/auth.js';
 import { SubmitProgressSchema } from '@duobijac/shared';
 import { AppError } from '../middlewares/error.js';
 import { sendCourseCompletionEmail, isEmailConfigured } from '../services/email.js';
+import { notifyUser } from '../services/notifications.js';
 
 export const lessonsRouter = Router();
 
@@ -207,7 +208,17 @@ async function sendNotification(
       message,
       ...(data && { data: data as Prisma.InputJsonValue }),
     };
-    await prisma.notification.create({ data: notificationData });
+    const notification = await prisma.notification.create({ data: notificationData });
+    
+    // Broadcast via SSE for real-time delivery
+    notifyUser(userId, {
+      id: notification.id,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      data: notification.data as Record<string, unknown> | undefined,
+      createdAt: notification.createdAt,
+    });
   } catch (err) {
     console.error('Failed to send notification:', err);
   }

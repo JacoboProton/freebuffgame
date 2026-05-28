@@ -1,0 +1,10 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.github\\workflows",
+    "\\apps\\api",
+    "\\apps\\api\\src",
+    "\\apps\\api\\src\\routes"
+  ],
+  "PreviewInSolutionExplorer": false
+}
