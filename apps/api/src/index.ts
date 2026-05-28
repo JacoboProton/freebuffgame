@@ -13,6 +13,7 @@ import { adminRouter } from './routes/admin.js';
 import { dailyGoalsRouter } from './routes/daily-goals.js';
 import { paymentsRouter } from './routes/payments.js';
 import { notificationsRouter } from './routes/notifications.js';
+import pushRouter from './routes/push.js';
 import { errorHandler } from './middlewares/error.js';
 
 const app = express();
@@ -53,6 +54,7 @@ app.use('/api/admin', adminRouter);
 app.use('/api/daily-goals', dailyGoalsRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/push', pushRouter);
 
 // Error handler
 app.use(errorHandler);

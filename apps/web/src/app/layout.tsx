@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import { QueryProvider } from '@/lib/query-provider';
 import { ToastProvider } from '@/components/ui/toast';
+import { PushProvider } from '@/components/push-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -29,7 +30,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <body>
           <QueryProvider>
             <ToastProvider>
-              {children}
+              <PushProvider>
+                {children}
+              </PushProvider>
             </ToastProvider>
           </QueryProvider>
         </body>

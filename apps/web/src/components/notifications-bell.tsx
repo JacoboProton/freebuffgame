@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bell, Check, CheckCheck, X } from 'lucide-react';
+import { Bell, Check, CheckCheck, X, BellOff, BellRing } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotifications, type Notification } from '@/lib/use-notifications';
+import { usePushNotifications } from '@/lib/use-push-notifications';
 
 export function NotificationsBell() {
   const { notifications, connected, markAsRead } = useNotifications();
+  const { isSupported, permission, isSubscribed, isLoading, subscribe, unsubscribe } = usePushNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [recentNotifications, setRecentNotifications] = useState<Notification[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -96,7 +98,11 @@ export function NotificationsBell() {
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
       >
-        <Bell className="w-5 h-5 text-gray-600" />
+        {isSubscribed ? (
+          <BellRing className="w-5 h-5 text-blue-600" />
+        ) : (
+          <Bell className="w-5 h-5 text-gray-600" />
+        )}
         
         {/* Unread Badge */}
         {unreadCount > 0 && (
@@ -204,9 +210,70 @@ export function NotificationsBell() {
 
             {/* Footer */}
             <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/50">
-              <p className="text-xs text-center text-gray-400">
+              <p className="text-xs text-center text-gray-400 mb-2">
                 Las notificaciones en tiempo real aparecen automáticamente
               </p>
+              
+              {/* Push notification toggle */}
+              {isSupported && permission === 'granted' && (
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <span className="text-xs text-gray-500">
+                    {isSubscribed ? 'Notificaciones push activas' : 'Activar notificaciones push'}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isSubscribed) {
+                        unsubscribe();
+                      } else {
+                        subscribe();
+                      }
+                    }}
+                    disabled={isLoading}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
+                      isSubscribed
+                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    }`}
+                  >
+                    {isLoading ? (
+                      <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : isSubscribed ? (
+                      <>
+                        <BellOff className="w-3 h-3" />
+                        Desactivar
+                      </>
+                    ) : (
+                      <>
+                        <BellRing className="w-3 h-3" />
+                        Activar
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+              
+              {isSupported && permission !== 'granted' && permission !== 'denied' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    Notification.requestPermission().then((result) => {
+                      if (result === 'granted') {
+                        subscribe();
+                      }
+                    });
+                  }}
+                  className="w-full mt-2 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Permitir notificaciones
+                </button>
+              )}
+              
+              {permission === 'denied' && (
+                <p className="text-xs text-center text-red-500 mt-1">
+                  Notificaciones bloqueadas. Habilítalas en tu navegador.
+                </p>
+              )}
             </div>
           </motion.div>
         )}
