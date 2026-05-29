@@ -56,7 +56,10 @@ export function AdminAccessModal({ isOpen, onClose, onUserMode, onAdminMode }: A
       if (res.ok && data.valid) {
         // Store admin session in sessionStorage for frontend checks
         sessionStorage.setItem('adminAccess', 'true');
-        // adminToken is set as httpOnly cookie by the API - no need to store in sessionStorage
+        // Store adminToken for API requests that need it via header
+        if (data.adminToken) {
+          sessionStorage.setItem('adminToken', data.adminToken);
+        }
         onAdminMode();
         onClose();
         setStep('select');
