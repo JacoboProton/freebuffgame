@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { 
   Users, BookOpen, ChevronRight, ChevronDown, Plus, Edit2, Trash2,
   BarChart3, Crown, TrendingUp, GraduationCap, Trophy, DollarSign,
-  Shield, Settings, Bell, CreditCard
+  Shield, Settings, Bell, CreditCard, LogOut
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -231,6 +231,18 @@ export default function AdminPage() {
               </div>
             </div>
             <Badge variant="secondary" className="bg-admin-100">Admin</Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                sessionStorage.removeItem('adminAccess');
+                router.push('/dashboard');
+              }}
+              className="gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Salir del Modo Admin
+            </Button>
           </div>
         </div>
       </header>
