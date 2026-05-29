@@ -157,6 +157,23 @@ export default function DashboardPage() {
   const { user } = useAuthStore();
   const router = useRouter();
   const [showAdminModal, setShowAdminModal] = useState(false);
+  
+  // Check if user has admin access (stored in sessionStorage after password verification)
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  
+  useEffect(() => {
+    // Check sessionStorage for admin access on mount and on storage events
+    const checkAdminAccess = () => {
+      const adminAccess = sessionStorage.getItem('adminAccess');
+      setHasAdminAccess(adminAccess === 'true');
+    };
+    
+    checkAdminAccess();
+    
+    // Listen for storage changes (in case admin logs out in another tab)
+    window.addEventListener('storage', checkAdminAccess);
+    return () => window.removeEventListener('storage', checkAdminAccess);
+  }, []);
 
   useEffect(() => {
     fetchStats();
@@ -235,15 +252,17 @@ export default function DashboardPage() {
                   {user?.name || 'Mi Perfil'}
                 </Button>
               </Link>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowAdminModal(true)}
-                className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-              >
-                <Shield className="w-4 h-4 mr-2" />
-                Admin
-              </Button>
+              {hasAdminAccess && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAdminModal(true)}
+                  className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+              )}
             </div>
           </div>
         </div>

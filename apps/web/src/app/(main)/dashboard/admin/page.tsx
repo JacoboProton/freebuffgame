@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   Users, BookOpen, ChevronRight, ChevronDown, Plus, Edit2, Trash2,
@@ -79,11 +80,21 @@ interface AdminStats {
 }
 
 export default function AdminPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Verify admin access from sessionStorage
+  useEffect(() => {
+    const adminAccess = sessionStorage.getItem('adminAccess');
+    if (adminAccess !== 'true') {
+      // No admin access - redirect to dashboard
+      router.replace('/dashboard');
+    }
+  }, [router]);
 
   // Modal states
   const [courseModalOpen, setCourseModalOpen] = useState(false);
@@ -99,10 +110,16 @@ export default function AdminPage() {
   
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingItem, setDeletingItem] = useState<{ type: 'course' | 'module' | 'lesson'; id: string; name: string } | null>(null);
-
+  
+  // Verify admin access AND load data in single effect to prevent flash
   useEffect(() => {
+    const adminAccess = sessionStorage.getItem('adminAccess');
+    if (adminAccess !== 'true') {
+      router.replace('/dashboard');
+      return;
+    }
     loadAdminData();
-  }, []);
+  }, [router]);
 
   const loadAdminData = async () => {
     try {
