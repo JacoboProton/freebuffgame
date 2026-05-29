@@ -5,6 +5,7 @@ import { prisma } from '../lib/prisma.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'duobijac-dev-secret-change-in-production';
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || '';
+const ADMIN_TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || 'admin-secret-change-in-production';
 
 // Custom user type for authentication context
 export interface AuthUser {
@@ -136,10 +137,29 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 };
 
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if ((req as AuthRequest).user?.role !== 'admin') {
-    return res.status(403).json({ status: 'error', message: 'Acceso denegado' });
+  // First check if user has admin role from regular authentication
+  if ((req as AuthRequest).user?.role === 'admin') {
+    return next();
   }
-  next();
+  
+  // Second check: verify admin token cookie (set after password verification)
+  const adminToken = req.cookies?.adminToken;
+  if (adminToken) {
+    try {
+      // Use already-imported jwt module
+      const decoded = jwt.verify(adminToken, ADMIN_TOKEN_SECRET) as { type: string; verified: boolean };
+      if (decoded.type === 'admin_access' && decoded.verified) {
+        // Set a temporary admin user for the request
+        (req as AuthRequest).user = (req as AuthRequest).user || { id: 'admin-session', email: 'admin@local', role: 'admin' };
+        (req as AuthRequest).user.role = 'admin';
+        return next();
+      }
+    } catch (err) {
+      // Admin token invalid or expired, continue to deny
+    }
+  }
+  
+  return res.status(403).json({ status: 'error', message: 'Acceso denegado' });
 };
 
 export const generateToken = (userId: string): string => {

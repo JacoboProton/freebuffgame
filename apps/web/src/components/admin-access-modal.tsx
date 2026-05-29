@@ -54,7 +54,9 @@ export function AdminAccessModal({ isOpen, onClose, onUserMode, onAdminMode }: A
       const data = await res.json();
 
       if (res.ok && data.valid) {
+        // Store admin session in sessionStorage for frontend checks
         sessionStorage.setItem('adminAccess', 'true');
+        // adminToken is set as httpOnly cookie by the API - no need to store in sessionStorage
         onAdminMode();
         onClose();
         setStep('select');

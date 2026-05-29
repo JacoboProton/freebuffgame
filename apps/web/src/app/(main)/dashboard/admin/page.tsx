@@ -234,8 +234,19 @@ export default function AdminPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
+              onClick={async () => {
+                // Clear admin session storage
                 sessionStorage.removeItem('adminAccess');
+                sessionStorage.removeItem('adminToken');
+                // Call logout endpoint to clear admin cookie
+                try {
+                  await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/admin-auth/logout`, {
+                    method: 'POST',
+                    credentials: 'include',
+                  });
+                } catch (e) {
+                  // Ignore errors, just clear local state
+                }
                 router.push('/dashboard');
               }}
               className="gap-2"
