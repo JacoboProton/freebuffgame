@@ -43,7 +43,7 @@ export function AdminAccessModal({ isOpen, onClose, onUserMode, onAdminMode }: A
     setError('');
 
     try {
-      const res = await fetch('/api/admin-auth/verify-password', {
+      const res = await fetch('http://localhost:3001/api/admin-auth/verify-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
