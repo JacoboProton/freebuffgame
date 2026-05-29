@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ProgressBar } from '@/components/ui/progress';
 import { JacMascot, XPPopup, ConfettiCelebration } from '@/components/jac-mascot';
-import { gamesAPI } from '@/lib/api-client';
+import { useClerkAPIs } from '@/lib/clerk-api';
 import { useAuthStore } from '@/stores/auth-store';
 
 // Game types
@@ -441,6 +441,7 @@ function TrueFalseGame({ onComplete, onExit }: { onComplete: (score: number) => 
 // Main Games Hub Page
 export default function GamesPage() {
   const { user } = useAuthStore();
+  const { gamesAPI } = useClerkAPIs();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeGame, setActiveGame] = useState<GameType | null>(null);

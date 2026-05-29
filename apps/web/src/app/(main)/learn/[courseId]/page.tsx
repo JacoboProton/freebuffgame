@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { JacMascot, ConfettiCelebration, XPPopup } from '@/components/jac-mascot';
-import { lessonsAPI, userAPI } from '@/lib/api-client';
+import { useClerkAPIs } from '@/lib/clerk-api';
 import { useUserStore } from '@/stores/user-store';
 import { useToast, useLessonCompletion } from '@/components/ui/toast';
 
@@ -39,6 +39,7 @@ export default function LessonPage() {
   const router = useRouter();
   const courseId = params.courseId as string;
   const { updateLocalStats, fetchStats } = useUserStore();
+  const { lessonsAPI, userAPI } = useClerkAPIs();
 
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [progress, setProgress] = useState<{ completed: boolean; score: number; xpEarned: number } | null>(null);

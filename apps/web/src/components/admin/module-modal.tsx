@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { fetchAPI } from '@/lib/api-client';
+import { useClerkAPI } from '@/lib/clerk-api';
 
 interface ModuleModalProps {
   isOpen: boolean;
@@ -20,6 +20,7 @@ interface ModuleModalProps {
 }
 
 export function ModuleModal({ isOpen, onClose, onSuccess, courseId, module }: ModuleModalProps) {
+  const { fetchAPI } = useClerkAPI();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',

@@ -134,6 +134,17 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
         }
       } catch (err) {
         console.error('[AUTH DEBUG] Clerk verification error:', err);
+        
+        // Check if token is expired - return specific message for frontend handling
+        if (err && typeof err === 'object' && 'reason' in err && (err as { reason: string }).reason === 'token-expired') {
+          console.log('[AUTH DEBUG] Clerk token is expired');
+          return res.status(401).json({ 
+            status: 'error', 
+            message: 'Sesión expirada', 
+            code: 'TOKEN_EXPIRED',
+            action: 'refresh_session'
+          });
+        }
       }
     } else {
       console.log('[AUTH DEBUG] Skipping Clerk verification - conditions not met:', {

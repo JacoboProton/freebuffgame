@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { fetchAPI } from '@/lib/api-client';
+import { useClerkAPI } from '@/lib/clerk-api';
 import { CourseModal } from '@/components/admin/course-modal';
 import { ModuleModal } from '@/components/admin/module-modal';
 import { LessonModal } from '@/components/admin/lesson-modal';
@@ -81,6 +81,7 @@ interface AdminStats {
 
 export default function AdminPage() {
   const router = useRouter();
+  const { fetchAPI } = useClerkAPI();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);

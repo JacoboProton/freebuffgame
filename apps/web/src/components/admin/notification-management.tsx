@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchAPI } from '@/lib/api-client';
+import { useClerkAPI } from '@/lib/clerk-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +46,7 @@ interface SendNotificationModalProps {
 }
 
 function SendNotificationModal({ onClose, onSuccess }: SendNotificationModalProps) {
+  const { fetchAPI } = useClerkAPI();
   const [formData, setFormData] = useState({
     type: 'broadcast',
     title: '',
@@ -164,6 +165,7 @@ function SendNotificationModal({ onClose, onSuccess }: SendNotificationModalProp
 }
 
 export function NotificationManagement() {
+  const { fetchAPI } = useClerkAPI();
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [showSendModal, setShowSendModal] = useState(false);
   const [showTemplatesTab, setShowTemplatesTab] = useState(false);

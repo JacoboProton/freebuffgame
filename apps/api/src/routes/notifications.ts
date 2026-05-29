@@ -1,8 +1,40 @@
 import { Router, Request, Response } from 'express';
-import { authenticate } from '../middlewares/auth';
-import { prisma } from '../lib/prisma';
+import { authenticate } from '../middlewares/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { subscribeUser, unsubscribeUser } from '../services/notifications.js';
 
 export const notificationsRouter = Router();
+
+// SSE stream for real-time notifications
+notificationsRouter.get('/stream', authenticate, (req: Request, res: Response) => {
+  const userId = req.user!.id;
+
+  // Set headers for SSE
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering if present
+
+  // Send initial connection event
+  res.write('event: connected\ndata: {"status":"connected"}\n\n');
+
+  // Subscribe user to notification stream
+  subscribeUser(userId, res);
+
+  // Keep connection alive with periodic comments
+  const keepAliveInterval = setInterval(() => {
+    if (res.writable) {
+      res.write(': keepalive\n\n');
+    }
+  }, 30000);
+
+  // Handle client disconnect
+  req.on('close', () => {
+    clearInterval(keepAliveInterval);
+    unsubscribeUser(userId, res);
+    console.log(`User ${userId} disconnected from notification stream`);
+  });
+});
 
 // Subscribe to push notifications
 notificationsRouter.post('/subscribe', authenticate, async (req: Request, res: Response) => {

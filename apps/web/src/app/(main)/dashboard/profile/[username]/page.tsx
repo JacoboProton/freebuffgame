@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProgressBar } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { useUser } from '@clerk/nextjs';
-import { userAPI, achievementsAPI, coursesAPI, fetchAPI } from '@/lib/api-client';
+import { useClerkAPIs } from '@/lib/clerk-api';
 import { useUserStore, calculateLevel, xpToNextLevel, progressToNextLevel } from '@/stores/user-store';
 import { ConfettiCelebration } from '@/components/jac-mascot';
 
@@ -78,6 +78,7 @@ export default function ProfilePage() {
   const params = useParams();
   const { user: clerkUser, isSignedIn } = useUser();
   const { stats, fetchStats } = useUserStore();
+  const { userAPI, achievementsAPI, coursesAPI } = useClerkAPIs();
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);

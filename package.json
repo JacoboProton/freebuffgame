@@ -18,6 +18,11 @@
     "db:seed": "turbo run db:seed"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.25",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/passport": "^1.0.17",
     "turbo": "^2.0.0",
     "typescript": "^5.4.0"
   },

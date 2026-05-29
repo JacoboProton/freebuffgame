@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { X, Loader2, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { fetchAPI } from '@/lib/api-client';
+import { useClerkAPI } from '@/lib/clerk-api';
 
 interface LessonModalProps {
   isOpen: boolean;
@@ -53,6 +53,7 @@ interface MatchingContent {
 type ContentType = MultipleChoiceContent | TrueFalseContent | FillBlankContent | MatchingContent;
 
 export function LessonModal({ isOpen, onClose, onSuccess, moduleId, lesson }: LessonModalProps) {
+  const { fetchAPI } = useClerkAPI();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',

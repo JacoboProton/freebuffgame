@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { fetchAPI } from '@/lib/api-client';
+import { useClerkAPI } from '@/lib/clerk-api';
 
 interface StripeSession {
   id: string;
@@ -42,6 +42,7 @@ interface StripeStatus {
 }
 
 export function WebhookTest() {
+  const { fetchAPI } = useClerkAPI();
   const [sessions, setSessions] = useState<StripeSession[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [stripeStatus, setStripeStatus] = useState<StripeStatus | null>(null);
@@ -60,7 +61,7 @@ export function WebhookTest() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [fetchAPI]);
 
   const loadData = async () => {
     try {

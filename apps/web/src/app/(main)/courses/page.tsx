@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ProgressBar } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { coursesAPI, userAPI, paymentsAPI } from '@/lib/api-client';
+import { useClerkAPIs } from '@/lib/clerk-api';
 import { useUser } from '@clerk/nextjs';
 import { useToast } from '@/components/ui/toast';
 import { Crown, Lock } from 'lucide-react';
@@ -74,6 +74,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function CoursesPage() {
+  const { coursesAPI, userAPI, paymentsAPI } = useClerkAPIs();
   const { isSignedIn, user } = useUser();
   const [courses, setCourses] = useState<Course[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);

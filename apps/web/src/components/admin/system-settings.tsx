@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchAPI } from '@/lib/api-client';
+import { useClerkAPI } from '@/lib/clerk-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,7 @@ interface SettingsModalProps {
 }
 
 function SettingsModal({ setting, onClose, onSuccess }: SettingsModalProps) {
+  const { fetchAPI } = useClerkAPI();
   const [formData, setFormData] = useState({
     key: setting?.key || '',
     value: setting?.value || '',
@@ -201,6 +202,7 @@ const categoryLabels = {
 };
 
 export function SystemSettings() {
+  const { fetchAPI } = useClerkAPI();
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingSetting, setEditingSetting] = useState<SystemSetting | null>(null);

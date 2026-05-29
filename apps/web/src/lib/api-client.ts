@@ -3,10 +3,12 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 interface FetchOptions extends RequestInit {
   params?: Record<string, string>;
   clerkToken?: string | null;
+  getToken?: (() => Promise<string | null>) | null;
+  _retry?: boolean;
 }
 
-class APIError extends Error {
-  constructor(message: string, public statusCode: number) {
+export class APIError extends Error {
+  constructor(message: string, public statusCode: number, public code?: string, public action?: string) {
     super(message);
     this.name = 'APIError';
   }
@@ -16,7 +18,7 @@ async function fetchAPI<T>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const { params, clerkToken, ...fetchOptions } = options;
+  const { params, clerkToken, getToken, _retry, ...fetchOptions } = options;
 
   let url = `${API_URL}${endpoint}`;
   if (params) {
@@ -28,29 +30,39 @@ async function fetchAPI<T>(
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(fetchOptions.headers as Record<string, string>),
-    };      // Add Clerk token if provided (for Clerk/Google OAuth users)
-      // Priority: 1. clerkToken param, 2. __session cookie (which is a proper JWT)
-      if (clerkToken) {
-        headers['Authorization'] = `Bearer ${clerkToken}`;
-      } else {
-        // Try to get __session cookie directly for Clerk auth
-        // This cookie contains a proper JWT that our backend can verify
-        const cookies = document.cookie.split(';');
-        const sessionCookie = cookies.find(c => c.trim().startsWith('__session='));
-        if (sessionCookie) {
-          const token = sessionCookie.split('=')[1]?.trim();
-          // Only use if it looks like a JWT (starts with eyJ)
-          if (token && token.startsWith('eyJ')) {
-            headers['Authorization'] = `Bearer ${token}`;
-          }
+    };
+
+    // Get Clerk token with automatic refresh support
+    let token: string | null = clerkToken ?? null;
+    if (!token && getToken) {
+      try {
+        token = await getToken();
+      } catch (e) {
+        console.warn('[API] Failed to get Clerk token:', e);
+      }
+    }
+    
+    // Fallback to __session cookie if getToken not provided or failed
+    if (!token && !getToken) {
+      const cookies = document.cookie.split(';');
+      const sessionCookie = cookies.find(c => c.trim().startsWith('__session='));
+      if (sessionCookie) {
+        const rawToken = sessionCookie.split('=')[1]?.trim();
+        if (rawToken && rawToken.startsWith('eyJ')) {
+          token = rawToken;
         }
       }
+    }
 
-      // Add admin token if present (from admin-access-modal verification)
-      const adminTokenFromStorage = typeof window !== 'undefined' ? sessionStorage.getItem('adminToken') : null;
-      if (adminTokenFromStorage) {
-        headers['x-admin-token'] = adminTokenFromStorage;
-      }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // Add admin token if present (from admin-access-modal verification)
+    const adminTokenFromStorage = typeof window !== 'undefined' ? sessionStorage.getItem('adminToken') : null;
+    if (adminTokenFromStorage) {
+      headers['x-admin-token'] = adminTokenFromStorage;
+    }
 
     const response = await fetch(url, {
       ...fetchOptions,
@@ -61,9 +73,26 @@ async function fetchAPI<T>(
     const data = await response.json().catch(() => ({ message: 'Invalid response' }));
 
     if (!response.ok) {
+      // Check for token expired error and retry with fresh token if getToken available
+      if (
+        response.status === 401 &&
+        (data as { code?: string }).code === 'TOKEN_EXPIRED' &&
+        getToken &&
+        !_retry
+      ) {
+        console.log('[API] Token expired, refreshing and retrying...');
+        // Retry once with fresh token
+        return fetchAPI<T>(endpoint, { ...options, getToken, _retry: true });
+      }
+
       // 4xx errors - show the message from server
       if (response.status >= 400 && response.status < 500) {
-        throw new APIError(data.message || 'Error de cliente', response.status);
+        throw new APIError(
+          data.message || 'Error de cliente',
+          response.status,
+          (data as { code?: string }).code,
+          (data as { action?: string }).action
+        );
       }
       // 5xx errors - show generic message
       throw new APIError('Error del servidor. Por favor intenta de nuevo.', response.status);

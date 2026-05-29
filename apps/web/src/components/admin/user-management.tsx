@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchAPI } from '@/lib/api-client';
+import { useClerkAPI } from '@/lib/clerk-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +35,7 @@ interface UserModalProps {
 }
 
 function UserModal({ user, onClose, onSuccess }: UserModalProps) {
+  const { fetchAPI } = useClerkAPI();
   const [formData, setFormData] = useState({
     name: user?.name || '',
     xp: user?.xp || 0,
@@ -145,6 +146,7 @@ function UserModal({ user, onClose, onSuccess }: UserModalProps) {
 }
 
 export function UserManagement() {
+  const { fetchAPI } = useClerkAPI();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);

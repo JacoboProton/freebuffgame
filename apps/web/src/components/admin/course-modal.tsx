@@ -6,7 +6,7 @@ import { X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { fetchAPI } from '@/lib/api-client';
+import { useClerkAPI } from '@/lib/clerk-api';
 
 interface CourseModalProps {
   isOpen: boolean;
@@ -39,6 +39,7 @@ const CATEGORIES = [
 const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'];
 
 export function CourseModal({ isOpen, onClose, onSuccess, course }: CourseModalProps) {
+  const { fetchAPI } = useClerkAPI();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',

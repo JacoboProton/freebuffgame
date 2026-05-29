@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
-import { authenticate, AuthRequest } from '../middlewares/auth.js';
+import { authenticate, AuthRequest, requireAdmin } from '../middlewares/auth.js';
 import { AppError } from '../middlewares/error.js';
 import { createCourseCheckoutSession, verifyPaymentSession, isStripeConfigured, stripe } from '../services/stripe.js';
 import { sendPurchaseConfirmationEmail, isEmailConfigured } from '../services/email.js';
@@ -339,13 +339,8 @@ paymentsRouter.get('/purchases', authenticate, async (req: AuthRequest, res, nex
 // ===========================================
 
 // List recent Stripe checkout sessions (for debugging/testing)
-paymentsRouter.get('/admin/sessions', authenticate, async (req: AuthRequest, res, next) => {
+paymentsRouter.get('/admin/sessions', authenticate, requireAdmin, async (req: AuthRequest, res, next) => {
   try {
-    // Verify admin role
-    if (req.user!.role !== 'admin') {
-      throw new AppError('Acceso denegado', 403);
-    }
-
     if (!isStripeConfigured()) {
       return res.json({
         status: 'success',
@@ -386,12 +381,8 @@ paymentsRouter.get('/admin/sessions', authenticate, async (req: AuthRequest, res
 });
 
 // List all course purchases for admin
-paymentsRouter.get('/admin/purchases', authenticate, async (req: AuthRequest, res, next) => {
+paymentsRouter.get('/admin/purchases', authenticate, requireAdmin, async (req: AuthRequest, res, next) => {
   try {
-    if (req.user!.role !== 'admin') {
-      throw new AppError('Acceso denegado', 403);
-    }
-
     const { page = 1, limit = 50 } = req.query;
 
     const [purchases, total] = await Promise.all([
@@ -429,12 +420,8 @@ paymentsRouter.get('/admin/purchases', authenticate, async (req: AuthRequest, re
 });
 
 // Manually verify and process a purchase (for testing when webhook fails)
-paymentsRouter.post('/admin/verify-purchase', authenticate, async (req: AuthRequest, res, next) => {
+paymentsRouter.post('/admin/verify-purchase', authenticate, requireAdmin, async (req: AuthRequest, res, next) => {
   try {
-    if (req.user!.role !== 'admin') {
-      throw new AppError('Acceso denegado', 403);
-    }
-
     const { sessionId, courseId, userId } = req.body;
 
     if (!sessionId && !courseId && !userId) {
@@ -591,12 +578,8 @@ paymentsRouter.post('/admin/verify-purchase', authenticate, async (req: AuthRequ
 });
 
 // Get Stripe configuration status
-paymentsRouter.get('/admin/stripe-status', authenticate, async (req: AuthRequest, res, next) => {
+paymentsRouter.get('/admin/stripe-status', authenticate, requireAdmin, async (req: AuthRequest, res, next) => {
   try {
-    if (req.user!.role !== 'admin') {
-      throw new AppError('Acceso denegado', 403);
-    }
-
     const configured = isStripeConfigured();
 
     res.json({

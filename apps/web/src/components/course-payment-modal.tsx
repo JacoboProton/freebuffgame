@@ -7,7 +7,7 @@ import { useAuth } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/toast';
-import { paymentsAPI } from '@/lib/api-client';
+import { useClerkAPIs } from '@/lib/clerk-api';
 
 interface CoursePaymentModalProps {
   isOpen: boolean;
@@ -44,14 +44,15 @@ export function CoursePaymentModal({
   } | null>(null);
   const { getToken } = useAuth();
   const { showError, showSuccess } = useToast();
+  const { paymentsAPI } = useClerkAPIs();
 
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen && course) {
       setError(null);
       // Fetch price data from API with Clerk token
-      getToken().then(token => {
-        return paymentsAPI.getCoursePrice(course.id, token || undefined).then(data => {
+      getToken().then(() => {
+        return paymentsAPI.getCoursePrice(course.id).then(data => {
           setPriceData({
             isPurchased: data.isPurchased,
             isPro: data.isPro,
@@ -108,7 +109,7 @@ export function CoursePaymentModal({
 
       console.log('[CHECKOUT] Calling paymentsAPI.checkout...');
       // Create checkout session with Clerk token
-      const response = await paymentsAPI.checkout(course.id, clerkToken || undefined);
+      const response = await paymentsAPI.checkout(course.id);
       console.log('[CHECKOUT] Response received:', response);
       console.log('[CHECKOUT] checkoutUrl from response:', response?.data?.checkoutUrl);
       console.log('[CHECKOUT] Full response structure:', JSON.stringify(response, null, 2));
