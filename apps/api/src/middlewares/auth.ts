@@ -29,18 +29,18 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     console.log('[AUTH DEBUG] Cookie token:', req.cookies?.token ? 'yes (' + req.cookies.token.substring(0, 30) + '...)' : 'no');
     console.log('[AUTH DEBUG] Auth header:', req.headers.authorization ? 'yes (' + req.headers.authorization.substring(0, 30) + '...)' : 'no');
 
-    // Check for admin token cookie - allows admin access without regular user token
-    const adminToken = req.cookies?.adminToken;
+    // Check for admin token cookie OR header - allows admin access without regular user token
+    const adminToken = req.cookies?.adminToken || req.headers['x-admin-token'];
     if (!token && adminToken) {
       try {
         const decoded = jwt.verify(adminToken, ADMIN_TOKEN_SECRET) as { type: string; verified: boolean };
         if (decoded.type === 'admin_access' && decoded.verified) {
-          console.log('[AUTH DEBUG] Admin token cookie detected and valid');
+          console.log('[AUTH DEBUG] Admin token detected and valid');
           (req as AuthRequest).user = { id: 'admin-session', email: 'admin@local', role: 'admin' };
           return next();
         }
       } catch (err) {
-        console.log('[AUTH DEBUG] Admin token cookie invalid');
+        console.log('[AUTH DEBUG] Admin token invalid');
         // Continue to normal auth flow
       }
     }

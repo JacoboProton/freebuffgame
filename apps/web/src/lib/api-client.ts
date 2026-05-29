@@ -28,25 +28,29 @@ async function fetchAPI<T>(
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(fetchOptions.headers as Record<string, string>),
-    };
-
-    // Add Clerk token if provided (for Clerk/Google OAuth users)
-    // Priority: 1. clerkToken param, 2. __session cookie (which is a proper JWT)
-    if (clerkToken) {
-      headers['Authorization'] = `Bearer ${clerkToken}`;
-    } else {
-      // Try to get __session cookie directly for Clerk auth
-      // This cookie contains a proper JWT that our backend can verify
-      const cookies = document.cookie.split(';');
-      const sessionCookie = cookies.find(c => c.trim().startsWith('__session='));
-      if (sessionCookie) {
-        const token = sessionCookie.split('=')[1]?.trim();
-        // Only use if it looks like a JWT (starts with eyJ)
-        if (token && token.startsWith('eyJ')) {
-          headers['Authorization'] = `Bearer ${token}`;
+    };      // Add Clerk token if provided (for Clerk/Google OAuth users)
+      // Priority: 1. clerkToken param, 2. __session cookie (which is a proper JWT)
+      if (clerkToken) {
+        headers['Authorization'] = `Bearer ${clerkToken}`;
+      } else {
+        // Try to get __session cookie directly for Clerk auth
+        // This cookie contains a proper JWT that our backend can verify
+        const cookies = document.cookie.split(';');
+        const sessionCookie = cookies.find(c => c.trim().startsWith('__session='));
+        if (sessionCookie) {
+          const token = sessionCookie.split('=')[1]?.trim();
+          // Only use if it looks like a JWT (starts with eyJ)
+          if (token && token.startsWith('eyJ')) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
         }
       }
-    }
+
+      // Add admin token if present (from admin-access-modal verification)
+      const adminTokenFromStorage = typeof window !== 'undefined' ? sessionStorage.getItem('adminToken') : null;
+      if (adminTokenFromStorage) {
+        headers['x-admin-token'] = adminTokenFromStorage;
+      }
 
     const response = await fetch(url, {
       ...fetchOptions,

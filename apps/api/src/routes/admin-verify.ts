@@ -52,9 +52,10 @@ adminVerifyRouter.post('/verify-password', async (req, res, next) => {
       // Set admin token as a cookie
       res.cookie('adminToken', adminToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Allow over HTTP for development
         sameSite: 'lax',
         maxAge: 2 * 60 * 60 * 1000, // 2 hours
+        path: '/',
       });
 
       return res.json({ 
