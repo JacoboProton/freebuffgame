@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import { authRouter } from './routes/auth.js';
 import { coursesRouter } from './routes/courses.js';
@@ -29,6 +30,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
+app.use(cookieParser());
 
 // Raw body for Stripe webhooks - MUST be before express.json() for webhook route
 // This captures the raw buffer before any body parsing
