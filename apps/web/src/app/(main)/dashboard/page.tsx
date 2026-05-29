@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Trophy, ShoppingBag, User, BookOpen, Zap, Target, Flame, TrendingUp, Award, Gamepad2, Bell } from 'lucide-react';
+import { Trophy, ShoppingBag, User, BookOpen, Zap, Target, Flame, TrendingUp, Award, Gamepad2, Bell, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { ProgressBar } from '@/components/ui/progress';
 import { useUserStore, calculateLevel, xpToNextLevel, progressToNextLevel } from '@/stores/user-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { useToast } from '@/components/ui/toast';
+import { AdminAccessModal } from '@/components/admin-access-modal';
 
 // Separate component for payment success handling (requires Suspense for useSearchParams)
 function PaymentSuccessHandler() {
@@ -79,7 +80,7 @@ function ProgressRing({ progress, size = 120, strokeWidth = 10 }: { progress: nu
 }
 
 // Daily Goal Card Component
-function DailyGoalCard({ goal, onComplete }: { goal: any; onComplete?: () => void }) {
+function DailyGoalCard({ goal }: { goal: any }) {
   const progress = Math.min((goal.current / goal.target) * 100, 100);
   
   return (
@@ -154,6 +155,8 @@ function StreakFlame({ streak, isToday }: { streak: number; isToday: boolean }) 
 export default function DashboardPage() {
   const { stats, dailyGoals, fetchStats, fetchDailyGoals, isLoading } = useUserStore();
   const { user } = useAuthStore();
+  const router = useRouter();
+  const [showAdminModal, setShowAdminModal] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -164,6 +167,15 @@ export default function DashboardPage() {
       fetchDailyGoals();
     }
   }, [stats, fetchDailyGoals]);
+
+  const handleUserMode = () => {
+    // Normal user mode - close modal and stay on dashboard
+  };
+
+  const handleAdminMode = () => {
+    // Admin mode - go to admin dashboard
+    router.push('/dashboard/admin');
+  };
 
   const level = stats ? calculateLevel(stats.xp) : 1;
   const xpProgress = stats ? progressToNextLevel(stats.xp) : 0;
@@ -190,10 +202,19 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Admin Access Modal */}
+      <AdminAccessModal
+        isOpen={showAdminModal}
+        onClose={() => setShowAdminModal(false)}
+        onUserMode={handleUserMode}
+        onAdminMode={handleAdminMode}
+      />
+
       {/* Stripe payment success handler - wrapped in Suspense for useSearchParams */}
       <Suspense fallback={null}>
         <PaymentSuccessHandler />
       </Suspense>
+
       <header className="bg-white shadow-card sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -214,6 +235,15 @@ export default function DashboardPage() {
                   {user?.name || 'Mi Perfil'}
                 </Button>
               </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAdminModal(true)}
+                className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
             </div>
           </div>
         </div>
@@ -225,7 +255,8 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
-        >            <h1 className="text-3xl font-bold mb-2">
+        >
+          <h1 className="text-3xl font-bold mb-2">
             ¡Bienvenido de nuevo, {user?.name || 'Aprendiz'}! 🎉
           </h1>
           <p className="text-gray-500">Continúa tu viaje de aprendizaje</p>
