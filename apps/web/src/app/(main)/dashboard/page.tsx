@@ -252,17 +252,15 @@ export default function DashboardPage() {
                   {user?.name || 'Mi Perfil'}
                 </Button>
               </Link>
-              {hasAdminAccess && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAdminModal(true)}
-                  className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  Admin
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAdminModal(true)}
+                className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
             </div>
           </div>
         </div>
