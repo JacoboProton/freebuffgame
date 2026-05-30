@@ -1,12 +1,6 @@
 {
   "framework": "nextjs",
-  "installCommand": "npm install",
-  "buildCommand": "npm install --prefix apps/web && npm run build --prefix apps/web",
-  "outputDirectory": ".next",
-  "builds": [
-    {
-      "src": "apps/web/package.json",
-      "use": "@vercel/next"
-    }
-  ]
+  "rootDirectory": "apps/web",
+  "buildCommand": "npx prisma generate --schema=../api/prisma/schema.prisma && next build",
+  "outputDirectory": ".next"
 }
