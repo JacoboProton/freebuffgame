@@ -4,5 +4,6 @@
       "src": "apps/web/package.json",
       "use": "@vercel/next"
     }
-  ]
+  ],
+  "outputDirectory": ".next"
 }
