@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build --prefix apps/web",
+  "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "builds": [
     {
