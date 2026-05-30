@@ -1,0 +1,55 @@
+# Render Web Service - Express API Backend
+# https://render.com/docs/deploy-node-express
+
+services:
+  - type: web
+    name: freebuffgame-api
+    env: node
+    region: oregon
+    plan: free
+    rootDir: apps/api
+    buildCommand: npx prisma generate && npm run build
+    startCommand: npx tsx src/index.ts
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        # Replace with your actual web app URL once deployed
+        value: https://freebuffgame-web.onrender.com
+      - key: API_URL
+        value: https://freebuffgame-api.onrender.com
+      - key: FRONTEND_URL
+        value: https://freebuffgame-web.onrender.com
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: CRON_SECRET
+        generateValue: true
+      - key: INNGEST_EVENT_KEY
+        sync: false
+      - key: INNGEST_SIGNING_KEY
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false

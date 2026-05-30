@@ -1,0 +1,33 @@
+# Render Web Service - Next.js Frontend
+# https://render.com/docs/deploy-a-next-js-app
+
+services:
+  - type: web
+    name: freebuffgame-web
+    env: node
+    region: oregon
+    plan: free
+    rootDir: apps/web
+    buildCommand: npx prisma generate --schema=../api/prisma/schema.prisma && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://freebuffgame-api.onrender.com/api
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_SIGN_IN_URL
+        value: /login
+      - key: NEXT_PUBLIC_CLERK_SIGN_UP_URL
+        value: /register
+      - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL
+        value: /dashboard
+      - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
+        value: /dashboard
+      - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
