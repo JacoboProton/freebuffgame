@@ -1,0 +1,8 @@
+{
+  "projects": [
+    {
+      "rootDirectory": "apps/web",
+      "buildCommand": "npx prisma generate --schema=../api/prisma/schema.prisma && npx next build"
+    }
+  ]
+}
