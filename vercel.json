@@ -1,6 +1,6 @@
 {
   "installCommand": "npm install",
-  "buildCommand": "cd apps/web && npm install && npx prisma generate --schema=../api/prisma/schema.prisma && ./node_modules/.bin/next build",
+  "buildCommand": "npx prisma generate --schema=apps/api/prisma/schema.prisma && next build apps/web",
   "builds": [
     {
       "src": "apps/web/package.json",
