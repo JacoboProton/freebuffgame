@@ -8,7 +8,8 @@ services:
     region: oregon
     plan: free
     rootDir: apps/web
-    buildCommand: npx prisma generate --schema=../api/prisma/schema.prisma && npm run build
+    # Copy prisma schema from API before generating client
+    buildCommand: cp -r ../api/prisma ./prisma-copy && npx prisma generate --schema=./prisma-copy/schema.prisma && npm run build
     startCommand: npm run start
     envVars:
       - key: NODE_ENV
@@ -30,4 +31,9 @@ services:
       - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
         sync: false
       - key: VAPID_PRIVATE_KEY
+        sync: false
+      # Inngest (if using background jobs)
+      - key: INNGEST_EVENT_KEY
+        sync: false
+      - key: INNGEST_SIGNING_KEY
         sync: false
