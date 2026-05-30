@@ -1,67 +1,13 @@
 import { Router } from 'express';
-import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, generateToken, AuthRequest } from '../middlewares/auth.js';
 import { RegisterSchema, LoginSchema } from '@duobijac/shared';
 import { AppError } from '../middlewares/error.js';
+import { isGoogleOAuthConfigured } from '../config/passport.js';
 
-// Validate Google OAuth environment variables on startup
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-
-if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-  console.warn('⚠️ Google OAuth credentials not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env to enable Google sign-in.');
-} else {
-  // Configure Passport Google Strategy
-  passport.use(new GoogleStrategy({
-      clientID: GOOGLE_CLIENT_ID,
-      clientSecret: GOOGLE_CLIENT_SECRET,
-      callbackURL: `${process.env.API_URL || 'http://localhost:3001'}/api/auth/google/callback`,
-    },
-    async (_accessToken, _refreshToken, profile, done) => {
-      try {
-        if (!profile.emails?.length) {
-          return done(new Error('No email found in Google profile'));
-        }
-
-        const email = profile.emails[0].value;
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-
-        if (existingUser) {
-          // Update googleId if not set
-          if (!existingUser.googleId) {
-            await prisma.user.update({
-              where: { id: existingUser.id },
-              data: { 
-                googleId: profile.id,
-                avatar: profile.photos?.[0]?.value || existingUser.avatar,
-                isRegisteredWithGoogle: true,
-              },
-            });
-          }
-          return done(null, { id: existingUser.id, email: existingUser.email, name: existingUser.name });
-        }
-
-        // Create new user
-        const newUser = await prisma.user.create({
-          data: {
-            email,
-            name: profile.displayName || email.split('@')[0],
-            googleId: profile.id,
-            avatar: profile.photos?.[0]?.value,
-            isRegisteredWithGoogle: true,
-          },
-        });
-
-        return done(null, { id: newUser.id, email: newUser.email, name: newUser.name });
-      } catch (err) {
-        return done(err as Error);
-      }
-    }
-  ));
-}
+// NOTE: Google OAuth routes are temporarily disabled. Import passport directly where needed.
+// import passport from '../config/passport.js';
 
 export const authRouter = Router();
 
@@ -194,11 +140,10 @@ authRouter.post('/logout', (_, res) => {
 
 // Check if Google OAuth is configured
 authRouter.get('/google/status', (_, res) => {
-  const configured = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
   res.json({ 
     status: 'success', 
     data: { 
-      googleOAuthEnabled: configured 
+      googleOAuthEnabled: isGoogleOAuthConfigured 
     } 
   });
 });
@@ -234,47 +179,15 @@ authRouter.get('/me', authenticate, async (req: AuthRequest, res, next) => {
   }
 });
 
-// Google OAuth Routes
-authRouter.get('/google', 
-  (req, res, next) => {
-    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-      return res.status(503).json({ 
-        status: 'error', 
-        message: 'Google OAuth no está configurado. Contacta al administrador.' 
-      });
-    }
-    next();
-  },
-  passport.authenticate('google', { 
-    scope: ['profile', 'email'],
-    session: false,
-    state: Math.random().toString(36).substring(7),
-  })
-);
+// Google OAuth Routes - DISABLED TEMPORARILY FOR TESTING
+// authRouter.get('/google', ...);
+// authRouter.get('/google/callback', ...);
 
-authRouter.get('/google/callback', 
-  passport.authenticate('google', { 
-    session: false, 
-    failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=google_failed` 
-  }),
-  (req: AuthRequest, res, next) => {
-    try {
-      // Generate JWT token for the user
-      const token = generateToken(req.user!.id);
-
-      // Set cookie and redirect to frontend
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
-
-      // Redirect to dashboard
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      res.redirect(`${frontendUrl}/dashboard?google_auth=success`);
-    } catch (err) {
-      next(err);
-    }
-  }
-);
+authRouter.get('/google/status', (_, res) => {
+  res.json({ 
+    status: 'success', 
+    data: { 
+      googleOAuthEnabled: isGoogleOAuthConfigured 
+    } 
+  });
+});

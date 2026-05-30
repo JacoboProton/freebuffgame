@@ -9,6 +9,12 @@ interface Connection {
 // Map of userId -> Map of Response -> Connection info
 const userConnections = new Map<string, Map<Response, Connection>>();
 
+// Type for writable response
+interface WritableRes extends Response {
+  writable: boolean;
+  write(chunk: string): boolean;
+}
+
 // Cleanup stale connections every 60 seconds
 setInterval(() => {
   const maxAge = 60000; // 60 seconds
@@ -18,7 +24,7 @@ setInterval(() => {
   for (const [userId, connections] of userConnections) {
     for (const [res, conn] of connections) {
       // Check if connection is still alive by testing if response is writable
-      if (!res.writable || (now - conn.connectedAt) > maxAge * 10) {
+      if (!(res as WritableRes).writable || (now - conn.connectedAt) > maxAge * 10) {
         connections.delete(res);
         cleaned++;
       }
@@ -70,8 +76,8 @@ export function notifyUser(userId: string, notification: {
   if (hasActiveSSEConnection) {
     const message = formatSSEMessage('notification', notification);
     for (const [res] of connections!) {
-      if (res.writable) {
-        res.write(message);
+      if ((res as WritableRes).writable) {
+        (res as WritableRes).write(message);
       }
     }
     // If user has SSE connection, they already get real-time toast - no need for duplicate push
@@ -106,8 +112,8 @@ export function broadcastToAll(notification: {
   
   for (const [, connections] of userConnections) {
     for (const [res] of connections) {
-      if (res.writable) {
-        res.write(message);
+      if ((res as WritableRes).writable) {
+        (res as WritableRes).write(message);
       }
     }
   }

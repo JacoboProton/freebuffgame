@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, AuthRequest } from '../middlewares/auth.js';
 
@@ -21,7 +21,7 @@ function getWeekBounds() {
 }
 
 // Get weekly leaderboard
-weeklyLeaderboardRouter.get('/', authenticate, async (req: AuthRequest, res, next) => {
+weeklyLeaderboardRouter.get('/', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { weekStart, weekEnd } = getWeekBounds();
     const { limit = 50 } = req.query;
@@ -111,7 +111,7 @@ weeklyLeaderboardRouter.get('/', authenticate, async (req: AuthRequest, res, nex
 });
 
 // Update weekly XP (called when user earns XP)
-weeklyLeaderboardRouter.post('/xp', authenticate, async (req: AuthRequest, res, next) => {
+weeklyLeaderboardRouter.post('/xp', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { xp } = req.body;
     const userId = req.user!.id;
@@ -145,7 +145,7 @@ weeklyLeaderboardRouter.post('/xp', authenticate, async (req: AuthRequest, res, 
 });
 
 // Claim weekly reward
-weeklyLeaderboardRouter.post('/claim', authenticate, async (req: AuthRequest, res, next) => {
+weeklyLeaderboardRouter.post('/claim', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { weekStart } = getWeekBounds();
     const userId = req.user!.id;
@@ -192,7 +192,7 @@ weeklyLeaderboardRouter.post('/claim', authenticate, async (req: AuthRequest, re
 });
 
 // Admin: Generate weekly rewards
-weeklyLeaderboardRouter.post('/generate', authenticate, async (req: AuthRequest, res, next) => {
+weeklyLeaderboardRouter.post('/generate', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     if (req.user!.role !== 'admin') {
       return res.status(403).json({ status: 'error', message: 'Admin only' });
