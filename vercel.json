@@ -6,3 +6,4 @@
     }
   ]
 }
+// Vercel monorepo config - builds only apps/web
