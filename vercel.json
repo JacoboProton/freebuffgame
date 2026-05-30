@@ -1,8 +1,8 @@
 {
-  "projects": [
+  "builds": [
     {
-      "rootDirectory": "apps/web",
-      "buildCommand": "npx prisma generate --schema=../api/prisma/schema.prisma && npx next build"
+      "src": "apps/web/package.json",
+      "use": "@vercel/next"
     }
   ]
 }
