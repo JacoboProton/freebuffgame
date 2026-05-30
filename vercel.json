@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx prisma generate --schema=apps/api/prisma/schema.prisma && npx next build",
+  "buildCommand": "bun run prisma generate --schema=apps/api/prisma/schema.prisma && bun run build --cwd=apps/web",
   "builds": [
     {
       "src": "apps/web/package.json",
