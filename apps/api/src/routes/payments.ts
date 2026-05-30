@@ -4,6 +4,7 @@ import { authenticate, AuthRequest, requireAdmin } from '../middlewares/auth.js'
 import { AppError } from '../middlewares/error.js';
 import { createCourseCheckoutSession, verifyPaymentSession, isStripeConfigured, stripe } from '../services/stripe.js';
 import { sendPurchaseConfirmationEmail, isEmailConfigured } from '../services/email.js';
+import { inngest } from '../services/inngest.js';
 
 export const paymentsRouter = Router();
 
@@ -214,6 +215,22 @@ paymentsRouter.post('/webhook', async (req: AuthRequest, res) => {
             });
 
             console.log(`✅ Purchase completed: User ${userId} purchased course ${courseId}`);
+
+            // Dispatch Inngest event for background job processing
+            try {
+              await inngest.send({
+                name: 'stripe/checkout.session.completed',
+                data: {
+                  userId,
+                  courseId,
+                  amount: session.amount_total || 0,
+                  paymentIntentId: session.payment_intent,
+                },
+              });
+              console.log(`[INNGEST] Event dispatched: stripe/checkout.session.completed for user ${userId}`);
+            } catch (inngestErr) {
+              console.error('[INNGEST] Failed to dispatch event:', inngestErr);
+            }
           }
         }
         break;
