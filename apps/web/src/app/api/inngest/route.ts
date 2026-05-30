@@ -1,4 +1,4 @@
-import { serve } from 'inngest/next';
+import { serve } from 'inngest';
 import { inngest, functions } from '@/lib/inngest-client';
 
 // Export the Inngest handler for Vercel (Next.js App Router)
