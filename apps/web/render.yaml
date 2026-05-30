@@ -9,7 +9,7 @@ services:
     plan: free
     rootDir: apps/web
     # Copy prisma schema from API before generating client
-    buildCommand: cp -r ../api/prisma ./prisma-copy && npx prisma generate --schema=./prisma-copy/schema.prisma && npm run build
+    buildCommand: cp -r ../api/prisma ./prisma-copy && npm install prisma@5.22.0 @prisma/client@5.22.0 && npx prisma@5.22.0 generate --schema=./prisma-copy/schema.prisma && npm run build
     startCommand: npm run start
     envVars:
       - key: NODE_ENV
