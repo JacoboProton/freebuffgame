@@ -3,7 +3,12 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": ["INNGEST_EVENT_KEY"]
+    },
+    "build:web": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"]
     },
     "dev": {
       "cache": false,
