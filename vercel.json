@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx prisma generate --schema=apps/api/prisma/schema.prisma && node_modules/.bin/next build apps/web",
+  "buildCommand": "npx prisma generate --schema=apps/api/prisma/schema.prisma && node_modules/.bin/next.cmd build apps/web",
   "builds": [
     {
       "src": "apps/web/package.json",
