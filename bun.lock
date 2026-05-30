@@ -25,6 +25,7 @@
         "tsx": "^4.22.3",
         "turbo": "^2.0.0",
         "typescript": "^5.4.0",
+        "web": "workspace:*",
       },
     },
     "apps/api": {
@@ -86,6 +87,7 @@
         "zustand": "^4.5.0",
       },
       "devDependencies": {
+        "@types/bcryptjs": "^3.0.0",
         "@types/node": "^20.11.0",
         "@types/react": "^18.2.0",
         "@types/react-dom": "^18.2.0",
