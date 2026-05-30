@@ -1,5 +1,6 @@
 {
-  "buildCommand": "bun run prisma generate --schema=apps/api/prisma/schema.prisma && bun run build --cwd=apps/web",
+  "installCommand": "npm install",
+  "buildCommand": "cd apps/web && npm install && npx prisma generate --schema=../api/prisma/schema.prisma && ./node_modules/.bin/next build",
   "builds": [
     {
       "src": "apps/web/package.json",
