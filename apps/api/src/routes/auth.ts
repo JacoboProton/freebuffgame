@@ -7,7 +7,7 @@ import { AppError } from '../middlewares/error.js';
 import { isGoogleOAuthConfigured } from '../config/passport.js';
 
 // Import passport for Google OAuth
-import passport from '../config/passport.js';
+import { passport } from '../config/passport.js';
 
 export const authRouter = Router();
 
