@@ -6,8 +6,8 @@ import { RegisterSchema, LoginSchema } from '@duobijac/shared';
 import { AppError } from '../middlewares/error.js';
 import { isGoogleOAuthConfigured } from '../config/passport.js';
 
-// NOTE: Google OAuth routes are temporarily disabled. Import passport directly where needed.
-// import passport from '../config/passport.js';
+// Import passport for Google OAuth
+import passport from '../config/passport.js';
 
 export const authRouter = Router();
 
@@ -179,15 +179,47 @@ authRouter.get('/me', authenticate, async (req: AuthRequest, res, next) => {
   }
 });
 
-// Google OAuth Routes - DISABLED TEMPORARILY FOR TESTING
-// authRouter.get('/google', ...);
-// authRouter.get('/google/callback', ...);
+// Google OAuth Routes
+authRouter.get('/google', 
+  (req, res, next) => {
+    if (!isGoogleOAuthConfigured) {
+      return res.status(503).json({ 
+        status: 'error', 
+        message: 'Google OAuth no está configurado. Contacta al administrador.' 
+      });
+    }
+    next();
+  },
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'],
+    session: false,
+    state: Math.random().toString(36).substring(7),
+  })
+);
 
-authRouter.get('/google/status', (_, res) => {
-  res.json({ 
-    status: 'success', 
-    data: { 
-      googleOAuthEnabled: isGoogleOAuthConfigured 
-    } 
-  });
-});
+authRouter.get('/google/callback', 
+  passport.authenticate('google', { 
+    session: false, 
+    failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=google_failed` 
+  }),
+  (req: AuthRequest, res, next) => {
+    try {
+      // Generate JWT token for the user
+      const token = generateToken(req.user!.id);
+
+      // Set cookie and redirect to frontend
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      // Redirect to dashboard
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      res.redirect(`${frontendUrl}/dashboard?google_auth=success`);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
