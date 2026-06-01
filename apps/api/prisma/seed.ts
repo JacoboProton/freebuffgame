@@ -3,12 +3,83 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log('🌱 Starting seed...');
+// ===========================================
+// HELPER FUNCTIONS
+// ===========================================
 
-  // Create admin user
+const createCourse = async (
+  id: string,
+  title: string,
+  description: string,
+  category: string,
+  difficulty: string,
+  estimatedHours: number,
+  imageUrl: string,
+  options: { isPro?: boolean; price?: number; requiredLevel?: number } = {}
+) => {
+  return prisma.course.upsert({
+    where: { id },
+    update: { 
+      title, 
+      description, 
+      category, 
+      difficulty, 
+      estimatedHours, 
+      imageUrl, 
+      isPublished: true, 
+      ...options 
+    },
+    create: { 
+      id, 
+      title, 
+      description, 
+      category, 
+      difficulty, 
+      estimatedHours, 
+      imageUrl, 
+      isPublished: true, 
+      ...options 
+    },
+  });
+};
+
+const createModule = async (id: string, courseId: string, title: string, order: number) => {
+  return prisma.module.upsert({
+    where: { id },
+    update: { title, order },
+    create: { id, courseId, title, order },
+  });
+};
+
+const createLesson = async (
+  id: string, 
+  moduleId: string, 
+  title: string, 
+  type: string, 
+  content: any, 
+  xpReward: number, 
+  order: number
+) => {
+  return prisma.lesson.upsert({
+    where: { id },
+    update: { title, type, content, xpReward, order },
+    create: { id, moduleId, title, type, content, xpReward, order },
+  });
+};
+
+// ===========================================
+// MAIN SEED FUNCTION
+// ===========================================
+
+async function main() {
+  console.log('🌱 Starting ENHANCED seed with practical coding exercises...\n');
+
+  // ===========================================
+  // USERS
+  // ===========================================
+  
   const adminPassword = await bcrypt.hash('admin123', 12);
-  const admin = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'admin@duobijac.com' },
     update: {},
     create: {
@@ -16,37 +87,37 @@ async function main() {
       passwordHash: adminPassword,
       name: 'Jac Admin',
       role: 'admin',
-      xp: 5000,
-      level: 11,
-      coins: 500,
-      currentStreak: 15,
-      longestStreak: 30,
+      xp: 8500,
+      level: 15,
+      coins: 1200,
+      currentStreak: 28,
+      longestStreak: 45,
     },
   });
-  console.log('✅ Admin user created');
 
-  // Create demo user
   const demoPassword = await bcrypt.hash('demo123', 12);
-  const demo = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'demo@duobijac.com' },
     update: {},
     create: {
       email: 'demo@duobijac.com',
       passwordHash: demoPassword,
-      name: 'Aprendiz Demo',
+      name: 'María García',
       role: 'user',
-      xp: 750,
-      level: 2,
-      coins: 150,
-      currentStreak: 5,
+      xp: 1250,
+      level: 4,
+      coins: 280,
+      currentStreak: 7,
       longestStreak: 12,
     },
   });
-  console.log('✅ Demo user created');
+
+  console.log('✅ Users created (admin + demo)');
 
   // ===========================================
   // ACHIEVEMENTS
   // ===========================================
+  
   const achievements = [
     { key: 'first_lesson', title: 'Primera Lección', description: 'Completa tu primera lección', icon: '🎯', xpReward: 10 },
     { key: 'first_xp', title: 'Primeros XP', description: 'Gana tus primeros 10 XP', icon: '⭐', xpReward: 5 },
@@ -61,6 +132,8 @@ async function main() {
     { key: 'course_3_complete', title: 'Polymath', description: 'Completa 3 cursos', icon: '🧠', xpReward: 200 },
     { key: 'perfect_score', title: 'Perfecto', description: 'Obtén 100% en una lección', icon: '💯', xpReward: 25 },
     { key: 'speed_demon', title: 'Velocista', description: 'Completa una lección en menos de 1 minuto', icon: '⚡', xpReward: 30 },
+    { key: 'code_ninja', title: 'Código Ninja', description: 'Completa 10 ejercicios de código', icon: '🥷', xpReward: 100 },
+    { key: 'project_builder', title: 'Constructor de Proyectos', description: 'Completa tu primer mini-proyecto', icon: '🔧', xpReward: 150 },
   ];
 
   for (const achievement of achievements) {
@@ -70,16 +143,19 @@ async function main() {
       create: achievement,
     });
   }
-  console.log('✅ Achievements created');
+  console.log('✅ Achievements created (15 achievements)');
 
   // ===========================================
   // GAMES
   // ===========================================
+  
   const games = [
     { key: 'speed_match', title: 'Speed Match', description: 'Combina conceptos antes de que se acabe el tiempo', icon: '🎮', xpReward: 30 },
     { key: 'word_puzzle', title: 'Word Puzzle', description: 'Ordena las letras para formar palabras', icon: '🧩', xpReward: 25 },
     { key: 'true_false_sprint', title: 'True/False Sprint', description: 'Responde verdadero o falso lo más rápido posible', icon: '⚡', xpReward: 20 },
     { key: 'quiz_duel', title: 'Quiz Duel', description: 'Compite contra otros en quizzes', icon: '🏆', xpReward: 50 },
+    { key: 'memory_match', title: 'Memory Match', description: 'Encuentra pares de conceptos relacionados', icon: '🃏', xpReward: 25 },
+    { key: 'code_runner', title: 'Code Runner', description: 'Ejecuta código y corre para resolver problemas', icon: '💻', xpReward: 40 },
   ];
 
   for (const game of games) {
@@ -89,18 +165,22 @@ async function main() {
       create: game,
     });
   }
-  console.log('✅ Games created');
+  console.log('✅ Games created (6 games)');
 
   // ===========================================
   // SHOP ITEMS
   // ===========================================
+  
   const shopItems = [
     { key: 'avatar_cool', name: 'Avatar Cool', description: 'Un avatar genial para tu perfil', type: 'avatar', price: 100, icon: '😎' },
     { key: 'avatar_ninja', name: 'Avatar Ninja', description: 'Un ninja misterioso', type: 'avatar', price: 150, icon: '🥷' },
     { key: 'avatar_astronaut', name: 'Avatar Astronauta', description: 'Un astronauta espacial', type: 'avatar', price: 200, icon: '🚀' },
     { key: 'avatar_wizard', name: 'Avatar Mago', description: 'Un mago poderoso', type: 'avatar', price: 180, icon: '🧙' },
+    { key: 'avatar_robot', name: 'Avatar Robot', description: 'Un robot del futuro', type: 'avatar', price: 160, icon: '🤖' },
     { key: 'streak_freeze', name: 'Freeze de Racha', description: 'Protege tu racha por un día', type: 'streak_freeze', price: 50, icon: '🧊' },
+    { key: 'xp_boost', name: 'Boost de XP', description: 'Duplica tus XP por 1 hora', type: 'boost', price: 75, icon: '⚡' },
     { key: 'badge_vip', name: 'Badge VIP', description: 'Un badge exclusivo para usuarios VIP', type: 'badge', price: 300, icon: '👑' },
+    { key: 'badge_champion', name: 'Badge Campeón', description: 'Muestra tu estatus de campeón', type: 'badge', price: 250, icon: '🏅' },
     { key: 'theme_ocean', name: 'Tema Océano', description: 'Cambia el color de tu interfaz a azul océano', type: 'theme', price: 150, icon: '🌊' },
     { key: 'theme_forest', name: 'Tema Bosque', description: 'Cambia el color de tu interfaz a verde bosque', type: 'theme', price: 150, icon: '🌲' },
   ];
@@ -112,1631 +192,1338 @@ async function main() {
       create: item,
     });
   }
-  console.log('✅ Shop items created');
+  console.log('✅ Shop items created (11 items)');
 
   // ===========================================
-  // COURSE CREATION HELPER
+  // JAVASCRIPT FUNDAMENTALS COURSE - ENHANCED
   // ===========================================
-  
-  const createCourse = async (
-    id: string,
-    title: string,
-    description: string,
-    category: string,
-    difficulty: string,
-    estimatedHours: number,
-    imageUrl: string,
-    options: { isPro?: boolean; price?: number; requiredLevel?: number } = {}
-  ) => {
-    return prisma.course.upsert({
-      where: { id },
-      update: { title, description, category, difficulty, estimatedHours, imageUrl, isPublished: true, ...options },
-      create: { id, title, description, category, difficulty, estimatedHours, imageUrl, isPublished: true, ...options },
-    });
-  };
+  console.log('\n📚 Creating ENHANCED JavaScript Fundamentals course...');
 
-  const createModule = async (id: string, courseId: string, title: string, order: number) => {
-    return prisma.module.upsert({
-      where: { id },
-      update: { title, order },
-      create: { id, courseId, title, order },
-    });
-  };
-
-  const createLesson = async (id: string, moduleId: string, title: string, type: string, content: any, xpReward: number, order: number) => {
-    return prisma.lesson.upsert({
-      where: { id },
-      update: { title, type, content, xpReward, order },
-      create: { id, moduleId, title, type, content, xpReward, order },
-    });
-  };
-
-  // ===========================================
-  // PROGRAMMING COURSES - EXPANDED
-  // ===========================================
-  console.log('\n📚 Creating/Expanding Programming Courses...');
-
-  // JavaScript Fundamentals - EXPANDED
   const jsCourse = await createCourse(
     'course-js-fundamentals',
     'JavaScript Fundamentals',
-    'Aprende los fundamentos de JavaScript, el lenguaje de programación más popular del mundo. Desde variables hasta funciones, domina la base del desarrollo web.',
+    'Domina los fundamentos de JavaScript, el lenguaje que impulsa la web moderna. Aprende desde variables hasta funciones, de forma práctica con ejercicios interactivos.',
     'Programación',
     'beginner',
-    15,
-    'https://placehold.co/600x400/2563eb/white?text=JavaScript'
+    25,
+    'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=600&h=400&fit=crop'
   );
 
-  // Module 1: Introducción
-  const jsModule1 = await createModule('js-module-1', jsCourse.id, 'Introducción a JavaScript', 1);
-  await createLesson('js-lesson-1-1', jsModule1.id, '¿Qué es JavaScript?', 'multiple_choice', {
-    question: '¿JavaScript es un lenguaje de programación que se ejecuta principalmente en:',
-    options: ['El servidor', 'El navegador web', 'Bases de datos', 'Sistemas operativos'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('js-lesson-1-2', jsModule1.id, 'Variables con let y const', 'multiple_choice', {
-    question: '¿Cuál es la forma correcta de declarar una variable constante en JavaScript?',
-    options: ['var PI = 3.14', 'let PI = 3.14', 'const PI = 3.14', 'constant PI = 3.14'],
-    correctIndex: 2,
-  }, 20, 2);
-  await createLesson('js-lesson-1-3', jsModule1.id, 'Tipos de datos', 'fill_blank', {
-    sentence: 'El tipo de dato para texto en JavaScript se llama ___',
-    correctAnswer: 'string',
-    hint: 'Piensa en "cadena" de texto',
-  }, 25, 3);
+  // MODULE 1: Introducción a JavaScript
+  const jsM1 = await createModule('js-m1', jsCourse.id, 'Introducción a JavaScript', 1);
+  
+  await createLesson('js-l1-1', jsM1.id, '¿Qué es JavaScript y para qué sirve?', 'reading', {
+    introduction: 'JavaScript es un lenguaje de programación que permite crear contenido interactivo en páginas web. Es el tercer pilar de la web junto con HTML y CSS.',
+    content: `JavaScript fue creado en 1995 por Brendan Eich mientras trabajaba en Netscape. Originalmente se llamaba "Mocha" y luego "LiveScript", pero finalmente se renombró a JavaScript como estrategia de marketing (aunque no tiene relación directa con Java).
 
-  // Module 2: Control de Flujo
-  const jsModule2 = await createModule('js-module-2', jsCourse.id, 'Control de Flujo', 2);
-  await createLesson('js-lesson-2-1', jsModule2.id, 'Condicionales if/else', 'multiple_choice', {
-    question: '¿Qué resultado produce: if (5 > 3) { console.log("Sí") } else { console.log("No") }?',
-    options: ['No', 'Sí', 'Error', 'undefined'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('js-lesson-2-2', jsModule2.id, 'Bucles for', 'true_false', {
-    statement: 'El bucle for se usa para repetir código un número específico de veces.',
-    correctAnswer: true,
-  }, 15, 2);
-  await createLesson('js-lesson-2-3', jsModule2.id, 'Bucles while', 'multiple_choice', {
-    question: '¿Cuándo es preferible usar un bucle while en vez de for?',
-    options: ['Cuando sabemos exactamente cuántas iteraciones necesitamos', 'Cuando no sabemos cuántas iteraciones necesitamos', 'Nunca, for siempre es mejor', 'Solo para arrays'],
-    correctIndex: 1,
-  }, 20, 3);
+Hoy en día, JavaScript es:
+• El único lenguaje de programación que funciona nativamente en los navegadores
+• Usado para desarrollo web (frontend y backend con Node.js)
+• La tecnología más demandada en la industria de software
+• Extensible a través de frameworks como React, Vue, Angular
 
-  // Module 3: Funciones
-  const jsModule3 = await createModule('js-module-3', jsCourse.id, 'Funciones', 3);
-  await createLesson('js-lesson-3-1', jsModule3.id, 'Crear funciones', 'multiple_choice', {
-    question: '¿Cuál es la sintaxis correcta para crear una función flecha (arrow function)?',
-    options: ['function miFunc() {}', 'func miFunc() {}', 'const miFunc = () => {}', 'def miFunc() {}'],
-    correctIndex: 2,
-  }, 25, 1);
-  await createLesson('js-lesson-3-2', jsModule3.id, 'Parámetros y argumentos', 'fill_blank', {
-    sentence: 'Los valores que pasamos a una función se llaman ___',
-    correctAnswer: 'argumentos',
-    hint: 'Son los "datos" que recibe la función',
-  }, 25, 2);
-  await createLesson('js-lesson-3-3', jsModule3.id, 'Valores de retorno', 'multiple_choice', {
-    question: '¿Qué palabra clave se usa para retornar un valor en una función?',
-    options: ['return', 'give', 'output', 'send'],
-    correctIndex: 0,
-  }, 20, 3);
+Con JavaScript puedes:
+- Crear páginas web interactivas
+- Desarrollar aplicaciones móviles (React Native)
+- Crear juegos para navegador
+- Desarrollar servidores y APIs (Node.js)
+- Controlar dispositivos IoT`,
+    keyPoints: ['JavaScript se ejecuta en el navegador', 'Es interpretado, no compilado', 'Es flexible y dinámico', 'Tiene una comunidad enorme'],
+    xpExplanation: 'Completando esta lección has aprendido qué es JavaScript y su importancia en el desarrollo web moderno.'
+  }, 15, 1, 5);
 
-  // NEW Module 4: Arrays
-  const jsModule4 = await createModule('js-module-4', jsCourse.id, 'Arrays (Arreglos)', 4);
-  await createLesson('js-lesson-4-1', jsModule4.id, '¿Qué es un array?', 'multiple_choice', {
-    question: 'Un array en JavaScript es:',
-    options: ['Un tipo de número', 'Una colección ordenada de elementos', 'Un texto largo', 'Una función especial'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('js-lesson-4-2', jsModule4.id, 'Acceder a elementos', 'fill_blank', {
-    sentence: 'Para acceder al primer elemento de un array, usamos el índice ___',
-    correctAnswer: '0',
-    hint: 'Los índices empiezan en 0, no en 1',
-  }, 20, 2);
-  await createLesson('js-lesson-4-3', jsModule4.id, 'Métodos comunes de arrays', 'multiple_choice', {
-    question: '¿Qué método añade un elemento al final de un array?',
-    options: ['push()', 'pop()', 'shift()', 'unshift()'],
-    correctIndex: 0,
-  }, 25, 3);
-  await createLesson('js-lesson-4-4', jsModule4.id, 'map() y filter()', 'true_false', {
-    statement: 'El método map() transforma cada elemento de un array y devuelve un nuevo array.',
-    correctAnswer: true,
-  }, 30, 4);
+  await createLesson('js-l1-2', jsM1.id, 'Tu primer programa en JavaScript', 'multiple_choice', {
+    preamble: 'Vamos a practicar con tu primer código JavaScript. Responde las siguientes preguntas:',
+    questions: [
+      { question: '¿Cuál es la función correcta para mostrar "Hola Mundo" en la consola?', options: ['console.write("Hola Mundo")', 'console.log("Hola Mundo")', 'print("Hola Mundo")', 'echo "Hola Mundo"'], correctIndex: 1, explanation: 'console.log() es la función estándar para mostrar mensajes en la consola del navegador o terminal.' },
+      { question: '¿Qué aparecería en consola al ejecutar: console.log("Hello" + " " + "World")?', options: ['Hello + World', 'HelloWorld', 'Hello World', 'Error de sintaxis'], correctIndex: 2, explanation: 'El operador + concatena strings en JavaScript, uniendo "Hello", el espacio, y "World".' },
+      { question: '¿Dónde se puede ejecutar código JavaScript?', options: ['Solo en el navegador', 'Solo en el servidor', 'En el navegador, servidor y más', 'Solo en archivos .js'], correctIndex: 2, explanation: 'JavaScript puede ejecutarse en múltiples entornos: navegadores, servidores (Node.js), dispositivos móviles, y más.' }
+    ],
+    tips: ['Usa console.log() para debugging', 'Los strings pueden usar comillas simples o dobles', 'Punto y coma al final es opcional pero recomendado']
+  }, 25, 2, 8);
 
-  // NEW Module 5: Objetos
-  const jsModule5 = await createModule('js-module-5', jsCourse.id, 'Objetos', 5);
-  await createLesson('js-lesson-5-1', jsModule5.id, '¿Qué es un objeto?', 'multiple_choice', {
-    question: 'En JavaScript, un objeto es:',
-    options: ['Un tipo de función', 'Una colección de propiedades clave-valor', 'Solo para hacer matemáticas', 'Un tipo de array'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('js-lesson-5-2', jsModule5.id, 'Crear y usar objetos', 'fill_blank', {
-    sentence: 'Para acceder a la propiedad "name" de un objeto "user", escribimos user.___',
-    correctAnswer: 'name',
-    hint: 'Se usa punto o corchetes',
-  }, 20, 2);
-  await createLesson('js-lesson-5-3', jsModule5.id, 'Métodos en objetos', 'multiple_choice', {
-    question: '¿Cómo defines un método dentro de un objeto?',
-    options: ['method: function() {}', 'method() {}', 'function method() {}', 'Solo con arrow functions'],
-    correctIndex: 0,
-  }, 25, 3);
-  await createLesson('js-lesson-5-4', jsModule5.id, 'Destructuring', 'true_false', {
-    statement: 'El destructuring permite extraer propiedades de un objeto en variables separadas.',
-    correctAnswer: true,
-  }, 30, 4);
+  await createLesson('js-l1-3', jsM1.id, 'Variables: let, const y var', 'quiz', {
+    questions: [
+      { question: '¿Cuál es la diferencia principal entre const y let?', options: ['const es más rápido que let', 'const no puede ser reasignado, let sí', 'let no puede ser reasignado, const sí', 'No hay diferencia'], correctIndex: 1, explanation: 'const crea una constante que no puede ser reasignada. let crea una variable que sí puede cambiar.' },
+      { question: '¿Cuál declaración es CORRECTA para una constante en JavaScript?', options: ['constant PI = 3.14', 'var PI = 3.14', 'const PI = 3.14', 'let PI = 3.14'], correctIndex: 2, explanation: 'La palabra clave "const" se usa para declarar constantes en JavaScript moderno.' },
+      { question: '¿Qué sucede al ejecutar: const nombre = "Ana"; nombre = "María";?', options: ['Se muestra "María"', 'Error: Assignment to constant variable', 'Se muestra "Ana"', 'undefined'], correctIndex: 1, explanation: 'Una vez que una variable const es inicializada, no puede ser reasignada. Intentar hacerlo causa un error.' },
+      { question: '¿Cuál es el mejor uso de "var" en JavaScript moderno?', options: ['Para variables que cambiarán', 'Para constantes', 'Evitar var, usar let y const', 'Para crear variables globales'], correctIndex: 2, explanation: 'var tiene un comportamiento de scope complejo (function scope vs block scope) que puede causar confusión. let y const son más predecibles.' }
+    ]
+  }, 30, 3, 12);
 
-  // NEW Module 6: DOM Basics
-  const jsModule6 = await createModule('js-module-6', jsCourse.id, 'Manipulación del DOM', 6);
-  await createLesson('js-lesson-6-1', jsModule6.id, '¿Qué es el DOM?', 'multiple_choice', {
-    question: 'El DOM (Document Object Model) representa:',
-    options: ['Una base de datos', 'La estructura de tu página web como objetos', 'Un tipo de archivo CSS', 'El servidor'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('js-lesson-6-2', jsModule6.id, 'selectElementById', 'true_false', {
-    statement: 'document.getElementById("miId") selecciona el elemento con ese ID.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('js-lesson-6-3', jsModule6.id, 'Modificar elementos', 'fill_blank', {
-    sentence: 'Para cambiar el texto de un elemento, usamos la propiedad ___.textContent',
-    correctAnswer: 'element',
-    hint: 'La variable que guarda el elemento seleccionado',
-  }, 25, 3);
-  await createLesson('js-lesson-6-4', jsModule6.id, 'Event listeners', 'multiple_choice', {
-    question: '¿Qué método añade un listener de evento a un elemento?',
-    options: ['addEvent()', 'onClick()', 'addEventListener()', 'listenEvent()'],
-    correctIndex: 2,
-  }, 25, 4);
+  // EJERCICIO DE CÓDIGO PRÁCTICO
+  await createLesson('js-l1-4', jsM1.id, '🎮 Ejercicio Práctico: Variables y Constantes', 'coding', {
+    instructions: 'Practica declarando variables y constantes. Completa los siguientes retos:',
+    exercise: {
+      task: 'Declara las variables correctas para los siguientes escenarios',
+      challenges: [
+        {
+          id: 'js-code-1',
+          description: 'Declara una constante PI con valor 3.14159',
+          initialCode: '// Declara la constante PI\n',
+          expectedOutput: 'PI debe ser 3.14159',
+          hint: 'Usa const PI = ...',
+          solution: 'const PI = 3.14159;'
+        },
+        {
+          id: 'js-code-2', 
+          description: 'Declara una variable nombre con tu nombre (puede cambiar)',
+          initialCode: '// Declara la variable nombre\n',
+          expectedOutput: 'nombre debe tener un string como valor',
+          hint: 'Usa let o var para variables que pueden cambiar',
+          solution: 'let nombre = "María";'
+        },
+        {
+          id: 'js-code-3',
+          description: 'Calcula el área de un círculo usando PI y radio=5',
+          initialCode: 'const PI = 3.14159;\nlet radio = 5;\n// Calcula el área y almacénala en la variable area\n',
+          expectedOutput: 'area debe ser aproximadamente 78.54',
+          hint: 'Área = PI * radio * radio',
+          solution: 'const area = PI * radio * radio;'
+        }
+      ]
+    },
+    tips: ['Usa console.log() para verificar tus resultados', 'const para valores que no cambiarán', 'let para valores que sí cambiarán']
+  }, 50, 4, 15);
 
-  console.log('✅ JavaScript Fundamentals course expanded (6 módulos, 18 lecciones)');
+  // MODULE 2: Tipos de Datos
+  const jsM2 = await createModule('js-m2', jsCourse.id, 'Tipos de Datos', 2);
 
-  // Python para Principiantes - EXPANDED
-  const pythonCourse = await createCourse(
+  await createLesson('js-l2-1', jsM2.id, 'Strings, Numbers y Booleans', 'reading', {
+    introduction: 'JavaScript tiene varios tipos de datos fundamentales que debes conocer. Cada tipo tiene sus propias características y usos.',
+    content: `TIPOS DE DATOS PRIMITIVOS:
+
+1. STRING (Texto)
+   - Secuencia de caracteres entre comillas
+   - Ejemplos: "Hola", 'Mundo', \u0060Plantilla\u0060
+   - Operaciones: concatenación, búsqueda, manipulación
+
+2. NUMBER (Números)
+   - Enteros: 42, -17, 0
+   - Decimales: 3.14, -0.5
+   - Especiales: Infinity, -Infinity, NaN
+
+3. BOOLEAN (Lógico)
+   - Solo dos valores: true y false
+   - Usado en condicionales y operaciones lógicas`,
+    examples: [
+      { code: 'let nombre = "María";', explanation: 'String con comillas dobles' },
+      { code: 'let edad = 25;', explanation: 'Number entero' },
+      { code: 'let esMayor = true;', explanation: 'Boolean true' },
+      { code: 'typeof "hola" // "string"', explanation: 'Verificar tipo con typeof' }
+    ],
+    keyPoints: ['JavaScript tiene 6 tipos primitivos', 'typeof permite verificar el tipo de una variable', 'null es intencional, undefined es por omisión']
+  }, 20, 1, 8);
+
+  await createLesson('js-l2-2', jsM2.id, 'Operadores de Comparación', 'quiz', {
+    questions: [
+      { question: '¿Cuál es el resultado de 5 === "5"?', options: ['true', 'false', 'undefined', 'Error'], correctIndex: 1, explanation: '=== compara tanto valor como tipo. 5 (number) !== "5" (string), por lo tanto es false.' },
+      { question: '¿Cuál es el resultado de 5 == "5"?', options: ['true', 'false', 'undefined', 'Error'], correctIndex: 0, explanation: '== hace coerción de tipos antes de comparar. Convierte "5" a 5 y luego compara, dando true.' },
+      { question: '¿Qué operador significa "mayor o igual"?', options: ['>', '>>', '>=', '=>'], correctIndex: 2, explanation: '>= significa "mayor o igual". No uses => que es para arrow functions.' },
+      { question: '¿Cuál es el resultado de null == undefined?', options: ['true', 'false', 'Error', 'undefined'], correctIndex: 0, explanation: 'Por diseño del lenguaje, null y undefined son considerados iguales con == (pero no con ===).' }
+    ],
+    tips: ['Siempre usa === en lugar de ==', 'Compara strings con localeCompare para orden natural', 'NaN no es igual a nada, ni a sí mismo']
+  }, 25, 2, 10);
+
+  await createLesson('js-l2-3', jsM2.id, '🎮 Ejercicio: Tipos y Conversión', 'coding', {
+    instructions: 'Practica trabajando con tipos de datos y conversiones:',
+    exercise: {
+      task: 'Manipula tipos de datos y verifica conversiones',
+      challenges: [
+        {
+          id: 'js-type-1',
+          description: 'Convierte el string "42" a número y almacénalo en la variable numero',
+          initialCode: 'let texto = "42";\n// Convierte texto a número\n',
+          hint: 'Usa Number() o parseInt()',
+          solution: 'let numero = Number("42");'
+        },
+        {
+          id: 'js-type-2',
+          description: 'Concatena "Hola" y "Mundo" con un espacio en medio',
+          initialCode: 'let palabra1 = "Hola";\nlet palabra2 = "Mundo";\n// Crea la frase usando concatenación\n',
+          expectedOutput: 'frase debe ser "Hola Mundo"',
+          hint: 'Usa el operador + o template literals',
+          solution: 'let frase = palabra1 + " " + palabra2;'
+        },
+        {
+          id: 'js-type-3',
+          description: 'Verifica si el tipo de 3.14 es "number"',
+          initialCode: 'let decimal = 3.14;\n// Almacena el resultado de typeof en tipo\n',
+          expectedOutput: 'tipo debe ser "number"',
+          hint: 'Usa el operador typeof',
+          solution: 'let tipo = typeof decimal;'
+        }
+      ]
+    }
+  }, 50, 3, 15);
+
+  // MODULE 3: Control de Flujo
+  const jsM3 = await createModule('js-m3', jsCourse.id, 'Control de Flujo', 3);
+
+  await createLesson('js-l3-1', jsM3.id, 'Condicionales if/else', 'quiz', {
+    questions: [
+      { question: '¿Cuál es la salida de: if(5 > 3) { console.log("A"); } else { console.log("B"); }?', options: ['A', 'B', 'AB', 'Error'], correctIndex: 0, explanation: '5 > 3 es true, por lo tanto se ejecuta el bloque del if y se imprime "A".' },
+      { question: '¿Qué palabra clave se usa para agregar una condición alternativa?', options: ['elsif', 'elif', 'else if', 'otherwise'], correctIndex: 2, explanation: 'JavaScript usa "else if" (dos palabras separadas) para condiciones adicionales.' },
+      { question: '¿Qué retorna: 5 > 3 ? "sí" : "no"?', options: ['"sí"', '"no"', 'true', 'Error'], correctIndex: 0, explanation: 'El operador ternario (?:) evalúa la condición y retorna el primer valor si es true, el segundo si es false.' }
+    ],
+    tips: ['Usa else if, no elif ni elsif', 'El operador ternario es útil para asignaciones simples', 'Evita anidar muchos if/else']
+  }, 30, 1, 12);
+
+  await createLesson('js-l3-2', jsM3.id, 'Bucles for y while', 'quiz', {
+    questions: [
+      { question: '¿Cuántas veces se ejecuta: for(let i = 0; i < 5; i++) { console.log(i); }?', options: ['4', '5', '6', 'Infinito'], correctIndex: 1, explanation: 'El bucle va de i=0 a i=4 (i<5), ejecutándose 5 veces: 0, 1, 2, 3, 4.' },
+      { question: '¿Qué hace break dentro de un bucle?', options: ['Salta a la siguiente iteración', 'Termina el bucle completamente', 'Reinicia el bucle', 'No hace nada'], correctIndex: 1, explanation: 'break termina inmediatamente el bucle y continúa con el código después del bucle.' },
+      { question: '¿Qué hace continue dentro de un bucle?', options: ['Salta a la siguiente iteración', 'Termina el bucle', 'Reinicia el bucle', 'Sale de la función'], correctIndex: 0, explanation: 'continue salta el resto del código de la iteración actual y pasa a la siguiente iteración.' }
+    ],
+    examples: [
+      { code: 'for(let i = 0; i < 3; i++) { console.log(i); } // 0, 1, 2', explanation: 'Bucle for estándar' },
+      { code: 'let i = 0; while(i < 3) { console.log(i); i++; }', explanation: 'Bucle while' },
+      { code: 'for(let item of array) { console.log(item); }', explanation: 'for...of para iterar arrays' }
+    ]
+  }, 35, 2, 15);
+
+  await createLesson('js-l3-3', jsM3.id, '🎮 Ejercicio: Condicionales y Bucles', 'coding', {
+    instructions: 'Practica condicionales y bucles resolviendo estos problemas:',
+    exercise: {
+      task: 'Implementa lógica de control de flujo',
+      challenges: [
+        {
+          id: 'js-loop-1',
+          description: 'Crea una función esPar(numero) que retorne true si el número es par',
+          initialCode: 'function esPar(numero) {\n  // Retorna true si es par, false si es impar\n}\n',
+          expectedOutput: 'esPar(4) → true, esPar(7) → false',
+          hint: 'Usa el operador módulo (%) para verificar si es divisible por 2',
+          solution: 'function esPar(numero) {\n  return numero % 2 === 0;\n}'
+        },
+        {
+          id: 'js-loop-2',
+          description: 'Suma todos los números del 1 al 10 usando un bucle for',
+          initialCode: '// Usa un bucle for para sumar 1+2+3+...+10\nlet suma = 0;\n',
+          expectedOutput: 'suma debe ser 55',
+          hint: 'Itera de 1 a 10 y acumula en suma',
+          solution: 'let suma = 0;\nfor(let i = 1; i <= 10; i++) {\n  suma += i;\n}'
+        },
+        {
+          id: 'js-loop-3',
+          description: 'Encuentra el número mayor en el array [3, 7, 2, 9, 5]',
+          initialCode: 'let numeros = [3, 7, 2, 9, 5];\nlet mayor = numeros[0];\n// Encuentra el mayor\n',
+          expectedOutput: 'mayor debe ser 9',
+          hint: 'Itera por el array y compara cada elemento',
+          solution: 'let numeros = [3, 7, 2, 9, 5];\nlet mayor = numeros[0];\nfor(let num of numeros) {\n  if(num > mayor) mayor = num;\n}'
+        }
+      ]
+    }
+  }, 60, 3, 20);
+
+  // MINI PROYECTO: Calculadora Simple
+  await createLesson('js-l3-4', jsM3.id, '🚀 Mini-Proyecto: Calculadora Simple', 'project', {
+    title: 'Calculadora de Propinas',
+    description: 'Crea una calculadora que determine la propia apropiada basada en el total de la cuenta y el porcentaje deseado.',
+    objectives: [
+      'Practicar el uso de variables y operadores',
+      'Implementar condicionales para manejar casos especiales',
+      'Usar funciones para organizar el código'
+    ],
+    requirements: [
+      'Función que calcule la propina (cuenta × porcentaje)',
+      'Función que calcule el total (cuenta + propina)',
+      'Maneje casos: cuenta negativa, porcentaje inválido',
+      'Muestre un desglose completo'
+    ],
+    exampleCode: `function calcularPropina(cuenta, porcentaje) {
+  if (cuenta < 0) return "La cuenta no puede ser negativa";
+  if (porcentaje < 0 || porcentaje > 100) return "Porcentaje inválido";
+  return (cuenta * porcentaje / 100).toFixed(2);
+}`,
+    tips: ['Usa toFixed(2) para mostrar solo 2 decimales', 'Considera usar condicionales para validar entradas'],
+    xpReward: 100
+  }, 80, 4, 25);
+
+  // MODULE 4: Arrays
+  const jsM4 = await createModule('js-m4', jsCourse.id, 'Arrays (Arreglos)', 4);
+
+  await createLesson('js-l4-1', jsM4.id, 'Crear y acceder a arrays', 'reading', {
+    introduction: 'Los arrays son estructuras de datos fundamentales que permiten almacenar múltiples valores en una sola variable.',
+    content: `CREAR ARRAYS:
+
+const frutas = ["manzana", "pera", "uva"];
+const numeros = [1, 2, 3, 4, 5];
+
+ACCEDER ELEMENTOS:
+- Los índices empiezan en 0
+- frutas[0] → "manzana"
+- frutas[2] → "uva"
+
+MODIFICAR ARRAYS:
+- push(elemento) → añade al final
+- pop() → elimina del final
+- unshift(elemento) → añade al inicio
+- shift() → elimina del inicio`,
+    examples: [
+      { code: 'let arr = [1, 2, 3]; arr.push(4); // [1, 2, 3, 4]', explanation: 'Añadir al final' },
+      { code: 'let arr = [1, 2, 3]; arr.pop(); // [1, 2]', explanation: 'Eliminar del final' },
+      { code: 'arr.length // número de elementos', explanation: 'Obtener longitud' }
+    ]
+  }, 25, 1, 10);
+
+  await createLesson('js-l4-2', jsM4.id, 'Métodos map, filter y reduce', 'quiz', {
+    questions: [
+      { question: '¿Qué retorna: [1, 2, 3].map(x => x * 2)?', options: ['[2, 4, 6]', '[1, 2, 3]', 'undefined', 'Error'], correctIndex: 0, explanation: 'map() transforma cada elemento. Multiplica cada uno por 2: [1*2, 2*2, 3*2] = [2, 4, 6].' },
+      { question: '¿Qué retorna: [1, 2, 3, 4].filter(x => x > 2)?', options: ['[1, 2]', '[3, 4]', '[2, 3, 4]', 'Error'], correctIndex: 1, explanation: 'filter() mantiene solo los elementos que cumplen la condición.' },
+      { question: '¿Qué retorna: [1, 2, 3].reduce((acc, x) => acc + x, 0)?', options: ['6', '[1, 2, 3]', 'undefined', 'Error'], correctIndex: 0, explanation: 'reduce() acumula valores. Suma todos: 0+1+2+3 = 6.' }
+    ],
+    tips: ['Encadena métodos: arr.filter().map()', 'reduce puede hacer lo que map, filter y otros hacen']
+  }, 35, 2, 15);
+
+  await createLesson('js-l4-3', jsM4.id, '🎮 Ejercicio: Manipulación de Arrays', 'coding', {
+    instructions: 'Practica manipulando arrays con estos desafíos:',
+    exercise: {
+      task: 'Manipula arrays usando métodos funcionales',
+      challenges: [
+        {
+          id: 'js-arr-1',
+          description: 'Duplica cada número del array [1, 2, 3, 4, 5]',
+          initialCode: 'let numeros = [1, 2, 3, 4, 5];\n// Crea un nuevo array con cada número duplicado\n',
+          expectedOutput: 'resultado debe ser [2, 4, 6, 8, 10]',
+          hint: 'Usa el método map()',
+          solution: 'let resultado = numeros.map(x => x * 2);'
+        },
+        {
+          id: 'js-arr-2',
+          description: 'Filtra solo los números mayores a 10 del array [5, 12, 8, 20, 3]',
+          initialCode: 'let numeros = [5, 12, 8, 20, 3];\n// Crea un array solo con números > 10\n',
+          expectedOutput: 'filtrados debe ser [12, 20]',
+          hint: 'Usa el método filter()',
+          solution: 'let filtrados = numeros.filter(x => x > 10);'
+        },
+        {
+          id: 'js-arr-3',
+          description: 'Suma todos los elementos del array [10, 20, 30, 40]',
+          initialCode: 'let numeros = [10, 20, 30, 40];\n// Calcula la suma total\n',
+          expectedOutput: 'suma debe ser 100',
+          hint: 'Usa el método reduce()',
+          solution: 'let suma = numeros.reduce((acc, x) => acc + x, 0);'
+        }
+      ]
+    }
+  }, 60, 3, 20);
+
+  // MODULE 5: Objetos
+  const jsM5 = await createModule('js-m5', jsCourse.id, 'Objetos', 5);
+
+  await createLesson('js-l5-1', jsM5.id, 'Crear y usar objetos', 'reading', {
+    introduction: 'Los objetos son colecciones de pares clave-valor que permiten representar entidades complejas.',
+    content: `CREAR OBJETOS:
+
+const usuario = {
+  nombre: "María",
+  edad: 28,
+  email: "maria@ejemplo.com"
+};
+
+ACCEDER PROPIEDADES:
+- Notación punto: usuario.nombre → "María"
+- Notación corchetes: usuario["nombre"] → "María"
+
+MÉTODOS:
+const persona = {
+  nombre: "Juan",
+  saludar: function() {
+    return "Hola, soy " + this.nombre;
+  }
+};`,
+    examples: [
+      { code: 'const user = { name: "Ana", age: 25 };', explanation: 'Objeto simple' },
+      { code: 'user.name // "Ana" - notación punto', explanation: 'Acceder con punto' },
+      { code: '"name" in user // true', explanation: 'Verificar si existe propiedad' }
+    ]
+  }, 25, 1, 10);
+
+  await createLesson('js-l5-2', jsM5.id, 'Destructuring y spread operator', 'quiz', {
+    questions: [
+      { question: '¿Qué es destructuring en JavaScript?', options: ['Destruir objetos', 'Extraer valores de arrays/objetos en variables', 'Copiar objetos', 'Eliminar propiedades'], correctIndex: 1, explanation: 'Destructuring permite extraer múltiples propiedades de un objeto/array en variables individuales.' },
+      { question: '¿Qué valor tiene "nombre" después de: const { nombre, edad } = { nombre: "Ana", edad: 30 };?', options: ['undefined', '"Ana"', '30', 'Error'], correctIndex: 1, explanation: 'Destructuring extrae "nombre" y le asigna el valor "Ana".' },
+      { question: '¿Cuál es el resultado de: [...[1,2], ...[3,4]]?', options: ['[[1,2],[3,4]]', '[1,2,3,4]', '[1,2,[3,4]]', 'Error'], correctIndex: 1, explanation: 'El spread operator expande ambos arrays y los combina en uno nuevo: [1, 2, 3, 4].' }
+    ],
+    examples: [
+      { code: 'const { name, age } = person; // destructuring', explanation: 'Destructuring de objeto' },
+      { code: 'const [first, ...rest] = [1, 2, 3]; // first=1, rest=[2,3]', explanation: 'Rest en arrays' }
+    ]
+  }, 30, 2, 12);
+
+  await createLesson('js-l5-3', jsM5.id, '🎮 Ejercicio: Objetos y Destructuring', 'coding', {
+    instructions: 'Practica trabajando con objetos:',
+    exercise: {
+      task: 'Manipula objetos usando destructuring y spread',
+      challenges: [
+        {
+          id: 'js-obj-1',
+          description: 'Usa destructuring para extraer nombre y edad del objeto persona',
+          initialCode: 'const persona = { nombre: "Carlos", edad: 28, ciudad: "Madrid" };\n// Extrae solo nombre y edad\n',
+          expectedOutput: 'nombre debe ser "Carlos", edad debe ser 28',
+          hint: 'Usa const { nombre, edad } = persona',
+          solution: 'const { nombre, edad } = persona;'
+        },
+        {
+          id: 'js-obj-2',
+          description: 'Crea una copia del objeto usuario usando spread',
+          initialCode: 'const usuario = { nombre: "Ana", nivel: 5 };\n// Crea una copia llamada usuarioCopia\n',
+          hint: 'Usa el operador spread {...objeto}',
+          solution: 'const usuarioCopia = { ...usuario };'
+        },
+        {
+          id: 'js-obj-3',
+          description: 'Actualiza el nivel del objeto a 10 sin modificar el original',
+          initialCode: 'const stats = { nombre: "Heroe", nivel: 1, xp: 0 };\n// Crea un nuevo objeto con nivel actualizado a 10\n',
+          expectedOutput: 'nuevoStats.nivel debe ser 10, stats.nivel debe ser 1',
+          hint: 'Usa spread y sobrescribe el valor',
+          solution: 'const nuevoStats = { ...stats, nivel: 10 };'
+        }
+      ]
+    }
+  }, 60, 3, 20);
+
+  // MINI PROYECTO: Gestor de Tareas
+  await createLesson('js-l5-4', jsM5.id, '🚀 Mini-Proyecto: Gestor de Tareas', 'project', {
+    title: 'Gestor de Tareas Simple',
+    description: 'Crea un sistema básico para administrar tareas con objetos y arrays.',
+    objectives: [
+      'Practicar el uso de objetos para representar datos',
+      'Manipular arrays de objetos',
+      'Implementar operaciones CRUD básicas'
+    ],
+    requirements: [
+      'Objeto tarea con propiedades: id, titulo, completada, prioridad',
+      'Array de tareas con al menos 3 tareas iniciales',
+      'Función para agregar tarea',
+      'Función para marcar tarea como completada',
+      'Función para filtrar tareas completadas/no completadas'
+    ],
+    exampleCode: `const tareas = [
+  { id: 1, titulo: "Aprender JavaScript", completada: false, prioridad: "alta" },
+  { id: 2, titulo: "Hacer ejercicio", completada: true, prioridad: "media" }
+];
+
+function agregarTarea(titulo, prioridad) {
+  const nuevaTarea = {
+    id: tareas.length + 1,
+    titulo,
+    completada: false,
+    prioridad
+  };
+  tareas.push(nuevaTarea);
+  return nuevaTarea;
+}`,
+    tips: ['Usa Date.now() para generar IDs únicos', 'Filtra con filter() para mostrar tareas activas'],
+    xpReward: 150
+  }, 100, 4, 30);
+
+  // MODULE 6: Funciones
+  const jsM6 = await createModule('js-m6', jsCourse.id, 'Funciones Avanzadas', 6);
+
+  await createLesson('js-l6-1', jsM6.id, 'Funciones: Declaration, Expression y Arrow', 'reading', {
+    introduction: 'Las funciones son bloques de código reutilizables que realizan una tarea específica.',
+    content: `TIPOS DE FUNCIONES:
+
+1. Function Declaration:
+function sumar(a, b) {
+  return a + b;
+}
+
+2. Function Expression:
+const sumar = function(a, b) {
+  return a + b;
+};
+
+3. Arrow Function:
+const sumar = (a, b) => a + b;
+
+PARÁMETROS:
+- Default parameters:
+  function saludar(nombre = "mundo") { }
+- Rest parameters:
+  function sumar(...numeros) { }`,
+    examples: [
+      { code: 'function greet(name) { return "Hola, " + name; }', explanation: 'Función tradicional' },
+      { code: 'const greet = (name) => "Hola, " + name;', explanation: 'Arrow function' },
+      { code: 'const add = (a, b = 0) => a + b; add(5); // 5', explanation: 'Parámetro default' }
+    ]
+  }, 25, 1, 10);
+
+  await createLesson('js-l6-2', jsM6.id, 'Closures y Scope', 'quiz', {
+    questions: [
+      { question: '¿Qué es un closure en JavaScript?', options: ['Cerrar el navegador', 'Una función que recuerda su scope externo', 'Terminar una variable', 'Importar módulos'], correctIndex: 1, explanation: 'Un closure es una función que tiene acceso a variables de su scope externo incluso después de que la función externa haya terminado.' },
+      { question: '¿Qué imprimirá: function counter() { let count = 0; return () => ++count; } const c = counter(); c(); c(); console.log(c());?', options: ['1', '2', '3', '0'], correctIndex: 2, explanation: 'counter() retorna una función que usa count. Cada llamada incrementa count: 1, 2, 3.' }
+    ],
+    tips: ['Las closures son útiles para crear funciones factory', 'Evita variables globales excesivas']
+  }, 30, 2, 12);
+
+  await createLesson('js-l6-3', jsM6.id, '🎮 Ejercicio: Funciones y Closures', 'coding', {
+    instructions: 'Practica creando funciones y closures:',
+    exercise: {
+      task: 'Implementa funciones avanzadas',
+      challenges: [
+        {
+          id: 'js-func-1',
+          description: 'Crea una función flecha llamada duplicar que tome un número y lo multiplique por 2',
+          initialCode: '// Crea la función flecha duplicar\n',
+          expectedOutput: 'duplicar(5) → 10',
+          hint: 'Usa la sintaxis: const nombre = (parametros) => expresión',
+          solution: 'const duplicar = (num) => num * 2;'
+        },
+        {
+          id: 'js-func-2',
+          description: 'Crea una función crearContador que retorne una función que incremente un contador interno',
+          initialCode: 'function crearContador() {\n  // Debe retornar una función que incremente y retorne el contador\n}\n',
+          expectedOutput: 'crearContador()() → 1, crearContador()() → 1 (cada contador es independiente)',
+          hint: 'Usa closure: declara una variable dentro de crearContador y retorne una función que la use',
+          solution: 'function crearContador() {\n  let count = 0;\n  return () => ++count;\n}'
+        },
+        {
+          id: 'js-func-3',
+          description: 'Crea una función saludarFormal(nombre) que use un parámetro default para el saludo',
+          initialCode: '// Crea la función con saludo por defecto "Buenos días"\n',
+          expectedOutput: 'saludarFormal("Ana") → "Buenos días, Ana"',
+          hint: 'Usa parametro = valorDefault en la definición',
+          solution: 'const saludarFormal = (nombre, saludo = "Buenos días") => `${saludo}, ${nombre}`;'
+        }
+      ]
+    }
+  }, 60, 3, 20);
+
+  // PROYECTO FINAL: Generador de Estadísticas
+  await createLesson('js-l6-4', jsM6.id, '🚀 Proyecto Final: Generador de Estadísticas', 'project', {
+    title: 'Generador de Estadísticas de Clase',
+    description: 'Crea un sistema que procese un array de estudiantes y genere estadísticas.',
+    objectives: [
+      'Combinar todos los conceptos aprendidos',
+      'Trabajar con arrays de objetos',
+      'Implementar lógica de negocio compleja'
+    ],
+    requirements: [
+      'Array de estudiantes con: nombre, edad, calificaciones (array de números)',
+      'Función para calcular promedio de un estudiante',
+      'Función para encontrar el estudiante con mejor promedio',
+      'Función para filtrar estudiantes aprovados (promedio >= 7)',
+      'Función para obtener la calificación más alta de todos los estudiantes',
+      'Bonus: ordenar estudiantes por promedio'
+    ],
+    exampleCode: `const estudiantes = [
+  { nombre: "Ana", calificaciones: [8, 9, 7] },
+  { nombre: "Carlos", calificaciones: [6, 7, 8] },
+  { nombre: "María", calificaciones: [9, 10, 9] }
+];
+
+function calcularPromedio(estudiante) {
+  const sum = estudiante.calificaciones.reduce((a, b) => a + b, 0);
+  return sum / estudiante.calificaciones.length;
+}`,
+    tips: ['Usa map() para transformar el array', 'Usa sort() con una función comparadora para ordenar'],
+    xpReward: 200
+  }, 120, 4, 40);
+
+  console.log('✅ JavaScript Fundamentals completed (6 modules, 18 lessons, 4 coding exercises, 2 mini-projects)');
+
+  // ===========================================
+  // PYTHON COURSE - ENHANCED
+  // ===========================================
+  console.log('\n🐍 Creating ENHANCED Python para Principiantes course...');
+
+  const pyCourse = await createCourse(
     'course-python-beginner',
     'Python para Principiantes',
-    'Descubre Python, el lenguaje más fácil de aprender y uno de los más potentes. Ideal para automatización, análisis de datos e inteligencia artificial.',
+    'Aprende Python, el lenguaje más versátil y fácil de leer. Ideal para automatización, análisis de datos, inteligencia artificial y desarrollo web.',
     'Programación',
     'beginner',
-    18,
-    'https://placehold.co/600x400/43a047/white?text=Python'
+    30,
+    'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&h=400&fit=crop'
   );
 
-  // Module 1: Primeros Pasos
-  const pyModule1 = await createModule('py-module-1', pythonCourse.id, 'Primeros Pasos con Python', 1);
-  await createLesson('py-lesson-1-1', pyModule1.id, '¿Qué es Python?', 'multiple_choice', {
-    question: '¿Python fue creado por quién?',
-    options: ['Bill Gates', 'Guido van Rossum', 'Steve Jobs', 'Mark Zuckerberg'],
-    correctIndex: 1,
-  }, 15, 1);
-  await createLesson('py-lesson-1-2', pyModule1.id, 'Tu primer programa', 'true_false', {
-    statement: 'Para mostrar texto en Python se usa la función print()',
-    correctAnswer: true,
-  }, 15, 2);
-  await createLesson('py-lesson-1-3', pyModule1.id, 'Variables en Python', 'multiple_choice', {
-    question: '¿Cómo se declara una variable en Python?',
-    options: ['int x = 5', 'var x = 5', 'x = 5', 'let x = 5'],
-    correctIndex: 2,
-  }, 20, 3);
+  // MODULE 1: Primeros Pasos
+  const pyM1 = await createModule('py-m1', pyCourse.id, 'Introducción a Python', 1);
 
-  // Module 2: Estructuras de Datos
-  const pyModule2 = await createModule('py-module-2', pythonCourse.id, 'Estructuras de Datos', 2);
-  await createLesson('py-lesson-2-1', pyModule2.id, 'Listas', 'multiple_choice', {
-    question: '¿Cuál es la forma correcta de crear una lista en Python?',
-    options: ['list = (1, 2, 3)', 'list = [1, 2, 3]', 'list = {1, 2, 3}', 'list = <1, 2, 3>'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('py-lesson-2-2', pyModule2.id, 'Diccionarios', 'fill_blank', {
-    sentence: 'Los diccionarios en Python usan pares de clave:___',
-    correctAnswer: 'valor',
-    hint: 'Ejemplo: {"nombre": "Juan"}',
-  }, 25, 2);
-  await createLesson('py-lesson-2-3', pyModule2.id, 'Tuplas y Sets', 'multiple_choice', {
-    question: '¿Cuál es la diferencia principal entre una lista y una tupla?',
-    options: ['No hay diferencia', 'Las tuplas son inmutables', 'Las listas son más rápidas', 'Las tuplas no pueden contener números'],
-    correctIndex: 1,
-  }, 25, 3);
+  await createLesson('py-l1-1', pyM1.id, '¿Qué es Python y por qué aprenderlo?', 'reading', {
+    introduction: 'Python es un lenguaje de programación creado por Guido van Rossum en 1991. Se ha convertido en uno de los lenguajes más populares del mundo.',
+    content: `¿POR QUÉ PYTHON?
 
-  // Module 3: Funciones y Módulos
-  const pyModule3 = await createModule('py-module-3', pythonCourse.id, 'Funciones y Módulos', 3);
-  await createLesson('py-lesson-3-1', pyModule3.id, 'Definir funciones', 'multiple_choice', {
-    question: '¿Cuál es la palabra clave para definir una función en Python?',
-    options: ['function', 'func', 'def', 'lambda'],
-    correctIndex: 2,
-  }, 20, 1);
-  await createLesson('py-lesson-3-2', pyModule3.id, 'Importar módulos', 'true_false', {
-    statement: 'Para usar código de otro archivo en Python se usa "import"',
-    correctAnswer: true,
-  }, 15, 2);
-  await createLesson('py-lesson-3-3', pyModule3.id, 'Parámetros por defecto', 'fill_blank', {
-    sentence: 'En Python, los parámetros pueden tener valores ___',
-    correctAnswer: 'por defecto',
-    hint: 'Se asignan al definir la función',
-  }, 20, 3);
+1. Fácil de aprender y leer
+   - Sintaxis clara y simple
+   - Usa indentación en lugar de llaves
+   - Código que parece pseudocódigo
 
-  // NEW Module 4: Programación Orientada a Objetos
-  const pyModule4 = await createModule('py-module-4', pythonCourse.id, 'Programación Orientada a Objetos', 4);
-  await createLesson('py-lesson-4-1', pyModule4.id, '¿Qué son las clases?', 'multiple_choice', {
-    question: 'En Python, una clase es:',
-    options: ['Un tipo de archivo', 'Un molde para crear objetos', 'Una función especial', 'Solo para datos numéricos'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('py-lesson-4-2', pyModule4.id, 'Crear una clase', 'true_false', {
-    statement: 'Para crear una clase en Python usamos la palabra clave "class"',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('py-lesson-4-3', pyModule4.id, 'El método __init__', 'fill_blank', {
-    sentence: 'El método ___ se llama automáticamente al crear un objeto',
-    correctAnswer: '__init__',
-    hint: 'Tiene dos guiones bajos antes y después',
-  }, 25, 3);
-  await createLesson('py-lesson-4-4', pyModule4.id, 'Herencia', 'multiple_choice', {
-    question: '¿Qué permite la herencia en POO?',
-    options: ['Crear copias de objetos', 'Crear una nueva clase basada en una existente', 'Eliminar clases', 'Solo trabajar con números'],
-    correctIndex: 1,
-  }, 25, 4);
+2. Versátil
+   - Desarrollo web (Django, Flask)
+   - Análisis de datos (Pandas, NumPy)
+   - Inteligencia artificial (TensorFlow, PyTorch)
+   - Automatización (scripts, bots)
 
-  // NEW Module 5: Manejo de Archivos
-  const pyModule5 = await createModule('py-module-5', pythonCourse.id, 'Manejo de Archivos', 5);
-  await createLesson('py-lesson-5-1', pyModule5.id, 'Abrir archivos', 'multiple_choice', {
-    question: '¿Cuál es la forma correcta de abrir un archivo para leer en Python?',
-    options: ['open("archivo.txt", "r")', 'open("archivo.txt", "w")', 'file.open("archivo.txt")', 'read("archivo.txt")'],
-    correctIndex: 0,
-  }, 20, 1);
-  await createLesson('py-lesson-5-2', pyModule5.id, 'Leer y escribir', 'true_false', {
-    statement: 'El modo "w" sobrescribe el contenido del archivo, mientras que "a" añade al final.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('py-lesson-5-3', pyModule5.id, 'Context manager (with)', 'fill_blank', {
-    sentence: 'Usar la sentencia ___ asegura que los archivos se cierren correctamente',
-    correctAnswer: 'with',
-    hint: 'Se usa con "as" para asignar el archivo a una variable',
-  }, 25, 3);
-  await createLesson('py-lesson-5-4', pyModule5.id, 'Módulos os y pathlib', 'multiple_choice', {
-    question: '¿Qué módulo de Python usarías para trabajar con rutas de archivos?',
-    options: ['math', 'os y pathlib', 'random', 'json'],
-    correctIndex: 1,
-  }, 25, 4);
+3. Gran comunidad
+   - Miles de librerías disponibles
+   - Documentación extensiva
 
-  console.log('✅ Python para Principiantes course expanded (5 módulos, 14 lecciones)');
+PHILOSOPHY (The Zen of Python):
+- Simple es mejor que complejo
+- Legible es mejor que escribible
+- Explícito es mejor que implícito`,
+    keyPoints: ['Python fue creado por Guido van Rossum', 'Su filosofía es simplicidad y legibilidad', 'Tiene miles de librerías']
+  }, 20, 1, 8);
 
-  // HTML & CSS Basics - EXPANDED
-  const htmlCssCourse = await createCourse(
-    'course-html-css',
-    'HTML & CSS desde Cero',
-    'Aprende a crear páginas web stunning. HTML para estructura y CSS para diseño. El primer paso para convertirte en desarrollador web.',
-    'Programación',
-    'beginner',
-    12,
-    'https://placehold.co/600x400/e65100/white?text=HTML+%26+CSS'
-  );
+  await createLesson('py-l1-2', pyM1.id, 'Tu primer programa en Python', 'quiz', {
+    questions: [
+      { question: '¿Cuál es la salida de: print("Hola" + " " + "Mundo")?', options: ['HolaMundo', 'Hola Mundo', 'Error', '"Hola Mundo"'], correctIndex: 1, explanation: 'El operador + concatena strings.' },
+      { question: '¿Cómo se escribe un comentario de una línea en Python?', options: ['// esto es un comentario', '# esto es un comentario', '/* comentario */', '-- comentario'], correctIndex: 1, explanation: 'En Python, el símbolo # indica el inicio de un comentario.' },
+      { question: '¿Python necesita punto y coma al final de las líneas?', options: ['Sí, siempre', 'No, es opcional', 'Depende del IDE', 'Solo en funciones'], correctIndex: 1, explanation: 'Python no requiere punto y coma. La indentación define los bloques.' }
+    ],
+    examples: [
+      { code: 'print("Hola Mundo")', explanation: 'Primer programa' },
+      { code: '# Esto es un comentario', explanation: 'Comentario' },
+      { code: 'nombre = input("¿Cómo te llamas? ")', explanation: 'input() para recibir datos' }
+    ]
+  }, 25, 2, 10);
 
-  // Module 1: Introducción a HTML
-  const htmlModule1 = await createModule('html-module-1', htmlCssCourse.id, 'Introducción a HTML', 1);
-  await createLesson('html-lesson-1-1', htmlModule1.id, '¿Qué es HTML?', 'multiple_choice', {
-    question: 'HTML significa:',
-    options: ['Hyper Text Markup Language', 'High Tech Modern Language', 'Home Tool Markup Language', 'Hyper Transfer Markup Language'],
-    correctIndex: 0,
-  }, 15, 1);
-  await createLesson('html-lesson-1-2', htmlModule1.id, 'Etiquetas básicas', 'multiple_choice', {
-    question: '¿Qué etiqueta se usa para el título principal de una página?',
-    options: ['<header>', '<title>', '<h1>', '<heading>'],
-    correctIndex: 2,
-  }, 20, 2);
-  await createLesson('html-lesson-1-3', htmlModule1.id, 'Enlaces e imágenes', 'fill_blank', {
-    sentence: 'La etiqueta para insertar una imagen es <___>',
-    correctAnswer: 'img',
-    hint: 'Img viene de "image" en inglés',
-  }, 20, 3);
-  await createLesson('html-lesson-1-4', htmlModule1.id, 'Listas en HTML', 'true_false', {
-    statement: 'Las etiquetas <ul> y <ol> se usan para listas desordenadas y ordenadas respectivamente.',
-    correctAnswer: true,
-  }, 15, 4);
+  await createLesson('py-l1-3', pyM1.id, 'Variables y tipos de datos', 'quiz', {
+    questions: [
+      { question: '¿Cómo se declara una variable en Python?', options: ['int x = 5', 'var x = 5', 'x = 5', 'let x = 5'], correctIndex: 2, explanation: 'Python infiere el tipo automáticamente.' },
+      { question: '¿Qué tipo de dato es: x = "Hola"?', options: ['int', 'float', 'str', 'char'], correctIndex: 2, explanation: 'En Python, las cadenas de texto son de tipo str.' },
+      { question: '¿Cómo se llama la función para saber el tipo de una variable?', options: ['typeof()', 'getType()', 'type()', 'whatType()'], correctIndex: 2, explanation: 'type() retorna el tipo de una variable.' }
+    ],
+    examples: [
+      { code: 'edad = 25  # int', explanation: 'Entero' },
+      { code: 'precio = 19.99  # float', explanation: 'Decimal' },
+      { code: 'es_estudiante = True  # bool', explanation: 'Booleano' }
+    ]
+  }, 30, 3, 12);
 
-  // Module 2: Introducción a CSS
-  const htmlModule2 = await createModule('html-module-2', htmlCssCourse.id, 'Introducción a CSS', 2);
-  await createLesson('html-lesson-2-1', htmlModule2.id, '¿Qué es CSS?', 'true_false', {
-    statement: 'CSS se usa para dar estilo y diseño a las páginas web.',
-    correctAnswer: true,
-  }, 15, 1);
-  await createLesson('html-lesson-2-2', htmlModule2.id, 'Selectores CSS', 'multiple_choice', {
-    question: '¿Cómo se selecciona un elemento por su clase en CSS?',
-    options: ['#nombre-clase', '.nombre-clase', 'element.nombre-clase', 'class=nombre-clase'],
-    correctIndex: 1,
-  }, 20, 2);
-  await createLesson('html-lesson-2-3', htmlModule2.id, 'Colores y fuentes', 'multiple_choice', {
-    question: '¿Cuál es la propiedad CSS para cambiar el color del texto?',
-    options: ['text-color', 'font-color', 'color', 'text-style'],
-    correctIndex: 2,
-  }, 20, 3);
-  await createLesson('html-lesson-2-4', htmlModule2.id, 'Box Model', 'fill_blank', {
-    sentence: 'Las propiedades padding, border y ___ forman el Box Model de CSS',
-    correctAnswer: 'margin',
-    hint: 'Es el espacio exterior del elemento',
-  }, 25, 4);
+  await createLesson('py-l1-4', pyM1.id, '🎮 Ejercicio: Variables y Tipos en Python', 'coding', {
+    instructions: 'Practica declarando variables y trabajando con tipos en Python:',
+    exercise: {
+      task: 'Manipula variables y verifica tipos en Python',
+      challenges: [
+        {
+          id: 'py-var-1',
+          description: 'Crea una variable llamada nombre con tu nombre',
+          initialCode: '# Crea la variable nombre\n',
+          hint: 'Simplemente usa nombre = "tu_nombre"',
+          solution: 'nombre = "María"'
+        },
+        {
+          id: 'py-var-2',
+          description: 'Crea una variable edad de tipo entero con valor 25',
+          initialCode: '# Crea la variable edad\n',
+          hint: 'En Python no necesitas declarar el tipo',
+          solution: 'edad = 25'
+        },
+        {
+          id: 'py-var-3',
+          description: 'Usa f-string para crear: "Hola, {nombre}! Tienes {edad} años."',
+          initialCode: 'nombre = "Carlos"\nedad = 28\n# Crea la variable mensaje usando f-string\n',
+          expectedOutput: 'mensaje debe ser "Hola, Carlos! Tienes 28 años."',
+          hint: 'Usa f"Hola, {nombre}..."',
+          solution: 'mensaje = f"Hola, {nombre}! Tienes {edad} años."'
+        }
+      ]
+    }
+  }, 50, 4, 15);
 
-  // NEW Module 3: Flexbox y Grid
-  const htmlModule3 = await createModule('html-module-3', htmlCssCourse.id, 'Flexbox y Grid', 3);
-  await createLesson('html-lesson-3-1', htmlModule3.id, '¿Qué es Flexbox?', 'multiple_choice', {
-    question: 'Flexbox es un método de CSS para:',
-    options: ['Crear animaciones', 'Diseñar layouts en una dimensión', 'Crear bases de datos', 'Encryptar código'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('html-lesson-3-2', htmlModule3.id, 'Propiedades de Flexbox', 'true_false', {
-    statement: 'justify-content alinea elementos en el eje principal de un contenedor flex.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('html-lesson-3-3', htmlModule3.id, 'Introducción a CSS Grid', 'fill_blank', {
-    sentence: 'Para crear un contenedor grid usamos display: ___',
-    correctAnswer: 'grid',
-    hint: '(grid = cuadrícula)',
-  }, 25, 3);
-  await createLesson('html-lesson-3-4', htmlModule3.id, 'Grid vs Flexbox', 'multiple_choice', {
-    question: '¿Cuándo es mejor usar Grid en vez de Flexbox?',
-    options: ['Para layouts de una dimensión', 'Para layouts de dos dimensiones (filas y columnas)', 'Solo para formularios', 'Para crear animaciones'],
-    correctIndex: 1,
-  }, 25, 4);
+  // MODULE 2: Estructuras de Datos
+  const pyM2 = await createModule('py-m2', pyCourse.id, 'Estructuras de Datos', 2);
 
-  // NEW Module 4: Responsive Design
-  const htmlModule4 = await createModule('html-module-4', htmlCssCourse.id, 'Diseño Responsivo', 4);
-  await createLesson('html-lesson-4-1', htmlModule4.id, '¿Qué es diseño responsivo?', 'multiple_choice', {
-    question: 'El diseño responsivo significa:',
-    options: ['Crear sitios muy rápidos', 'Que la web se adapte a diferentes tamaños de pantalla', 'Solo funciona en móviles', 'Usar muchas imágenes'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('html-lesson-4-2', htmlModule4.id, 'Viewport meta tag', 'true_false', {
-    statement: 'El tag <meta name="viewport"> es necesario para que funcione el diseño responsivo.',
-    correctAnswer: true,
-  }, 15, 2);
-  await createLesson('html-lesson-4-3', htmlModule4.id, 'Media queries', 'fill_blank', {
-    sentence: 'Las ___ permiten aplicar estilos diferentes según el tamaño de pantalla',
-    correctAnswer: 'media queries',
-    hint: 'Son como "preguntas" al navegador sobre el tamaño',
-  }, 25, 3);
-  await createLesson('html-lesson-4-4', htmlModule4.id, 'Unidades relativas', 'multiple_choice', {
-    question: '¿Cuál NO es una unidad relativa en CSS?',
-    options: ['rem', 'em', 'px', 'vw'],
-    correctIndex: 2,
-  }, 20, 4);
+  await createLesson('py-l2-1', pyM2.id, 'Listas y operaciones básicas', 'reading', {
+    introduction: 'Las listas son colecciones ordenadas y mutables de elementos en Python.',
+    content: `CREAR LISTAS:
 
-  console.log('✅ HTML & CSS course expanded (4 módulos, 16 lecciones)');
+frutas = ["manzana", "pera", "uva"]
+numeros = [1, 2, 3, 4, 5]
+
+ACCEDER POR ÍNDICE:
+- Primera posición: frutas[0] → "manzana"
+- Última posición: frutas[-1] → "uva"
+- Rango: frutas[0:2] → ["manzana", "pera"]
+
+MÉTODOS PRINCIPALES:
+- append(item) → añade al final
+- insert(pos, item) → inserta en posición
+- remove(item) → elimina primera ocurrencia
+- pop() → elimina y retorna el último`,
+    examples: [
+      { code: 'frutas = ["manzana", "pera"]; frutas.append("uva")', explanation: 'Añadir elemento' },
+      { code: 'frutas[0]  # "manzana"', explanation: 'Acceder por índice' },
+      { code: 'frutas[-1]  # "uva" (último)', explanation: 'Índice negativo' }
+    ]
+  }, 25, 1, 10);
+
+  await createLesson('py-l2-2', pyM2.id, 'Diccionarios', 'quiz', {
+    questions: [
+      { question: '¿Cómo se crea un diccionario en Python?', options: ['dict = (1, 2, 3)', 'dict = [1, 2, 3]', 'dict = {"clave": "valor"}', 'dict = <1, 2, 3>'], correctIndex: 2, explanation: 'Los diccionarios usan llaves con pares clave:valor.' },
+      { question: '¿Cómo se accede al valor de "nombre" en: persona = {"nombre": "Ana", "edad": 30}?', options: ['persona[0]', 'persona["nombre"]', 'persona.nombre', 'persona.get(0)'], correctIndex: 1, explanation: 'Se accede con corchetes y la clave como string.' },
+      { question: '¿Qué hace dict.get("clave", "default")?', options: ['Elimina la clave', 'Retorna el valor o default si no existe', 'Actualiza el valor', 'Crea la clave'], correctIndex: 1, explanation: 'get() retorna el valor de la clave si existe, o el valor default.' }
+    ],
+    examples: [
+      { code: 'usuario = {"nombre": "Juan", "edad": 28}', explanation: 'Diccionario simple' },
+      { code: 'for clave, valor in usuario.items(): print(clave, valor)', explanation: 'Iterar diccionario' }
+    ]
+  }, 30, 2, 12);
+
+  await createLesson('py-l2-3', pyM2.id, '🎮 Ejercicio: Listas y Diccionarios', 'coding', {
+    instructions: 'Practica manipulando listas y diccionarios:',
+    exercise: {
+      task: 'Trabaja con estructuras de datos en Python',
+      challenges: [
+        {
+          id: 'py-list-1',
+          description: 'Crea una lista llamada colores con ["rojo", "verde", "azul"]',
+          initialCode: '# Crea la lista colores\n',
+          expectedOutput: 'colores debe ser ["rojo", "verde", "azul"]',
+          hint: 'Usa corchetes y comas',
+          solution: 'colores = ["rojo", "verde", "azul"]'
+        },
+        {
+          id: 'py-list-2',
+          description: 'Agrega "amarillo" a la lista colores',
+          initialCode: 'colores = ["rojo", "verde", "azul"]\n# Agrega "amarillo"\n',
+          expectedOutput: 'colores debe incluir "amarillo"',
+          hint: 'Usa el método append()',
+          solution: 'colores.append("amarillo")'
+        },
+        {
+          id: 'py-list-3',
+          description: 'Crea un diccionario estudiante con claves "nombre" y "edad"',
+          initialCode: '# Crea el diccionario estudiante\n',
+          expectedOutput: 'estudiante["nombre"] debe existir',
+          hint: 'Usa llaves con clave:valor',
+          solution: 'estudiante = {"nombre": "Ana", "edad": 22}'
+        }
+      ]
+    }
+  }, 50, 3, 15);
+
+  await createLesson('py-l2-4', pyM2.id, '🚀 Mini-Proyecto: Lista de Tareas', 'project', {
+    title: 'Gestor de Tareas en Python',
+    description: 'Crea un sistema de gestión de tareas usando listas y diccionarios.',
+    objectives: [
+      'Practicar estructuras de datos complejas',
+      'Implementar operaciones CRUD',
+      'Usar loops y condicionales'
+    ],
+    requirements: [
+      'Lista de diccionarios representando tareas',
+      'Cada tarea tiene: id, titulo, completada (bool)',
+      'Función para agregar tarea',
+      'Función para marcar como completada',
+      'Función para mostrar tareas pendientes'
+    ],
+    exampleCode: `tareas = [
+    {"id": 1, "titulo": "Comprar comida", "completada": False},
+    {"id": 2, "titulo": "Estudiar Python", "completada": True}
+]
+
+def agregar_tarea(titulo):
+    nuevo_id = len(tareas) + 1
+    tareas.append({"id": nuevo_id, "titulo": titulo, "completada": False})`,
+    tips: ['Usa append() para agregar elementos', 'Filtra con una list comprehension'],
+    xpReward: 120
+  }, 90, 4, 25);
+
+  // MODULE 3: Control de Flujo
+  const pyM3 = await createModule('py-m3', pyCourse.id, 'Control de Flujo', 3);
+
+  await createLesson('py-l3-1', pyM3.id, 'Condicionales if/elif/else', 'quiz', {
+    questions: [
+      { question: '¿Cuál es la salida: if 5 > 3: print("A") else: print("B")?', options: ['A', 'B', 'AB', 'Error'], correctIndex: 0, explanation: '5 > 3 es True, por lo tanto se ejecuta el bloque del if.' },
+      { question: '¿Qué palabra clave se usa para múltiples condiciones en Python?', options: ['else if', 'elif', 'elsif', 'when'], correctIndex: 1, explanation: 'Python usa "elif" para múltiples condiciones.' },
+      { question: '¿Python usa llaves {} para definir bloques?', options: ['Sí', 'No, usa indentación', 'Depende del IDE', 'Para funciones sí'], correctIndex: 1, explanation: 'Python usa indentación, no llaves.' }
+    ]
+  }, 25, 1, 10);
+
+  await createLesson('py-l3-2', pyM3.id, 'Bucles for y while', 'quiz', {
+    questions: [
+      { question: '¿Cuántas veces se ejecuta: for i in range(5): print(i)?', options: ['4', '5', '6', 'Infinito'], correctIndex: 1, explanation: 'range(5) genera 0, 1, 2, 3, 4. El bucle se ejecuta 5 veces.' },
+      { question: '¿Qué hace: for char in "python": print(char)?', options: ['Imprime "python" 5 veces', 'Imprime cada letra en una línea', 'Error', 'Solo imprime "p"'], correctIndex: 1, explanation: 'Iterar sobre un string recorre cada carácter.' },
+      { question: '¿Cómo se sale de un bucle prematuramente en Python?', options: ['break', 'exit', 'stop', 'return'], correctIndex: 0, explanation: 'break termina el bucle inmediatamente.' }
+    ],
+    examples: [
+      { code: 'for i in range(5): print(i)  # 0, 1, 2, 3, 4', explanation: 'Bucle for con range' },
+      { code: 'for item in lista: print(item)', explanation: 'Iterar lista' }
+    ]
+  }, 30, 2, 12);
+
+  await createLesson('py-l3-3', pyM3.id, 'List Comprehensions', 'quiz', {
+    questions: [
+      { question: '¿Qué es una list comprehension?', options: ['Un tipo de función', 'Una forma concisa de crear listas', 'Un método de ordenamiento', 'Un error de sintaxis'], correctIndex: 1, explanation: 'List comprehension es una sintaxis compacta para generar listas.' },
+      { question: '¿Qué resulta de: [x**2 for x in range(5)]?', options: ['[0, 1, 2, 3, 4]', '[0, 1, 4, 9, 16]', '[1, 4, 9, 16, 25]', 'Error'], correctIndex: 1, explanation: 'x**2 para cada x en range(5): 0², 1², 2², 3², 4².' }
+    ],
+    examples: [
+      { code: '[x**2 for x in range(5)]  # [0, 1, 4, 9, 16]', explanation: 'Cuadrados de 0-4' },
+      { code: '[x for x in range(10) if x % 2 == 0]  # [0, 2, 4, 6, 8]', explanation: 'Solo pares' }
+    ]
+  }, 25, 3, 10);
+
+  await createLesson('py-l3-4', pyM3.id, '🎮 Ejercicio: Control de Flujo', 'coding', {
+    instructions: 'Practica condicionales y bucles:',
+    exercise: {
+      task: 'Implementa lógica de control en Python',
+      challenges: [
+        {
+          id: 'py-flow-1',
+          description: 'Crea una función es_par(numero) que retorne True si es par',
+          initialCode: 'def es_par(numero):\n    # Retorna True si es par, False si es impar\n',
+          expectedOutput: 'es_par(4) → True, es_par(7) → False',
+          hint: 'Usa el operador % (módulo)',
+          solution: 'def es_par(numero):\n    return numero % 2 == 0'
+        },
+        {
+          id: 'py-flow-2',
+          description: 'Usa list comprehension para obtener los cuadrados de los números 1-5',
+          initialCode: '# Crea una lista con los cuadrados de 1 a 5\n',
+          expectedOutput: 'cuadrados debe ser [1, 4, 9, 16, 25]',
+          hint: 'Usa [x**2 for x in range(1, 6)]',
+          solution: 'cuadrados = [x**2 for x in range(1, 6)]'
+        },
+        {
+          id: 'py-flow-3',
+          description: 'Filtra los números negativos de la lista [-1, 2, -3, 4, -5]',
+          initialCode: 'numeros = [-1, 2, -3, 4, -5]\n# Crea positivos solo con números > 0\n',
+          expectedOutput: 'positivos debe ser [2, 4]',
+          hint: 'Usa list comprehension con condición if',
+          solution: 'positivos = [x for x in numeros if x > 0]'
+        }
+      ]
+    }
+  }, 50, 4, 15);
+
+  // MODULE 4: Funciones
+  const pyM4 = await createModule('py-m4', pyCourse.id, 'Funciones', 4);
+
+  await createLesson('py-l4-1', pyM4.id, 'Definir y llamar funciones', 'reading', {
+    introduction: 'Las funciones son bloques de código reutilizables que realizan una tarea específica.',
+    content: `SINTÁXIS BÁSICA:
+
+def nombre_funcion(parametros):
+    """Docstring - descripción de la función"""
+    # código
+    return resultado
+
+PARAMETROS DEFAULT:
+def greet(nombre, saludo="Hola"):
+    return f"{saludo}, {nombre}!"
+
+RETURN:
+- return termina la función
+- Sin return, retorna None
+- Puede retornar múltiples valores como tupla`,
+    examples: [
+      { code: 'def sumar(a, b): return a + b', explanation: 'Función simple' },
+      { code: 'def saludar(nombre="Mundo"): return f"Hola {nombre}"', explanation: 'Con valor default' }
+    ]
+  }, 25, 1, 10);
+
+  await createLesson('py-l4-2', pyM4.id, 'Args, kwargs y funciones lambda', 'quiz', {
+    questions: [
+      { question: '¿Qué hace *args en una función?', options: ['Multiplica argumentos', 'Captura argumentos variables en una tupla', 'Convierte a enteros', 'Elimina argumentos'], correctIndex: 1, explanation: '*args permite pasar un número variable de argumentos.' },
+      { question: '¿Qué es una función lambda?', options: ['Una función muy grande', 'Una función anónima de una línea', 'Un tipo de error', 'Una función matemática'], correctIndex: 1, explanation: 'Lambda crea funciones anónimas de una línea.' },
+      { question: '¿Cuál es el resultado de: (lambda x, y: x + y)(2, 3)?', options: ['5', '23', '6', 'Error'], correctIndex: 0, explanation: 'La lambda recibe 2 y 3 y retorna 2 + 3 = 5.' }
+    ],
+    examples: [
+      { code: 'def suma(*args): return sum(args)', explanation: '*args variable arguments' },
+      { code: 'doble = lambda x: x * 2; doble(5)  # 10', explanation: 'Función lambda' }
+    ]
+  }, 30, 2, 12);
+
+  await createLesson('py-l4-3', pyM4.id, '🎮 Ejercicio: Funciones', 'coding', {
+    instructions: 'Practica creando funciones:',
+    exercise: {
+      task: 'Implementa funciones en Python',
+      challenges: [
+        {
+          id: 'py-func-1',
+          description: 'Crea una función saludar(nombre) que retorne "Hola, {nombre}!"',
+          initialCode: '# Define la función saludar\n',
+          expectedOutput: 'saludar("Ana") → "Hola, Ana!"',
+          hint: 'Usa def y return',
+          solution: 'def saludar(nombre):\n    return f"Hola, {nombre}!"'
+        },
+        {
+          id: 'py-func-2',
+          description: 'Crea una función lambda llamada cuadrado que elevé al cuadrado',
+          initialCode: '# Crea la función lambda cuadrado\n',
+          expectedOutput: 'cuadrado(4) → 16',
+          hint: 'Usa lambda x: expresion',
+          solution: 'cuadrado = lambda x: x ** 2'
+        },
+        {
+          id: 'py-func-3',
+          description: 'Crea una función promedio(*numeros) que calcule el promedio',
+          initialCode: '# Define la función promedio\n',
+          expectedOutput: 'promedio(10, 20, 30) → 20.0',
+          hint: 'Usa *args y sum()/len()',
+          solution: 'def promedio(*numeros):\n    return sum(numeros) / len(numeros)'
+        }
+      ]
+    }
+  }, 50, 3, 15);
+
+  // PROYECTO FINAL PYTHON
+  await createLesson('py-l4-4', pyM4.id, '🚀 Proyecto Final: Analizador de Calificaciones', 'project', {
+    title: 'Analizador de Calificaciones',
+    description: 'Crea un sistema para analizar calificaciones de estudiantes.',
+    objectives: [
+      'Combinar funciones y estructuras de datos',
+      'Implementar lógica de análisis estadístico',
+      'Usar funciones lambda y comprehensions'
+    ],
+    requirements: [
+      'Diccionario con estudiantes y sus calificaciones (lista de números)',
+      'Función para calcular promedio de un estudiante',
+      'Función para encontrar el mejor promedio',
+      'Función para obtener todos los estudiantes aprobados (promedio >= 7)',
+      'Función para calcular el promedio general de la clase'
+    ],
+    exampleCode: `calificaciones = {
+    "Ana": [8, 9, 7, 10],
+    "Carlos": [6, 7, 8, 7],
+    "María": [9, 10, 9, 10]
+}
+
+def promedio_estudiante(califs):
+    return sum(califs) / len(califs)
+
+def mejor_promedio():
+    promedios = {nombre: promedio_estudiante(califs) for nombre, califs in calificaciones.items()}
+    return max(promedios, key=promedios.get)`,
+    tips: ['Usa comprehensions para crear diccionarios de promedios', 'max() con key parameter para encontrar el mejor'],
+    xpReward: 200
+  }, 120, 4, 40);
+
+  console.log('✅ Python para Principiantes completed (4 modules, 14 lessons, 3 coding exercises, 2 mini-projects)');
 
   // ===========================================
-  // MATH COURSES - EXPANDED
+  // MATH COURSE - ENHANCED WITH REAL PROBLEMS
   // ===========================================
-  console.log('\n📐 Creating/Expanding Math Courses...');
+  console.log('\n📐 Creating ENHANCED Mathematics Applied course...');
 
-  // Matemáticas Básicas - EXPANDED
-  const mathBasicCourse = await createCourse(
-    'course-math-basic',
-    'Matemáticas Básicas',
-    'Refresca tus habilidades matemáticas fundamentales. Operaciones básicas, fracciones, porcentajes y más. La base para todo lo demás.',
+  const mathCourse = await createCourse(
+    'course-math-basics',
+    'Matemáticas Aplicadas',
+    'Refresca y profundiza tus habilidades matemáticas con problemas del mundo real. Desde aritmética básica hasta álgebra y estadística.',
     'Matemáticas',
     'beginner',
-    10,
-    'https://placehold.co/600x400/7b1fa2/white?text=Matem%C3%A1ticas'
+    20,
+    'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&h=400&fit=crop'
   );
 
-  // Module 1: Operaciones Básicas
-  const mathModule1 = await createModule('math-module-1', mathBasicCourse.id, 'Operaciones Básicas', 1);
-  await createLesson('math-lesson-1-1', mathModule1.id, 'Suma y resta', 'multiple_choice', {
-    question: '¿Cuánto es 125 + 347?',
-    options: ['462', '472', '482', '452'],
-    correctIndex: 1,
-  }, 15, 1);
-  await createLesson('math-lesson-1-2', mathModule1.id, 'Multiplicación', 'multiple_choice', {
-    question: '¿Cuánto es 15 × 8?',
-    options: ['100', '120', '130', '110'],
-    correctIndex: 1,
-  }, 15, 2);
-  await createLesson('math-lesson-1-3', mathModule1.id, 'División', 'true_false', {
-    statement: 'El resultado de dividir 48 entre 6 es 8.',
-    correctAnswer: true,
-  }, 15, 3);
-  await createLesson('math-lesson-1-4', mathModule1.id, 'Orden de operaciones', 'multiple_choice', {
-    question: '¿Cuál es el resultado de 2 + 3 × 4?',
-    options: ['20', '14', '24', '11'],
-    correctIndex: 1,
-  }, 20, 4);
+  const mathM1 = await createModule('math-m1', mathCourse.id, 'Aritmética y Porcentajes', 1);
 
-  // Module 2: Fracciones
-  const mathModule2 = await createModule('math-module-2', mathBasicCourse.id, 'Fracciones', 2);
-  await createLesson('math-lesson-2-1', mathModule2.id, '¿Qué es una fracción?', 'multiple_choice', {
-    question: 'En la fracción 3/4, ¿qué representa el número 4?',
-    options: ['El numerador', 'El denominador', 'El resultado', 'La fracción'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('math-lesson-2-2', mathModule2.id, 'Sumar fracciones', 'fill_blank', {
-    sentence: 'Para sumar fracciones con el mismo denominador, se suman los ___',
-    correctAnswer: 'numeradores',
-    hint: 'Arriba están los numeradores',
-  }, 25, 2);
-  await createLesson('math-lesson-2-3', mathModule2.id, 'Fracciones a decimales', 'multiple_choice', {
-    question: '¿Cuánto es 1/2 en forma decimal?',
-    options: ['0.25', '0.5', '0.75', '1.0'],
-    correctIndex: 1,
-  }, 20, 3);
-  await createLesson('math-lesson-2-4', mathModule2.id, 'Multiplicar fracciones', 'true_false', {
-    statement: 'Para multiplicar fracciones, se multiplica numerador por numerador y denominador por denominador.',
-    correctAnswer: true,
-  }, 25, 4);
+  await createLesson('math-l1-1', mathM1.id, 'Orden de operaciones (PEMDAS)', 'quiz', {
+    questions: [
+      { question: '¿Cuál es el resultado de 2 + 3 × 4?', options: ['20', '14', '24', '11'], correctIndex: 1, explanation: 'PEMDAS: Multiplicación antes que suma. 3×4=12, luego 2+12=14.' },
+      { question: '¿Qué significa PEMDAS?', options: ['Parentheses, Exponents, Multiplication, Division, Addition, Subtraction', 'Prime Numbers, Exponents, Math, Division, Addition, Subtraction', 'Parenthesis, Equations, Multiplication, Division, Addition, Subtraction', 'Problems, Examples, Math, Division, Addition, Subtraction'], correctIndex: 0, explanation: 'PEMDAS indica el orden: Paréntesis → Exponentes → Multiplicación/División → Suma/Resta.' },
+      { question: '¿Cuál es el resultado de (2 + 3) × 4?', options: ['14', '20', '24', '11'], correctIndex: 1, explanation: 'Los paréntesis se evalúan primero. (2+3)=5, luego 5×4=20.' }
+    ]
+  }, 25, 1, 10);
 
-  // Module 3: Porcentajes
-  const mathModule3 = await createModule('math-module-3', mathBasicCourse.id, 'Porcentajes', 3);
-  await createLesson('math-lesson-3-1', mathModule3.id, '¿Qué es un porcentaje?', 'multiple_choice', {
-    question: 'El 50% de 200 es:',
-    options: ['50', '100', '150', '200'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('math-lesson-3-2', mathModule3.id, 'Calcular porcentajes', 'true_false', {
-    statement: 'Para calcular el 20% de 150, multiplicamos 150 × 0.20',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('math-lesson-3-3', mathModule3.id, 'Porcentaje a fracción', 'fill_blank', {
-    sentence: 'El 25% equivale a la fracción 1/__',
-    correctAnswer: '4',
-    hint: '25% = 25/100 = 1/4',
-  }, 20, 3);
-  await createLesson('math-lesson-3-4', mathModule3.id, 'Cambio porcentual', 'multiple_choice', {
-    question: 'Si un producto pasa de $50 a $60, ¿cuál es el aumento porcentual?',
-    options: ['10%', '20%', '30%', '15%'],
-    correctIndex: 1,
-  }, 25, 4);
+  await createLesson('math-l1-2', mathM1.id, 'Porcentajes en la vida real', 'quiz', {
+    questions: [
+      { question: '¿Cuánto es el 25% de 80?', options: ['20', '25', '200', '8'], correctIndex: 0, explanation: '25% = 0.25. 80 × 0.25 = 20.' },
+      { question: 'Si un producto cuesta $150 y tiene 20% de descuento, ¿cuánto pagas?', options: ['$130', '$120', '$135', '$145'], correctIndex: 1, explanation: 'Descuento = 150 × 0.20 = $30. Precio final = 150 - 30 = $120.' },
+      { question: '¿De qué número es 45 el 15%?', options: ['300', '450', '200', '600'], correctIndex: 0, explanation: 'Si 45 = 15% × X, entonces X = 45 / 0.15 = 300.' },
+      { question: '¿Qué significa "aumentar un valor en 30%"?', options: ['Multiplicar por 0.30', 'Multiplicar por 1.30', 'Sumar 30', 'Dividir entre 1.30'], correctIndex: 1, explanation: 'Aumentar 30% significa tener el 100% + 30% = 130%, multiplicar por 1.30.' }
+    ],
+    realWorldExample: 'En una tienda, ves un jacket de $80 con 25% de descuento. ¿Cuánto pagas? El descuento es $20, entonces pagas $60.'
+  }, 30, 2, 12);
 
-  // NEW Module 4: Geometría Básica
-  const mathModule4 = await createModule('math-module-4', mathBasicCourse.id, 'Geometría Básica', 4);
-  await createLesson('math-lesson-4-1', mathModule4.id, 'Figuras geométricas', 'multiple_choice', {
-    question: '¿Cuántos lados tiene un hexágono?',
-    options: ['5', '6', '7', '8'],
-    correctIndex: 1,
-  }, 15, 1);
-  await createLesson('math-lesson-4-2', mathModule4.id, 'Perímetro', 'true_false', {
-    statement: 'El perímetro de un rectángulo se calcula como 2 × (largo + ancho)',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('math-lesson-4-3', mathModule4.id, 'Área de figuras', 'fill_blank', {
-    sentence: 'El área de un rectángulo se calcula como largo × ___',
-    correctAnswer: 'ancho',
-    hint: 'También puedes pensar como base × altura',
-  }, 20, 3);
-  await createLesson('math-lesson-4-4', mathModule4.id, 'Círculo y π', 'multiple_choice', {
-    question: 'Si el radio de un círculo es 5, ¿cuál es su diámetro?',
-    options: ['2.5', '5', '10', '25'],
-    correctIndex: 2,
-  }, 20, 4);
+  await createLesson('math-l1-3', mathM1.id, '🎮 Ejercicio: Calcula tu Ahorro', 'coding', {
+    instructions: 'Resuelve problemas matemáticos prácticos:',
+    exercise: {
+      task: 'Calcula porcentajes y descuentos',
+      challenges: [
+        {
+          id: 'math-1',
+          description: 'Calcula el 15% de 200',
+          initialCode: '# Calcula el 15% de 200\n',
+          expectedOutput: 'resultado debe ser 30',
+          hint: 'Multiplica por 0.15 o divide por 100 y multiplica por 15',
+          solution: 'resultado = 200 * 0.15'
+        },
+        {
+          id: 'math-2',
+          description: 'Un producto de $90 tiene 30% de descuento. ¿Cuánto es el descuento?',
+          initialCode: 'precio_original = 90\ndescuento_porcentaje = 30\n# Calcula el monto del descuento\n',
+          expectedOutput: 'descuento debe ser 27',
+          hint: 'precio_original × (descuento_porcentaje / 100)',
+          solution: 'descuento = precio_original * (descuento_porcentaje / 100)'
+        },
+        {
+          id: 'math-3',
+          description: '¿Qué porcentaje es 45 de 180? (Respuesta en número, no %)',
+          initialCode: 'parte = 45\ntodo = 180\n# Calcula qué porcentaje es la parte del todo\n',
+          expectedOutput: 'porcentaje debe ser 25 (porque 45 es el 25% de 180)',
+          hint: '(parte / todo) × 100',
+          solution: 'porcentaje = (parte / todo) * 100'
+        }
+      ]
+    }
+  }, 40, 3, 12);
 
-  // NEW Module 5: Estadísticas Básicas
-  const mathModule5 = await createModule('math-module-5', mathBasicCourse.id, 'Estadísticas Básicas', 5);
-  await createLesson('math-lesson-5-1', mathModule5.id, 'Media (promedio)', 'multiple_choice', {
-    question: '¿Cuál es la media de 4, 8, 6 y 10?',
-    options: ['6', '7', '8', '9'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('math-lesson-5-2', mathModule5.id, 'Mediana', 'true_false', {
-    statement: 'La mediana es el valor que queda en medio cuando ordenamos los datos.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('math-lesson-5-3', mathModule5.id, 'Moda', 'fill_blank', {
-    sentence: 'La ___ es el valor que más se repite en un conjunto de datos',
-    correctAnswer: 'moda',
-    hint: 'Es la más "popular"',
-  }, 20, 3);
-  await createLesson('math-lesson-5-4', mathModule5.id, 'Rango', 'multiple_choice', {
-    question: 'El rango de los datos 3, 7, 2, 9, 1 es:',
-    options: ['6', '7', '8', '9'],
-    correctIndex: 2,
-  }, 20, 4);
+  // MODULE 2: Álgebra Básica
+  const mathM2 = await createModule('math-m2', mathCourse.id, 'Álgebra Básica', 2);
 
-  console.log('✅ Matemáticas Básicas course expanded (5 módulos, 18 lecciones)');
+  await createLesson('math-l2-1', mathM2.id, 'Ecuaciones de primer grado', 'quiz', {
+    questions: [
+      { question: 'Si 2x + 5 = 15, ¿cuánto vale x?', options: ['5', '10', '7.5', '4'], correctIndex: 0, explanation: '2x + 5 = 15 → 2x = 15 - 5 → 2x = 10 → x = 10/2 = 5.' },
+      { question: '¿Cuál es el primer paso para resolver 3(x - 2) = 12?', options: ['Dividir entre 3', 'Restar 2', 'Aplicar propiedad distributiva: 3x - 6 = 12', 'Sumar 2'], correctIndex: 2, explanation: 'Primero aplica distributiva: 3×x - 3×2 = 3x - 6 = 12.' },
+      { question: '¿Qué significa "despejar x"?', options: ['Eliminar x', 'Aislar x en un lado de la ecuación', 'Multiplicar x', 'Dividir entre x'], correctIndex: 1, explanation: 'Despejar significa dejar la variable sola en un lado.' }
+    ],
+    tips: ['Lo que hagas a un lado, hazlo al otro', 'Mantén la ecuación balanceada']
+  }, 30, 1, 12);
 
-  // Álgebra Elemental - EXPANDED
-  const algebraCourse = await createCourse(
-    'course-algebra',
-    'Álgebra Elemental',
-    'Domina las ecuaciones y expresiones algebraicas. Aprende a resolver problemas del mundo real usando el lenguaje de las matemáticas.',
-    'Matemáticas',
-    'intermediate',
-    15,
-    'https://placehold.co/600x400/00838f/white?text=%C3%81lgebra'
-  );
-
-  // Module 1: Expresiones Algebraicas
-  const algModule1 = await createModule('alg-module-1', algebraCourse.id, 'Expresiones Algebraicas', 1);
-  await createLesson('alg-lesson-1-1', algModule1.id, '¿Qué es una variable?', 'multiple_choice', {
-    question: 'En la expresión 2x + 5 = 15, ¿qué es x?',
-    options: ['Un número fijo', 'Una variable que desconocemos', 'El resultado', 'Un operador'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('alg-lesson-1-2', algModule1.id, 'Términos y coeficientes', 'fill_blank', {
-    sentence: 'En el término 4x², el número 4 es el ___',
-    correctAnswer: 'coeficiente',
-    hint: 'Es el factor numérico del término',
-  }, 25, 2);
-  await createLesson('alg-lesson-1-3', algModule1.id, 'Simplificar expresiones', 'multiple_choice', {
-    question: '¿Cuánto es 3x + 2x?',
-    options: ['5x', '6x', '5x²', '6'],
-    correctIndex: 0,
-  }, 20, 3);
-  await createLesson('alg-lesson-1-4', algModule1.id, 'Polinomios', 'true_false', {
-    statement: 'Un polinomio es una expresión algebraica con múltiples términos.',
-    correctAnswer: true,
-  }, 20, 4);
-
-  // Module 2: Ecuaciones
-  const algModule2 = await createModule('alg-module-2', algebraCourse.id, 'Ecuaciones', 2);
-  await createLesson('alg-lesson-2-1', algModule2.id, 'Ecuaciones de primer grado', 'multiple_choice', {
-    question: 'Si 2x + 6 = 14, ¿cuánto vale x?',
-    options: ['4', '5', '6', '8'],
-    correctIndex: 0,
-  }, 25, 1);
-  await createLesson('alg-lesson-2-2', algModule2.id, 'Resolver ecuaciones', 'true_false', {
-    statement: 'Para resolver x + 5 = 12, restamos 5 de ambos lados.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('alg-lesson-2-3', algModule2.id, 'Ecuaciones con paréntesis', 'fill_blank', {
-    sentence: 'Para resolver 2(x + 3) = 10, primero ___ ambos lados por 2',
-    correctAnswer: 'dividimos',
-    hint: 'O aplicamos la propiedad distributiva primero',
-  }, 25, 3);
-  await createLesson('alg-lesson-2-4', algModule2.id, 'Ecuaciones con fracciones', 'multiple_choice', {
-    question: '¿Cuál es el primer paso para resolver x/3 + 2 = 5?',
-    options: ['Multiplicar por 3', 'Restar 2 de ambos lados', 'Ambos A y B son válidos', 'Dividir entre 3'],
-    correctIndex: 2,
-  }, 25, 4);
-
-  // Module 3: Sistemas de Ecuaciones
-  const algModule3 = await createModule('alg-module-3', algebraCourse.id, 'Sistemas de Ecuaciones', 3);
-  await createLesson('alg-lesson-3-1', algModule3.id, '¿Qué es un sistema?', 'multiple_choice', {
-    question: 'Un sistema de ecuaciones es un conjunto de...',
-    options: ['Una ecuación muy larga', 'Dos o más ecuaciones con las mismas variables', 'Varias operaciones', 'Un tipo especial de fracción'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('alg-lesson-3-2', algModule3.id, 'Método de sustitución', 'fill_blank', {
-    sentence: 'El método de sustitución consiste en ___ una variable de una ecuación.',
-    correctAnswer: 'despejar',
-    hint: 'Dejar la variable sola en un lado',
-  }, 25, 2);
-  await createLesson('alg-lesson-3-3', algModule3.id, 'Método de eliminación', 'true_false', {
-    statement: 'El método de eliminación busca que una variable tenga coeficientes opuestos para eliminarla.',
-    correctAnswer: true,
-  }, 25, 3);
-  await createLesson('alg-lesson-3-4', algModule3.id, 'Interpretación gráfica', 'multiple_choice', {
-    question: '¿Qué representa el punto donde se cruzan dos rectas en un sistema?',
-    options: ['No tiene significado', 'La solución del sistema', 'Un error', 'El promedio'],
-    correctIndex: 1,
-  }, 25, 4);
-
-  // NEW Module 4: Polinomios
-  const algModule4 = await createModule('alg-module-4', algebraCourse.id, 'Polinomios', 4);
-  await createLesson('alg-lesson-4-1', algModule4.id, 'Suma de polinomios', 'multiple_choice', {
-    question: '¿Cuánto es (2x + 3) + (5x - 1)?',
-    options: ['7x + 2', '7x + 4', '10x + 2', '3x - 2'],
-    correctIndex: 0,
-  }, 20, 1);
-  await createLesson('alg-lesson-4-2', algModule4.id, 'Multiplicación de polinomios', 'true_false', {
-    statement: 'Para multiplicar (x + 2)(x + 3), usamos la propiedad distributiva multiple veces.',
-    correctAnswer: true,
-  }, 25, 2);
-  await createLesson('alg-lesson-4-3', algModule4.id, 'Productos notables', 'fill_blank', {
-    sentence: 'El producto notable (a + b)² es igual a a² + 2ab + ___',
-    correctAnswer: 'b²',
-    hint: 'Es el cuadrado del segundo término',
-  }, 25, 3);
-  await createLesson('alg-lesson-4-4', algModule4.id, 'Factorización básica', 'multiple_choice', {
-    question: '¿Cuál es la factorización correcta de x² - 9?',
-    options: ['(x + 3)(x + 3)', '(x - 3)(x + 3)', '(x - 9)(x + 1)', 'No se puede factorizar'],
-    correctIndex: 1,
-  }, 25, 4);
-
-  // NEW Module 5: Funciones
-  const algModule5 = await createModule('alg-module-5', algebraCourse.id, 'Funciones', 5);
-  await createLesson('alg-lesson-5-1', algModule5.id, '¿Qué es una función?', 'multiple_choice', {
-    question: 'Una función f(x) asigna a cada entrada:',
-    options: ['Varios resultados', 'Exactamente una salida', 'Ningun resultado', 'Solo números negativos'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('alg-lesson-5-2', algModule5.id, 'Dominio y rango', 'true_false', {
-    statement: 'El dominio de una función es el conjunto de todos los valores de entrada posibles.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('alg-lesson-5-3', algModule5.id, 'Funciones lineales', 'fill_blank', {
-    sentence: 'La gráfica de una función lineal es siempre una ___',
-    correctAnswer: 'recta',
-    hint: 'Línea sin curvas',
-  }, 20, 3);
-  await createLesson('alg-lesson-5-4', algModule5.id, 'Pendiente e intercepto', 'multiple_choice', {
-    question: 'En la ecuación y = mx + b, ¿qué representa m?',
-    options: ['El intercepto Y', 'La pendiente', 'El origen', 'Una constante'],
-    correctIndex: 1,
-  }, 25, 4);
-
-  console.log('✅ Álgebra Elemental course expanded (5 módulos, 18 lecciones)');
+  await createLesson('math-l2-2', mathM2.id, '🎮 Ejercicio: Resuelve Ecuaciones', 'coding', {
+    instructions: 'Practica resolviendo ecuaciones algebraicas:',
+    exercise: {
+      task: 'Implementa la resolución de ecuaciones simples',
+      challenges: [
+        {
+          id: 'math-eq-1',
+          description: 'Si 3x = 27, ¿cuánto vale x?',
+          initialCode: '# Calcula el valor de x\n',
+          expectedOutput: 'x debe ser 9',
+          hint: 'x = 27 / 3',
+          solution: 'x = 27 / 3'
+        },
+        {
+          id: 'math-eq-2',
+          description: 'Resuelve: 2x + 4 = 14. ¿Cuánto vale x?',
+          initialCode: '# Calcula x: 2x + 4 = 14\n',
+          expectedOutput: 'x debe ser 5 (porque 2*5 + 4 = 14)',
+          hint: '2x = 14 - 4, luego x = 10/2',
+          solution: 'x = (14 - 4) / 2'
+        },
+        {
+          id: 'math-eq-3',
+          description: 'Si y/4 = 7, ¿cuánto vale y?',
+          initialCode: '# Calcula y: y/4 = 7\n',
+          expectedOutput: 'y debe ser 28',
+          hint: 'Multiplica ambos lados por 4',
+          solution: 'y = 7 * 4'
+        }
+      ]
+    }
+  }, 40, 2, 12);
 
   // ===========================================
-  // LANGUAGE COURSES - EXPANDED
+  // ENGLISH COURSE - ENHANCED
   // ===========================================
-  console.log('\n🌍 Creating/Expanding Language Courses...');
+  console.log('\n🌍 Creating ENHANCED English course...');
 
-  // Inglés para Principiantes - EXPANDED
-  const englishCourse = await createCourse(
+  const engCourse = await createCourse(
     'course-english-beginner',
     'Inglés para Principiantes',
-    'Tu primer paso para dominar el inglés. Vocabulario esencial, frases útiles y gramática básica para comunicarte desde el primer día.',
+    'Tu guía completa para aprender inglés desde cero. Vocabulario esencial, gramática básica y frases prácticas para comunicarte desde el primer día.',
     'Idiomas',
     'beginner',
-    20,
-    'https://placehold.co/600x400/1565c0/white?text=Ingl%C3%A9s'
-  );
-
-  // Module 1: Saludos y Presentaciones
-  const engModule1 = await createModule('eng-module-1', englishCourse.id, 'Saludos y Presentaciones', 1);
-  await createLesson('eng-lesson-1-1', engModule1.id, 'Saludos básicos', 'multiple_choice', {
-    question: '¿Cómo dices "Hola, ¿cómo estás?" en inglés?',
-    options: ['Hello, how are you?', 'Goodbye, see you', 'Thank you very much', 'Nice to meet you'],
-    correctIndex: 0,
-  }, 15, 1);
-  await createLesson('eng-lesson-1-2', engModule1.id, 'Presentarte', 'fill_blank', {
-    sentence: 'Mi nombre es = My ___ is',
-    correctAnswer: 'name',
-    hint: 'Name significa nombre',
-  }, 15, 2);
-  await createLesson('eng-lesson-1-3', engModule1.id, 'Despedidas', 'multiple_choice', {
-    question: '¿Qué dices cuando te despides de alguien?',
-    options: ['Hello', 'Thank you', 'Goodbye', 'Please'],
-    correctIndex: 2,
-  }, 15, 3);
-  await createLesson('eng-lesson-1-4', engModule1.id, 'Frases para conocer gente', 'true_false', {
-    statement: '"Nice to meet you" se usa cuando conoces a alguien por primera vez.',
-    correctAnswer: true,
-  }, 15, 4);
-
-  // Module 2: Números y Colores
-  const engModule2 = await createModule('eng-module-2', englishCourse.id, 'Números y Colores', 2);
-  await createLesson('eng-lesson-2-1', engModule2.id, 'Números del 1 al 20', 'multiple_choice', {
-    question: '¿Cómo se dice "once" en inglés?',
-    options: ['10', '11', '12', '13'],
-    correctIndex: 1,
-  }, 15, 1);
-  await createLesson('eng-lesson-2-2', engModule2.id, 'Números mayores', 'true_false', {
-    statement: '"Twenty" significa 20.',
-    correctAnswer: true,
-  }, 15, 2);
-  await createLesson('eng-lesson-2-3', engModule2.id, 'Colores básicos', 'multiple_choice', {
-    question: '¿Qué color es "blue"?',
-    options: ['Rojo', 'Azul', 'Verde', 'Amarillo'],
-    correctIndex: 1,
-  }, 15, 3);
-  await createLesson('eng-lesson-2-4', engModule2.id, 'Números ordinales', 'fill_blank', {
-    sentence: '1st, 2nd, 3rd... estos son números ___',
-    correctAnswer: 'ordinales',
-    hint: 'Indican posición o orden',
-  }, 20, 4);
-
-  // Module 3: Días y Meses
-  const engModule3 = await createModule('eng-module-3', englishCourse.id, 'Días y Meses', 3);
-  await createLesson('eng-lesson-3-1', engModule3.id, 'Los días de la semana', 'fill_blank', {
-    sentence: 'Monday, Tuesday, Wednesday... El día que falta es ___',
-    correctAnswer: 'thursday',
-    hint: 'Viene antes del viernes (Friday)',
-  }, 20, 1);
-  await createLesson('eng-lesson-3-2', engModule3.id, 'Los meses del año', 'multiple_choice', {
-    question: '¿En qué mes estás si hoy es January 15?',
-    options: ['Febrero', 'Enero', 'Marzo', 'Diciembre'],
-    correctIndex: 1,
-  }, 15, 2);
-  await createLesson('eng-lesson-3-3', engModule3.id, 'Fechas importantes', 'true_false', {
-    statement: 'Para decir "Nací el 5 de mayo" en inglés dices: "I was born on May 5th"',
-    correctAnswer: true,
-  }, 20, 3);
-  await createLesson('eng-lesson-3-4', engModule3.id, 'La hora', 'multiple_choice', {
-    question: '¿Cómo dices "3:30" en inglés?',
-    options: ['Three and thirty', 'Half past three', 'Three thirty minutes', 'Three point thirty'],
-    correctIndex: 1,
-  }, 20, 4);
-
-  // NEW Module 4: Verbos Básicos
-  const engModule4 = await createModule('eng-module-4', englishCourse.id, 'Verbos Básicos', 4);
-  await createLesson('eng-lesson-4-1', engModule4.id, 'El verbo "to be"', 'multiple_choice', {
-    question: '¿Cuál es la forma correcta para "yo soy"?',
-    options: ['I is', 'I am', 'I be', 'I are'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('eng-lesson-4-2', engModule4.id, 'Verbos de acción', 'true_false', {
-    statement: '"To run" significa correr y "to eat" significa comer.',
-    correctAnswer: true,
-  }, 15, 2);
-  await createLesson('eng-lesson-4-3', engModule4.id, 'Presente simple', 'fill_blank', {
-    sentence: 'She ___ (work) en una oficina. Completa con presente simple.',
-    correctAnswer: 'works',
-    hint: 'Añade "s" o "es" en tercera persona singular',
-  }, 20, 3);
-  await createLesson('eng-lesson-4-4', engModule4.id, 'Verbos regulares e irregulares', 'multiple_choice', {
-    question: '¿Cuál es el pasado de "go"?',
-    options: ['Goed', 'Went', 'Gone', 'Going'],
-    correctIndex: 1,
-  }, 25, 4);
-
-  // NEW Module 5: La Familia
-  const engModule5 = await createModule('eng-module-5', englishCourse.id, 'La Familia', 5);
-  await createLesson('eng-lesson-5-1', engModule5.id, 'Miembros de la familia', 'multiple_choice', {
-    question: '¿Qué significa "sibling"?',
-    options: ['Padre o madre', 'Hermano o hermana', 'Abuelo', 'Tío'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('eng-lesson-5-2', engModule5.id, 'Relaciones familiares', 'true_false', {
-    statement: '"Niece" es la hija de tu hermano o hermana, y "nephew" es el hijo.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('eng-lesson-5-3', engModule5.id, 'Describir tu familia', 'fill_blank', {
-    sentence: 'I have two brothers and one ___. Mi única hermana.',
-    correctAnswer: 'sister',
-    hint: 'Contrario de brother',
-  }, 20, 3);
-  await createLesson('eng-lesson-5-4', engModule5.id, 'Frases con familia', 'multiple_choice', {
-    question: '¿Qué significa "I grew up with my grandparents"?',
-    options: ['Vivo con mis abuelos', 'Crecí con mis abuelos', 'Visitó a mis abuelos', 'Llamé a mis abuelos'],
-    correctIndex: 1,
-  }, 25, 4);
-
-  console.log('✅ Inglés para Principiantes course expanded (5 módulos, 18 lecciones)');
-
-  // Inglés Intermedio - EXPANDED
-  const englishIntCourse = await createCourse(
-    'course-english-intermediate',
-    'Inglés Intermedio',
-    'Mejora tu inglés con gramática más avanzada, vocabulario profesional y frases idiomáticas. Prepárate para conversaciones reales.',
-    'Idiomas',
-    'intermediate',
     25,
-    'https://placehold.co/600x400/0d47a1/white?text=Ingl%C3%A9s+Inter'
+    'https://images.unsplash.com/photo-1551179613-3ada17f87b8b?w=600&h=400&fit=crop'
   );
 
-  // Module 1: Tiempos Verbales
-  const engIntModule1 = await createModule('eng-int-module-1', englishIntCourse.id, 'Tiempos Verbales', 1);
-  await createLesson('eng-int-lesson-1-1', engIntModule1.id, 'Present Simple vs Present Continuous', 'multiple_choice', {
-    question: '¿Cuál es correcta para describir algo que pasa ahora? "She ___ coffee"',
-    options: ['drinks', 'is drinking', 'drink', 'will drink'],
-    correctIndex: 1,
-  }, 25, 1);
-  await createLesson('eng-int-lesson-1-2', engIntModule1.id, 'Past Simple', 'fill_blank', {
-    sentence: 'Yesterday I ___ (go) to the store. Completa con past simple de "go"',
-    correctAnswer: 'went',
-    hint: 'Es una forma irregular',
-  }, 25, 2);
-  await createLesson('eng-int-lesson-1-3', engIntModule1.id, 'Future will vs going to', 'true_false', {
-    statement: '"I will study tomorrow" y "I am going to study tomorrow" significan lo mismo.',
-    correctAnswer: false,
-  }, 20, 3);
-  await createLesson('eng-int-lesson-1-4', engIntModule1.id, 'Present Perfect', 'multiple_choice', {
-    question: '¿Cuándo usamos el Present Perfect?',
-    options: ['Solo para el pasado', 'Para acciones que empezaron en el pasado y continúan o tienen resultado presente', 'Para el futuro', 'Nunca'],
-    correctIndex: 1,
-  }, 30, 4);
+  const engM1 = await createModule('eng-m1', engCourse.id, 'Saludos y Conversaciones', 1);
 
-  // Module 2: Vocabulario Avanzado
-  const engIntModule2 = await createModule('eng-int-module-2', englishIntCourse.id, 'Vocabulario Avanzado', 2);
-  await createLesson('eng-int-lesson-2-1', engIntModule2.id, 'Phrasal verbs comunes', 'multiple_choice', {
-    question: '¿Qué significa "give up"?',
-    options: ['Dar algo', 'Rendirse', 'Levantarse', 'Regalar'],
-    correctIndex: 1,
-  }, 25, 1);
-  await createLesson('eng-int-lesson-2-2', engIntModule2.id, 'Palabras compuestas', 'fill_blank', {
-    sentence: 'Una ___ online es algo que haces por internet.',
-    correctAnswer: 'class',
-    hint: 'Una clase pero por internet',
-  }, 20, 2);
-  await createLesson('eng-int-lesson-2-3', engIntModule2.id, 'Idioms comunes', 'true_false', {
-    statement: '"To be in a good mood" significa estar de buen humor.',
-    correctAnswer: true,
-  }, 25, 3);
-  await createLesson('eng-int-lesson-2-4', engIntModule2.id, 'Preposiciones de lugar', 'multiple_choice', {
-    question: '¿Dónde está el libro si está "on the table"?',
-    options: ['Debajo de la mesa', 'Encima de la mesa', 'Dentro de la mesa', 'Al lado de la mesa'],
-    correctIndex: 1,
-  }, 20, 4);
-
-  // NEW Module 3: Reading Comprehension
-  const engIntModule3 = await createModule('eng-int-module-3', englishIntCourse.id, 'Reading Comprehension', 3);
-  await createLesson('eng-int-lesson-3-1', engIntModule3.id, 'Estrategias de lectura', 'multiple_choice', {
-    question: '¿Cuál es la mejor estrategia cuando no entiendes una palabra en un texto?',
-    options: ['Traducir palabra por palabra', 'Buscar contexto para deducir el significado', 'Dejar de leer', 'Memorizar el diccionario'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('eng-int-lesson-3-2', engIntModule3.id, 'Skimming y Scanning', 'true_false', {
-    statement: 'Skimming es leer rápidamente para tener una idea general, mientras que scanning es buscar información específica.',
-    correctAnswer: true,
-  }, 25, 2);
-  await createLesson('eng-int-lesson-3-3', engIntModule3.id, 'Inferir significado', 'fill_blank', {
-    sentence: 'Cuando inferimos, usamos pistas del ___ para entender algo no dicho directamente.',
-    correctAnswer: 'contexto',
-    hint: 'La situación o entorno que rodea las palabras',
-  }, 25, 3);
-  await createLesson('eng-int-lesson-3-4', engIntModule3.id, 'Main idea y detalles', 'multiple_choice', {
-    question: 'La "main idea" de un párrafo es:',
-    options: ['Todos los detalles', 'La idea principal o central', 'La primera oración', 'La última oración'],
-    correctIndex: 1,
-  }, 20, 4);
-
-  // NEW Module 4: Writing Skills
-  const engIntModule4 = await createModule('eng-int-module-4', englishIntCourse.id, 'Writing Skills', 4);
-  await createLesson('eng-int-lesson-4-1', engIntModule4.id, 'Estructura de un párrafo', 'multiple_choice', {
-    question: 'Un párrafo efectivo generalmente incluye:',
-    options: ['Solo la idea principal', 'Idea principal + detalles de apoyo', 'Cuántas más oraciones mejor', 'Solo ejemplos'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('eng-int-lesson-4-2', engIntModule4.id, 'Conectores lógicos', 'true_false', {
-    statement: 'Words like "however", "therefore" y "furthermore" son conectores que mejoran la cohesión del texto.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('eng-int-lesson-4-3', engIntModule4.id, 'Diferentes tipos de texto', 'fill_blank', {
-    sentence: 'Para escribir una ___ necesitas presentar argumentos a favor y en contra.',
-    correctAnswer: 'essay',
-    hint: 'Un texto estructurado con introducción, desarrollo y conclusión',
-  }, 25, 3);
-  await createLesson('eng-int-lesson-4-4', engIntModule4.id, 'Formal vs informal', 'multiple_choice', {
-    question: '¿Cuál es más apropiado para un email de trabajo?',
-    options: ['Hey, what up?', 'Dear Mr. Smith, I am writing to...', 'Sup?', 'Gonna do it soon'],
-    correctIndex: 1,
-  }, 20, 4);
-
-  console.log('✅ Inglés Intermedio course expanded (4 módulos, 16 lecciones)');
-
-  // ===========================================
-  // ADDITIONAL COURSES - EXPANDED
-  // ===========================================
-  console.log('\n🎓 Creating/Expanding Additional Courses...');
-
-  // Fundamentos de IA - EXPANDED
-  const aiCourse = await createCourse(
-    'course-ai-fundamentals',
-    'Fundamentos de Inteligencia Artificial',
-    'Aprende los conceptos básicos de la IA, machine learning y redes neuronales. Ideal para principiantes curious about AI.',
-    'IA & Tech',
-    'beginner',
-    12,
-    'https://placehold.co/600x400/6a1b9a/white?text=IA+Fundamentos'
-  );
-
-  // Module 1: ¿Qué es la IA?
-  const aiModule1 = await createModule('ai-module-1', aiCourse.id, '¿Qué es la IA?', 1);
-  await createLesson('ai-lesson-1-1', aiModule1.id, 'Introducción a la IA', 'multiple_choice', {
-    question: '¿Qué es la Inteligencia Artificial?',
-    options: ['Un tipo de robot avanzado', 'Sistemas que pueden aprender y tomar decisiones', 'Solo relacionado con computadoras', 'Un lenguaje de programación'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('ai-lesson-1-2', aiModule1.id, 'Tipos de IA', 'fill_blank', {
-    sentence: 'La IA que puede aprender de datos se llama machine ___.',
-    correctAnswer: 'learning',
-    hint: 'Son dos palabras',
-  }, 25, 2);
-  await createLesson('ai-lesson-1-3', aiModule1.id, 'IA en nuestra vida diaria', 'true_false', {
-    statement: 'Los asistentes de voz como Siri son ejemplos de IA.',
-    correctAnswer: true,
-  }, 15, 3);
-  await createLesson('ai-lesson-1-4', aiModule1.id, 'Historia de la IA', 'multiple_choice', {
-    question: '¿En qué década se acuñó el término "Inteligencia Artificial"?',
-    options: ['1950s', '1960s', '1970s', '1980s'],
-    correctIndex: 1,
-  }, 20, 4);
-
-  // Module 2: Machine Learning
-  const aiModule2 = await createModule('ai-module-2', aiCourse.id, 'Machine Learning', 2);
-  await createLesson('ai-lesson-2-1', aiModule2.id, '¿Qué es Machine Learning?', 'multiple_choice', {
-    question: '¿Cuál es la principal característica del Machine Learning?',
-    options: ['No necesita datos', 'Aprende automáticamente de los datos', 'Siempre da respuestas perfectas', 'Solo funciona en computadoras potentes'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('ai-lesson-2-2', aiModule2.id, 'Tipos de aprendizaje', 'multiple_choice', {
-    question: 'Si un algoritmo aprende de datos etiquetados, ¿qué tipo de aprendizaje es?',
-    options: ['Aprendizaje no supervisado', 'Aprendizaje supervisado', 'Aprendizaje por refuerzo', 'Deep learning'],
-    correctIndex: 1,
-  }, 25, 2);
-  await createLesson('ai-lesson-2-3', aiModule2.id, 'Datos de entrenamiento', 'true_false', {
-    statement: 'Los datos de entrenamiento se usan para que el modelo aprenda patrones.',
-    correctAnswer: true,
-  }, 20, 3);
-  await createLesson('ai-lesson-2-4', aiModule2.id, 'Overfitting y underfitting', 'fill_blank', {
-    sentence: 'Overfitting ocurre cuando el modelo memoriza los datos de entrenamiento en lugar de ___ de ellos.',
-    correctAnswer: 'aprender',
-    hint: 'Generalizar',
-  }, 25, 4);
-
-  // NEW Module 3: Deep Learning
-  const aiModule3 = await createModule('ai-module-3', aiCourse.id, 'Deep Learning', 3);
-  await createLesson('ai-lesson-3-1', aiModule3.id, '¿Qué son las redes neuronales?', 'multiple_choice', {
-    question: 'Una red neuronal artificial está inspirada en:',
-    options: ['El sistema solar', 'El cerebro humano', 'Los océanos', 'Los animales'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('ai-lesson-3-2', aiModule3.id, 'Capas y nodos', 'true_false', {
-    statement: 'Una red neuronal tiene capas de entrada, capas ocultas y capas de salida.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('ai-lesson-3-3', aiModule3.id, 'TensorFlow y PyTorch', 'fill_blank', {
-    sentence: '___ y PyTorch son frameworks populares para crear redes neuronales.',
-    correctAnswer: 'TensorFlow',
-    hint: 'Framework de Google',
-  }, 25, 3);
-  await createLesson('ai-lesson-3-4', aiModule3.id, 'Aplicaciones de deep learning', 'multiple_choice', {
-    question: '¿Cuál es un ejemplo de aplicación de deep learning?',
-    options: ['Calculadora', 'Reconocimiento de imágenes', 'Bloc de notas', 'Reloj'],
-    correctIndex: 1,
-  }, 20, 4);
-
-  // NEW Module 4: NLP (Procesamiento de Lenguaje Natural)
-  const aiModule4 = await createModule('ai-module-4', aiCourse.id, 'Procesamiento de Lenguaje Natural', 4);
-  await createLesson('ai-lesson-4-1', aiModule4.id, '¿Qué es NLP?', 'multiple_choice', {
-    question: 'NLP (Natural Language Processing) permite a las computers:',
-    options: ['Solo procesar números', 'Entender y generar lenguaje humano', 'Ver imágenes', 'Controlar robots'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('ai-lesson-4-2', aiModule4.id, 'Tokenización', 'true_false', {
-    statement: 'La tokenización es el proceso de dividir texto en palabras o fragmentos más pequeños.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('ai-lesson-4-3', aiModule4.id, 'Transformers y BERT', 'fill_blank', {
-    sentence: 'BERT usa la arquitectura de ___ para entender contexto bidireccional.',
-    correctAnswer: 'transformer',
-    hint: 'Son un tipo de arquitectura de red neuronal',
-  }, 30, 3);
-  await createLesson('ai-lesson-4-4', aiModule4.id, 'Aplicaciones de NLP', 'multiple_choice', {
-    question: '¿Cuál NO es una aplicación de NLP?',
-    options: ['Traducción automática', 'Chatbots', 'Reconocimiento facial', 'Análisis de sentimiento'],
-    correctIndex: 2,
-  }, 25, 4);
-
-  console.log('✅ AI Fundamentals course expanded (4 módulos, 16 lecciones)');
-
-  // Finanzas Personales - EXPANDED
-  const finanzasCourse = await createCourse(
-    'course-finanzas',
-    'Finanzas Personales para Principiantes',
-    'Aprende a gestionar tu dinero, crear presupuestos y hacer inversiones inteligentes desde cero.',
-    'Finanzas',
-    'beginner',
-    10,
-    'https://placehold.co/600x400/388e3c/white?text=Finanzas'
-  );
-
-  // Module 1: Presupuesto Básico
-  const finModule1 = await createModule('fin-module-1', finanzasCourse.id, 'Presupuesto Básico', 1);
-  await createLesson('fin-lesson-1-1', finModule1.id, '¿Qué es un presupuesto?', 'multiple_choice', {
-    question: '¿Para qué sirve un presupuesto?',
-    options: ['Para gastar todo tu dinero', 'Para saber cuánto dinero tienes y en qué gastarlo', 'Solo para empresas', 'Para pedir préstamos'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('fin-lesson-1-2', finModule1.id, 'Gastos fijos vs variables', 'matching', {
-    pairs: [
-      { left: 'Renta', right: 'Gasto fijo' },
-      { left: 'Comida', right: 'Gasto variable' },
-      { left: 'Internet', right: 'Gasto fijo' },
-      { left: 'Entretenimiento', right: 'Gasto variable' },
+  await createLesson('eng-l1-1', engM1.id, 'Saludos formales e informales', 'quiz', {
+    questions: [
+      { question: '¿Cómo saludas a un amigo en inglés informalmente?', options: ['Good morning', 'Hey, what up?', 'How do you do?', 'Good evening'], correctIndex: 1, explanation: '"Hey, what up?" es un saludo muy informal entre amigos.' },
+      { question: '¿Qué respondes a "How are you?"?', options: ['I am fine, thank you', 'Yes, I am', 'I am 25 years old', 'Good morning'], correctIndex: 0, explanation: 'La respuesta estándar a "How are you?" es "I am fine, thank you".' },
+      { question: '¿Cuál es la traducción correcta de "Mucho gusto"?', options: ['Good morning', 'Nice to meet you', 'How are you', 'See you later'], correctIndex: 1, explanation: '"Nice to meet you" se usa cuando conoces a alguien por primera vez.' }
     ],
-  }, 30, 2);
-  await createLesson('fin-lesson-1-3', finModule1.id, 'Métodos de presupuesto', 'true_false', {
-    statement: 'El método 50/30/20 sugiere destinar 50% a necesidades, 30% a deseos y 20% a ahorros.',
-    correctAnswer: true,
-  }, 25, 3);
-  await createLesson('fin-lesson-1-4', finModule1.id, 'Seguimiento de gastos', 'multiple_choice', {
-    question: '¿Por qué es importante registrar todos los gastos?',
-    options: ['No es importante', 'Para saber exactamente dónde va tu dinero', 'Solo para impresionar', 'No sirve para nada'],
-    correctIndex: 1,
-  }, 20, 4);
+    phrases: [
+      { english: 'Hello!', spanish: '¡Hola!' },
+      { english: 'How are you?', spanish: '¿Cómo estás?' },
+      { english: 'Nice to meet you', spanish: 'Mucho gusto' },
+      { english: 'See you later!', spanish: '¡Hasta luego!' }
+    ]
+  }, 25, 1, 10);
 
-  // Module 2: Ahorrar e Invertir
-  const finModule2 = await createModule('fin-module-2', finanzasCourse.id, 'Ahorrar e Invertir', 2);
-  await createLesson('fin-lesson-2-1', finModule2.id, 'Regla 50/30/20', 'multiple_choice', {
-    question: 'Según la regla 50/30/20, ¿cuánto deberías destinar a necesidades?',
-    options: ['20%', '30%', '50%', '40%'],
-    correctIndex: 2,
-  }, 20, 1);
-  await createLesson('fin-lesson-2-2', finModule2.id, 'Interés compuesto', 'true_false', {
-    statement: 'El interés compuesto hace que tu dinero crezca más rápido que el interés simple.',
-    correctAnswer: true,
-  }, 25, 2);
-  await createLesson('fin-lesson-2-3', finModule2.id, 'Fondos de emergencia', 'fill_blank', {
-    sentence: 'Un fondo de emergencia debería tener al menos ___ meses de gastos.',
-    correctAnswer: '3',
-    hint: 'Lo recomendado son 3-6 meses',
-  }, 20, 3);
-  await createLesson('fin-lesson-2-4', finModule2.id, 'Deuda buena vs deuda mala', 'multiple_choice', {
-    question: '¿Cuál sería una "deuda buena"?',
-    options: ['Crédito para vacaciones', 'Hipoteca para tu vivienda', 'Compra de roupas de lujo', 'Financiamiento de un auto nuevo'],
-    correctIndex: 1,
-  }, 25, 4);
+  await createLesson('eng-l1-2', engM1.id, 'Presentarte formalmente', 'multiple_choice', {
+    preamble: 'En contextos profesionales o formales, hay formas específicas de presentarse:',
+    questions: [
+      { question: '¿Cuál es la forma correcta de darte a conocer?', options: ['My name is John', 'I am John', 'Both are correct', 'My is John'], correctIndex: 2, explanation: 'Both "My name is John" y "I am John" son correctos.' },
+      { question: '¿Cómo preguntarías el nombre de alguien formalmente?', options: ['What is your name?', 'Who are you?', 'Your name is what?', 'Tell me your name'], correctIndex: 0, explanation: '"What is your name?" es la forma estándar.' },
+      { question: '¿Qué significa "I am from..."?', options: ['Vivo en...', 'Soy de... (país/ciudad)', 'Trabajo en...', 'Voy a...'], correctIndex: 1, explanation: '"I am from Mexico" significa "Soy de México".' }
+    ],
+    examples: [
+      { code: '"Nice to meet you. My name is Sarah."', explanation: 'Presentación formal' },
+      { code: '"I am from Spain. Where are you from?"', explanation: 'Decir de dónde eres' }
+    ]
+  }, 20, 2, 8);
 
-  // NEW Module 3: Inversiones Básicas
-  const finModule3 = await createModule('fin-module-3', finanzasCourse.id, 'Inversiones Básicas', 3);
-  await createLesson('fin-lesson-3-1', finModule3.id, '¿Qué es invertir?', 'multiple_choice', {
-    question: 'Invertir es:',
-    options: ['Gastar todo tu dinero', 'Poner tu dinero a trabajar para generar más dinero', 'Guardar dinero bajo el colchón', 'No hacer nada con tu dinero'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('fin-lesson-3-2', finModule3.id, 'Riesgo y rendimiento', 'true_false', {
-    statement: 'A mayor riesgo en una inversión, generalmente mayor rendimiento potencial.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('fin-lesson-3-3', finModule3.id, 'Diversificación', 'fill_blank', {
-    sentence: 'La ___ significa no poner todos los huevos en la misma canasta.',
-    correctAnswer: 'diversificación',
-    hint: 'Estrategia de distribuir inversiones',
-  }, 25, 3);
-  await createLesson('fin-lesson-3-4', finModule3.id, 'Tipos de inversiones', 'multiple_choice', {
-    question: '¿Cuál es un ejemplo de inversión de bajo riesgo?',
-    options: ['Acciones de tecnología', 'Criptomonedas', 'Bonos del gobierno', 'Startups'],
-    correctIndex: 2,
-  }, 25, 4);
+  await createLesson('eng-l1-3', engM1.id, '🎮 Speaking Practice: Tu Primera Conversación', 'speaking', {
+    instructions: 'Practica las frases más comunes para presentarte:',
+    exercise: {
+      scenario: 'Estás en una fiesta y conoces a alguien nuevo. Practica la conversación:',
+      dialogue: [
+        { speaker: 'You', prompt: 'Saluda a la persona de manera informal', expectedPhrase: 'Hi! How are you?' },
+        { speaker: 'Them', response: 'I am good, thanks! And you?' },
+        { speaker: 'You', prompt: 'Preséntate diciendo tu nombre', expectedPhrase: 'I am [tu nombre]. Nice to meet you!' },
+        { speaker: 'Them', response: 'Nice to meet you too! Where are you from?' },
+        { speaker: 'You', prompt: 'Dide dónde eres', expectedPhrase: 'I am from [tu país/ciudad]' }
+      ],
+      tips: ['La práctica de conversación es clave para aprender un idioma', 'No tengas miedo de cometer errores', 'Escuchar es tan importante como hablar']
+    }
+  }, 40, 3, 12);
 
-  // NEW Module 4: Errores Financieros Comunes
-  const finModule4 = await createModule('fin-module-4', finanzasCourse.id, 'Errores Financieros Comunes', 4);
-  await createLesson('fin-lesson-4-1', finModule4.id, 'Vivir por encima de tus posibilidades', 'multiple_choice', {
-    question: '¿Cuál es el error de gastar más de lo que ganas?',
-    options: ['No tiene consecuencias', 'Te lleva a deudas y estrés financiero', 'Te hace más feliz', 'Es inteligente'],
-    correctIndex: 1,
-  }, 20, 1);
-  await createLesson('fin-lesson-4-2', finModule4.id, 'No tener ahorros', 'true_false', {
-    statement: 'No tener ahorros de emergencia puede llevarte a pedir prestado en momentos de crisis.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('fin-lesson-4-3', finModule4.id, 'Invertir sin conocimiento', 'fill_blank', {
-    sentence: 'Antes de invertir, es importante educarse para no perder ___',
-    correctAnswer: 'dinero',
-    hint: 'Recurso valioso',
-  }, 20, 3);
-  await createLesson('fin-lesson-4-4', finModule4.id, 'Ignorar la inflación', 'multiple_choice', {
-    question: '¿Por qué es importante considerar la inflación?',
-    options: ['No es importante', 'El dinero pierde valor con el tiempo, afectando tu poder de compra', 'Solo afecta a los ricos', 'La inflación siempre beneficia'],
-    correctIndex: 1,
-  }, 25, 4);
+  const engM2 = await createModule('eng-m2', engCourse.id, 'Vocabulario Cotidiano', 2);
 
-  console.log('✅ Finanzas Personales course expanded (4 módulos, 16 lecciones)');
+  await createLesson('eng-l2-1', engM2.id, 'Números, días y meses', 'quiz', {
+    questions: [
+      { question: '¿Cómo se dice "once" (11) en inglés?', options: ['Ten', 'Eleven', 'One', 'Twelve'], correctIndex: 1, explanation: 'Eleven = 11.' },
+      { question: '¿Cuál es el día que viene después del Thursday?', options: ['Wednesday', 'Friday', 'Saturday', 'Tuesday'], correctIndex: 1, explanation: 'Los días: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.' },
+      { question: '¿Cómo dices "el año que viene" en inglés?', options: ['Last year', 'This year', 'Next year', 'Every year'], correctIndex: 2, explanation: '"Next year" = año que viene.' }
+    ],
+    vocabulary: [
+      { category: 'Days', words: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
+      { category: 'Months', words: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] },
+      { category: 'Numbers 1-12', words: ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'] }
+    ]
+  }, 25, 1, 10);
+
+  await createLesson('eng-l2-2', engM2.id, 'Colores y adjetivos básicos', 'multiple_choice', {
+    preamble: 'El vocabulario de colores y adjetivos básicos es fundamental:',
+    questions: [
+      { question: '¿Qué color es "purple"?', options: ['Azul', 'Verde', 'Morado/Púrpura', 'Rojo'], correctIndex: 2, explanation: 'Purple = morado.' },
+      { question: '¿Cómo describes algo que es muy grande?', options: ['Tiny', 'Huge', 'Small', 'Short'], correctIndex: 1, explanation: '"Huge" = muy grande.' },
+      { question: '¿Qué significa "a little"?', options: ['Mucho', 'Poco', 'Nada', 'Todo'], correctIndex: 1, explanation: '"A little" = un poco.' }
+    ],
+    examples: [
+      { code: 'The sky is blue. / The grass is green.', explanation: 'Colores básicos' },
+      { code: 'That house is huge! / This is a tiny insect.', explanation: 'Tamaño' },
+      { code: 'I am a little tired. / I have a few friends.', explanation: 'A little vs A few' }
+    ]
+  }, 20, 2, 8);
+
+  await createLesson('eng-l2-3', engM2.id, 'Verbos comunes y presente simple', 'quiz', {
+    questions: [
+      { question: '¿Cuál es la tercera persona singular de "to work"?', options: ['Work', 'Works', 'Working', 'Worked'], correctIndex: 1, explanation: 'She works, He works, It works (se añade -s o -es).' },
+      { question: '¿Cómo se dice "Yo como manzanas" en presente simple?', options: ['I eats apples', 'I eat apples', 'I am eating apples', 'I eat apple'], correctIndex: 1, explanation: 'Primera persona sin -s: I eat, you eat, we eat, they eat.' },
+      { question: '¿Qué verbo completa: "She ___ to school every day" (ir)?', options: ['go', 'goes', 'going', 'goed'], correctIndex: 1, explanation: 'She goes (tercera persona singular necesita -s).' }
+    ],
+    commonVerbs: [
+      { base: 'to be', past: 'was/were', meaning: 'ser/estar' },
+      { base: 'to have', past: 'had', meaning: 'tener' },
+      { base: 'to do', past: 'did', meaning: 'hacer' },
+      { base: 'to go', past: 'went', meaning: 'ir' },
+      { base: 'to eat', past: 'ate', meaning: 'comer' },
+      { base: 'to drink', past: 'drank', meaning: 'beber' }
+    ]
+  }, 25, 3, 10);
+
+  await createLesson('eng-l2-4', engM2.id, '🎮 Ejercicio: Construye Oraciones', 'coding', {
+    instructions: 'Practica formando oraciones correctas en presente simple:',
+    exercise: {
+      task: 'Completa las oraciones con la forma correcta del verbo',
+      challenges: [
+        {
+          id: 'eng-1',
+          description: 'Completa: She ___ (to work) at a hospital.',
+          initialCode: '# Escribe el verbo en la forma correcta\noracion = "She ___ at a hospital."\n',
+          expectedOutput: 'La oración completa debe ser "She works at a hospital."',
+          hint: 'Usa "works" para tercera persona singular',
+          solution: 'oracion = "She works at a hospital."'
+        },
+        {
+          id: 'eng-2',
+          description: 'Haz negativa: They ___ (to like) pizza.',
+          initialCode: "# Completa con forma negativa: They don't like pizza.\n",
+          expectedOutput: "They don't like pizza.",
+          hint: "Usa doesn't para tercera persona singular",
+          solution: 'oracion = "They don\'t like pizza."'
+        },
+        {
+          id: 'eng-3',
+          description: 'Haz pregunta: ___ you ___ (to want) coffee? (yes/no)',
+          initialCode: '# Completa la pregunta en presente simple\n',
+          expectedOutput: 'Do you want coffee?',
+          hint: 'Usa Do al inicio para preguntas',
+          solution: 'pregunta = "Do you want coffee?"'
+        }
+      ]
+    }
+  }, 40, 4, 12);
 
   // ===========================================
-  // PRO COURSES (Premium Content)
+  // PRO COURSES
   // ===========================================
-  console.log('\n👑 Creating/Expanding PRO Courses...');
+  console.log('\n👑 Creating PRO courses...');
 
-  // JavaScript Avanzado PRO (Nivel 5+)
-  const jsAdvancedCourse = await createCourse(
+  // JavaScript Avanzado PRO
+  const jsProCourse = await createCourse(
     'course-js-advanced',
-    'JavaScript Avanzado: Mastery PRO',
-    'Domina patrones de diseño, async/await, closures, proxies y más. Este curso te llevará de ser un programador básico a un developer avanzado con habilidades profesionales.',
+    'JavaScript Avanzado PRO',
+    'Domina los aspectos más avanzados de JavaScript: async/await, promises, closures, patrones de diseño y más.',
     'Programación',
-    'advanced',
-    20,
-    'https://placehold.co/600x400/1a237e/white?text=JS+Avanzado+PRO',
-    { isPro: true, price: 2999, requiredLevel: 5 }
+    'intermediate',
+    35,
+    'https://images.unsplash.com/photo-1581089778245-3ce67677f718?w=600&h=400&fit=crop',
+    { isPro: true, price: 29.99, requiredLevel: 5 }
   );
 
-  const jsAdvModule1 = await createModule('js-adv-module-1', jsAdvancedCourse.id, 'Patrones de Diseño', 1);
-  await createLesson('js-adv-lesson-1-1', jsAdvModule1.id, 'Module Pattern', 'multiple_choice', {
-    question: '¿Qué problema resuelve el Module Pattern en JavaScript?',
-    options: ['La velocidad de ejecución', 'El encapsulamiento de código y privacidad', 'La memoria usada', 'El parseo de HTML'],
-    correctIndex: 1,
-  }, 30, 1);
-  await createLesson('js-adv-lesson-1-2', jsAdvModule1.id, 'Factory Pattern', 'multiple_choice', {
-    question: '¿Cuándo es preferible usar el Factory Pattern?',
-    options: ['Para crear objetos simples', 'Para crear múltiples objetos del mismo tipo sin usar new', 'Para heredar propiedades', 'Para cerrar ciclos de eventos'],
-    correctIndex: 1,
-  }, 30, 2);
+  const jsProM1 = await createModule('js-pro-m1', jsProCourse.id, 'JavaScript Asíncrono', 1);
+  
+  await createLesson('js-pro-l1-1', jsProM1.id, 'Callbacks y Promises', 'reading', {
+    introduction: 'La programación asíncrona es fundamental en JavaScript para manejar operaciones que toman tiempo.',
+    content: `CALLBACKS:
+Un callback es una función que se pasa como argumento a otra función para ejecutarse cuando algo sucede.
 
-  const jsAdvModule2 = await createModule('js-adv-module-2', jsAdvancedCourse.id, 'Async/Await Profundo', 2);
-  await createLesson('js-adv-lesson-2-1', jsAdvModule2.id, 'Promesas Avanzadas', 'multiple_choice', {
-    question: '¿Qué hace Promise.allSettled()?',
-    options: ['Cancela todas las promesas', 'Espera a que todas se resuelvan sin importar si fallan', 'Detiene la primera que falla', 'Combina promesas en una sola'],
-    correctIndex: 1,
-  }, 35, 1);
-  await createLesson('js-adv-lesson-2-2', jsAdvModule2.id, 'Manejo de errores async', 'true_false', {
-    statement: 'En async/await, puedes usar try/catch para manejar errores de forma elegante.',
-    correctAnswer: true,
-  }, 25, 2);
+PROMISES:
+Un Promise representa un valor que puede estar disponible ahora, en el futuro, o nunca.
 
-  const jsAdvModule3 = await createModule('js-adv-module-3', jsAdvancedCourse.id, 'Memory Management', 3);
-  await createLesson('js-adv-lesson-3-1', jsAdvModule3.id, 'Closures y Garbage Collection', 'multiple_choice', {
-    question: '¿Cuándo se libera la memoria de un closure?',
-    options: ['Inmediatamente después de ejecutarse', 'Cuando no hay referencias al closure', 'Nunca, los closures son permanentes', 'Cuando la función externa termina'],
-    correctIndex: 1,
-  }, 35, 1);
+Estados de un Promise:
+- Pending (pendiente): estado inicial
+- Fulfilled (cumplido): operación exitosa
+- Rejected (rechazado): operación fallida
 
-  console.log('✅ JavaScript Avanzado PRO created');
+CREAR UN PROMISE:
+const miPromesa = new Promise((resolve, reject) => {
+  // operación asíncrona
+  if (exitoso) resolve(resultado);
+  else reject(error);
+});`,
+    examples: [
+      { code: 'fetch(url).then(res => res.json()).then(data => console.log(data))', explanation: 'Encadenar promises' },
+      { code: 'async function getData() { const data = await fetch(url); return data; }', explanation: 'Async/await' }
+    ]
+  }, 30, 1, 12);
 
-  // React Mastery PRO (Nivel 8+)
-  const reactCourse = await createCourse(
+  await createLesson('js-pro-l1-2', jsProM1.id, 'Async/Await', 'quiz', {
+    questions: [
+      { question: '¿Qué es async/await?', options: ['Una forma de definir variables', 'Una forma de escribir código asíncrono que parece síncrono', 'Un tipo de función', 'Un operador lógico'], correctIndex: 1, explanation: 'async/await permite escribir código asíncrono de manera secuencial y más legible.' },
+      { question: '¿Qué retorna una función async?', options: ['undefined', 'Un valor normal', 'Un Promise', 'Una función', 'Error'], correctIndex: 2, explanation: 'Una función async siempre retorna un Promise, incluso si retornas un valor simple.' },
+      { question: '¿Qué hace await?', options: ['Declara una variable', 'Pausa la ejecución hasta que el Promise se resuelva', 'Crea un Promise', 'Maneja errores'], correctIndex: 1, explanation: 'await pausa la ejecución hasta que el Promise se resuelva y retorna su valor.' }
+    ],
+    examples: [
+      { code: 'async function fetchData() { const res = await fetch(url); return res.json(); }', explanation: 'Función async completa' },
+      { code: 'try { const data = await promise; } catch(e) { console.error(e); }', explanation: 'Manejo de errores con async/await' }
+    ]
+  }, 35, 2, 15);
+
+  await createLesson('js-pro-l1-3', jsProM1.id, '🎮 Ejercicio: Promesas y Async/Await', 'coding', {
+    instructions: 'Practica con promesas y async/await:',
+    exercise: {
+      task: 'Implementa funciones asíncronas',
+      challenges: [
+        {
+          id: 'js-async-1',
+          description: 'Crea una función async llamada esperar que retorne el número 42 después de 1 segundo',
+          initialCode: '// Crea la función async esperar\n',
+          expectedOutput: 'Debería retornar un Promise que resuelve a 42',
+          hint: 'Usa async function y await new Promise(resolve => setTimeout(...))',
+          solution: 'const esperar = async () => {\n  await new Promise(resolve => setTimeout(resolve, 1000));\n  return 42;\n};'
+        },
+        {
+          id: 'js-async-2',
+          description: 'Crea una función fetchUser(id) que simule obtener un usuario con Promise',
+          initialCode: '// Simula una API que retorna usuario después de 500ms\n',
+          expectedOutput: 'Debe retornar un Promise que resuelve a {id, name}',
+          hint: 'Usa new Promise con setTimeout',
+          solution: 'const fetchUser = (id) => new Promise(resolve => {\n  setTimeout(() => resolve({ id, name: "Usuario " + id }), 500);\n});'
+        },
+        {
+          id: 'js-async-3',
+          description: 'Usa async/await para obtener 2 usuarios secuencialmente',
+          initialCode: 'const fetchUser = (id) => new Promise(resolve => {\n  setTimeout(() => resolve({ id, name: "Usuario " + id }), 500);\n});\n// Crea getTwoUsers() que obtenga user1 e user2\n',
+          expectedOutput: 'getTwoUsers() debe retornar [{id:1, name:"Usuario 1"}, {id:2, name:"Usuario 2"}]',
+          hint: 'Usa await dos veces secuencialmente',
+          solution: 'const getTwoUsers = async () => {\n  const user1 = await fetchUser(1);\n  const user2 = await fetchUser(2);\n  return [user1, user2];\n};'
+        }
+      ]
+    }
+  }, 60, 3, 20);
+
+  console.log('✅ JavaScript Avanzado PRO completed');
+
+  // React Mastery PRO
+  const reactProCourse = await createCourse(
     'course-react-mastery',
-    'React Mastery: De Cero a Hero PRO',
-    'Aprende React como un profesional. Hooks avanzados, context, Redux, patrones de rendimiento, testing y más. El curso definitivo para dominar React.',
-    'Programación',
-    'advanced',
-    30,
-    'https://placehold.co/600x400/00acc1/white?text=React+Mastery',
-    { isPro: true, price: 4999, requiredLevel: 8 }
-  );
-
-  const reactModule1 = await createModule('react-module-1', reactCourse.id, 'Hooks Avanzados', 1);
-  await createLesson('react-lesson-1-1', reactModule1.id, 'useReducer vs useState', 'multiple_choice', {
-    question: '¿Cuándo es mejor usar useReducer en lugar de useState?',
-    options: ['Para valores simples', 'Cuando hay lógica de estado compleja con múltiples sub-valores', 'Nunca, useState es siempre mejor', 'Solo en componentes de clase'],
-    correctIndex: 1,
-  }, 30, 1);
-  await createLesson('react-lesson-1-2', reactModule1.id, 'useMemo y useCallback', 'fill_blank', {
-    sentence: 'useMemo se usa para ___ un valor calculado expensive.',
-    correctAnswer: 'memorizar',
-    hint: 'Guardar en caché para no recalcular',
-  }, 30, 2);
-
-  const reactModule2 = await createModule('react-module-2', reactCourse.id, 'Context API Mastery', 2);
-  await createLesson('react-lesson-2-1', reactModule2.id, 'Context vs Props Drilling', 'true_false', {
-    statement: 'Context es la mejor solución para TODOS los casos de props drilling.',
-    correctAnswer: false,
-  }, 25, 1);
-  await createLesson('react-lesson-2-2', reactModule2.id, 'Performance con Context', 'multiple_choice', {
-    question: '¿Cómo se puede optimizar el rendimiento de Context?',
-    options: ['Usando más providers', 'Dividiendo contextos por funcionalidad y usando memo', 'Eliminando todos los estados locales', 'Usando Redux siempre'],
-    correctIndex: 1,
-  }, 30, 2);
-
-  const reactModule3 = await createModule('react-module-3', reactCourse.id, 'Testing en React', 3);
-  await createLesson('react-lesson-3-1', reactModule3.id, 'Testing Library vs enzyme', 'multiple_choice', {
-    question: '¿Cuál es la filosofía principal de @testing-library/react?',
-    options: ['Testear implementación interna', 'Testear el comportamiento del usuario', 'Testear componentes por props', 'Mockear todos los hooks'],
-    correctIndex: 1,
-  }, 30, 1);
-
-  console.log('✅ React Mastery PRO created');
-
-  // Trading & Investing PRO (Nivel 3+)
-  const tradingCourse = await createCourse(
-    'course-trading-pro',
-    'Trading e Inversiones: Estrategia PRO',
-    'Aprende análisis técnico, manejo de riesgo, estrategias de inversión y psicología del trading. Conviértete en un inversor inteligente y disciplinado.',
-    'Finanzas',
-    'intermediate',
-    15,
-    'https://placehold.co/600x400/388e3c/white?text=Trading+PRO',
-    { isPro: true, price: 3999, requiredLevel: 3 }
-  );
-
-  const tradingModule1 = await createModule('trading-module-1', tradingCourse.id, 'Fundamentos del Trading', 1);
-  await createLesson('trading-lesson-1-1', tradingModule1.id, '¿Qué es el Trading?', 'multiple_choice', {
-    question: 'La diferencia principal entre trading e inversión a largo plazo es:',
-    options: ['El capital inicial', 'El horizonte de tiempo y frecuencia de operaciones', 'Los mercados donde se opera', 'El país donde se reside'],
-    correctIndex: 1,
-  }, 25, 1);
-  await createLesson('trading-lesson-1-2', tradingModule1.id, 'Análisis Técnico vs Fundamental', 'true_false', {
-    statement: 'El análisis técnico se basa exclusivamente en precios históricos y volúmenes.',
-    correctAnswer: true,
-  }, 20, 2);
-
-  const tradingModule2 = await createModule('trading-module-2', tradingCourse.id, 'Gestión de Riesgo', 2);
-  await createLesson('trading-lesson-2-1', tradingModule2.id, 'Regla del 1%', 'multiple_choice', {
-    question: 'Según la regla del 1%, ¿cuánto deberías arriesgar por operación?',
-    options: ['1% del capital total', '10% del capital total', 'Todo lo que puedas', 'Depende del mercado'],
-    correctIndex: 0,
-  }, 30, 1);
-  await createLesson('trading-lesson-2-2', tradingModule2.id, 'Ratio Riesgo/Beneficio', 'fill_blank', {
-    sentence: 'Un ratio R/R de 1:2 significa que por cada $1 arriesgado, aspiras ganar $___.',
-    correctAnswer: '2',
-    hint: 'El segundo número es la ganancia esperada',
-  }, 25, 2);
-
-  console.log('✅ Trading PRO created');
-
-  // Python Mastery PRO (Nivel 6+)
-  const pythonProCourse = await createCourse(
-    'course-python-mastery',
-    'Python Mastery: Expert PRO',
-    'Domina Python como un experto. Decoradores, generators, metaclasses, async/await, testing profesional y patrones de diseño avanzados. Para programadores que quieren alcanzar el siguiente nivel.',
-    'Programación',
-    'advanced',
-    25,
-    'https://placehold.co/600x400/1b5e20/white?text=Python+Mastery',
-    { isPro: true, price: 3499, requiredLevel: 6 }
-  );
-
-  const pyProModule1 = await createModule('py-pro-module-1', pythonProCourse.id, 'Temas Avanzados', 1);
-  await createLesson('py-pro-lesson-1-1', pyProModule1.id, 'Decoradores en Profundidad', 'multiple_choice', {
-    question: '¿Qué es un decorador en Python?',
-    options: ['Una forma de renombrar funciones', 'Una función que extiende el comportamiento de otra función sin modificarla', 'Un tipo de comentario especial', 'Un método para depurar código'],
-    correctIndex: 1,
-  }, 30, 1);
-  await createLesson('py-pro-lesson-1-2', pyProModule1.id, 'Generators y Iterators', 'true_false', {
-    statement: 'Los generators son funciones que usan "yield" en lugar de "return".',
-    correctAnswer: true,
-  }, 25, 2);
-  await createLesson('py-pro-lesson-1-3', pyProModule1.id, 'Context Managers', 'fill_blank', {
-    sentence: 'La sentencia ___ se usa para trabajar con context managers en Python.',
-    correctAnswer: 'with',
-    hint: 'Se usa con "as" para asignar el objeto',
-  }, 30, 3);
-
-  const pyProModule2 = await createModule('py-pro-module-2', pythonProCourse.id, 'Testing Profesional', 2);
-  await createLesson('py-pro-lesson-2-1', pyProModule2.id, 'pytest Avanzado', 'multiple_choice', {
-    question: '¿Qué hace pytest.mark.parametrize?',
-    options: ['Parametriza los tests para ejecutarlos en paralelo', 'Crea múltiples fixtures con diferentes parámetros', 'Permite ejecutar el mismo test con diferentes inputs', 'Configura el timeout de los tests'],
-    correctIndex: 2,
-  }, 30, 1);
-  await createLesson('py-pro-lesson-2-2', pyProModule2.id, 'Mocking y Patching', 'multiple_choice', {
-    question: '¿Para qué sirve unittest.mock.patch?',
-    options: ['Para hacer debugging de funciones', 'Para reemplazar temporalmente partes del código durante tests', 'Para acelerar la ejecución de tests', 'Para crear mocks de bases de datos'],
-    correctIndex: 1,
-  }, 35, 2);
-
-  console.log('✅ Python Mastery PRO created');
-
-  // DevOps Fundamentals PRO (Nivel 7+)
-  const devopsCourse = await createCourse(
-    'course-devops-pro',
-    'DevOps Fundamentals: CI/CD PRO',
-    'Aprende CI/CD, Docker, Kubernetes, automatización de infraestructura y monitoreo. Conviértete en un DevOps engineer profesional y domina las herramientas que usan las empresas top.',
-    'IA & Tech',
-    'advanced',
-    30,
-    'https://placehold.co/600x400/bf360c/white?text=DevOps+PRO',
-    { isPro: true, price: 5999, requiredLevel: 7 }
-  );
-
-  const devopsModule1 = await createModule('devops-module-1', devopsCourse.id, 'Contenedores con Docker', 1);
-  await createLesson('devops-lesson-1-1', devopsModule1.id, '¿Qué es Docker?', 'multiple_choice', {
-    question: '¿Qué problema resuelve Docker?',
-    options: ['Solo acelera el desarrollo web', 'Permite crear entornos aislados y reproducibles llamados contenedores', 'Mejora la seguridad de las bases de datos', 'Reemplaza a los lenguajes de programación'],
-    correctIndex: 1,
-  }, 25, 1);
-  await createLesson('devops-lesson-1-2', devopsModule1.id, 'Dockerfile y Docker Compose', 'true_false', {
-    statement: 'Un Dockerfile es un archivo que contiene instrucciones para crear una imagen Docker.',
-    correctAnswer: true,
-  }, 20, 2);
-
-  const devopsModule2 = await createModule('devops-module-2', devopsCourse.id, 'CI/CD con GitHub Actions', 2);
-  await createLesson('devops-lesson-2-1', devopsModule2.id, '¿Qué es CI/CD?', 'multiple_choice', {
-    question: 'CI/CD significa:',
-    options: ['Code Integration / Code Delivery', 'Continuous Integration / Continuous Deployment', 'Centralized Integration / Centralized Deployment', 'Cloud Infrastructure / Cloud Development'],
-    correctIndex: 1,
-  }, 30, 1);
-  await createLesson('devops-lesson-2-2', devopsModule2.id, 'Workflows en GitHub Actions', 'fill_blank', {
-    sentence: 'El archivo YAML que define un workflow en GitHub Actions debe estar en la carpeta ___/.',
-    correctAnswer: '.github',
-    hint: 'Empieza con punto y tiene "github"',
-  }, 30, 2);
-
-  const devopsModule3 = await createModule('devops-module-3', devopsCourse.id, 'Kubernetes Básico', 3);
-  await createLesson('devops-lesson-3-1', devopsModule3.id, '¿Qué es Kubernetes?', 'multiple_choice', {
-    question: '¿Qué es Kubernetes (K8s)?',
-    options: ['Un lenguaje de programación', 'Un sistema para orquestrar contenedores en producción', 'Una herramienta de monitoreo de redes', 'Un tipo de base de datos distribuida'],
-    correctIndex: 1,
-  }, 30, 1);
-
-  console.log('✅ DevOps Fundamentals PRO created');
-
-  // Data Science con Python PRO (Nivel 5+)
-  const dataScienceCourse = await createCourse(
-    'course-data-science-pro',
-    'Data Science con Python: Analytics PRO',
-    'Aprende análisis de datos con Pandas, visualización con matplotlib/seaborn, y fundamentos de machine learning con scikit-learn. Ideal para quienes quieren entrar al mundo del data science.',
-    'IA & Tech',
-    'intermediate',
-    25,
-    'https://placehold.co/600x400/880e4f/white?text=Data+Science',
-    { isPro: true, price: 4499, requiredLevel: 5 }
-  );
-
-  const dsModule1 = await createModule('ds-module-1', dataScienceCourse.id, 'Pandas para Análisis', 1);
-  await createLesson('ds-lesson-1-1', dsModule1.id, 'DataFrames y Series', 'multiple_choice', {
-    question: '¿Qué es un DataFrame en Pandas?',
-    options: ['Una única celda de datos', 'Una estructura de datos bidimensional similar a una tabla', 'Un tipo de gráfico', 'Una función de agregación'],
-    correctIndex: 1,
-  }, 25, 1);
-  await createLesson('ds-lesson-1-2', dsModule1.id, 'Operaciones de Limpieza', 'true_false', {
-    statement: 'El método dropna() elimina filas con valores faltantes.',
-    correctAnswer: true,
-  }, 20, 2);
-
-  const dsModule2 = await createModule('ds-module-2', dataScienceCourse.id, 'Visualización de Datos', 2);
-  await createLesson('ds-lesson-2-1', dsModule2.id, 'Matplotlib Basics', 'multiple_choice', {
-    question: '¿Qué tipo de gráfico usarías para mostrar la distribución de una variable?',
-    options: ['Gráfico de líneas', 'Histograma', 'Gráfico de barras', 'Gráfico de pastel'],
-    correctIndex: 1,
-  }, 25, 1);
-  await createLesson('ds-lesson-2-2', dsModule2.id, 'Seaborn para Visualización', 'fill_blank', {
-    sentence: 'Para crear un pairplot en Seaborn, usas la función ___().',
-    correctAnswer: 'pairplot',
-    hint: 'Son dos palabras separadas por un guión bajo',
-  }, 25, 2);
-
-  console.log('✅ Data Science con Python PRO created');
-
-  // SQL Mastery PRO (Nivel 4+)
-  const sqlCourse = await createCourse(
-    'course-sql-mastery',
-    'SQL Mastery: Database Expert PRO',
-    'Domina SQL desde lo básico hasta consultas avanzadas, subqueries, window functions, optimización de queries y diseño de bases de datos. El curso definitivo para convertirte en un expert en bases de datos.',
+    'React Mastery PRO',
+    'Domina React desde fundamentos hasta patrones avanzados, hooks personalizados, context API, y desarrollo de aplicaciones escalables.',
     'Programación',
     'intermediate',
-    20,
-    'https://placehold.co/600x400/0a3d62/white?text=SQL+Mastery',
-    { isPro: true, price: 2999, requiredLevel: 4 }
+    40,
+    'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600&h=400&fit=crop',
+    { isPro: true, price: 49.99, requiredLevel: 8 }
   );
 
-  const sqlModule1 = await createModule('sql-module-1', sqlCourse.id, 'Consultas Avanzadas', 1);
-  await createLesson('sql-lesson-1-1', sqlModule1.id, 'Joins en Profundidad', 'multiple_choice', {
-    question: '¿Cuál es la diferencia entre INNER JOIN y LEFT JOIN?',
-    options: ['INNER JOIN es más rápido', 'LEFT JOIN incluye todas las filas de la tabla izquierda, INNER JOIN solo las que coinciden', 'No hay diferencia', 'LEFT JOIN solo funciona con números'],
-    correctIndex: 1,
-  }, 30, 1);
-  await createLesson('sql-lesson-1-2', sqlModule1.id, 'Subqueries', 'true_false', {
-    statement: 'Una subquery es una query dentro de otra query.',
-    correctAnswer: true,
-  }, 25, 2);
+  const reactProM1 = await createModule('react-pro-m1', reactProCourse.id, 'React hooks avanzados', 1);
 
-  const sqlModule2 = await createModule('sql-module-2', sqlCourse.id, 'Window Functions', 2);
-  await createLesson('sql-lesson-2-1', sqlModule2.id, '¿Qué son las Window Functions?', 'multiple_choice', {
-    question: '¿Qué hace la window function ROW_NUMBER()?',
-    options: ['Cuenta todas las filas de la tabla', 'Asigna un número único secuencial a cada fila dentro de una partición', 'Calcula la suma acumulada', 'Calcula promedios móviles'],
-    correctIndex: 1,
-  }, 35, 1);
-  await createLesson('sql-lesson-2-2', sqlModule2.id, 'PARTITION BY vs GROUP BY', 'fill_blank', {
-    sentence: 'La cláusula ___ se usa en window functions para dividir el resultado en grupos.',
-    correctAnswer: 'PARTITION BY',
-    hint: 'Tiene dos palabras',
-  }, 30, 2);
+  await createLesson('react-pro-l1-1', reactProM1.id, 'useState y useEffect', 'reading', {
+    introduction: 'Los hooks son funciones que permiten usar estado y otras características de React en componentes funcionales.',
+    content: `useState:
+Permite agregar estado a componentes funcionales.
 
-  console.log('✅ SQL Mastery PRO created');
+const [count, setCount] = useState(0);
 
-  // ===========================================
-  // CARPINTERÍA COURSE
-  // ===========================================
-  console.log('\n🪵 Creating Carpintería course...');
+useEffect:
+Ejecuta efectos secundarios después del renderizado.
 
-  const carpinteriaCourse = await createCourse(
-    'course-carpinteria-pro',
-    'Carpintería para Principiantes',
-    'Aprende los fundamentos de la carpintería, desde el uso de herramientas básicas hasta proyectos prácticos. Ideal para quienes quieren adquirir habilidades en oficios.',
-    'Oficios',
-    'beginner',
-    12,
-    'https://placehold.co/600x400/8d6e63/white?text=Carpinter%C3%ADa',
-    { isPro: true, price: 999, requiredLevel: 1 }
-  );
+useEffect(() => {
+  // código
+  return () => { /* cleanup */ };
+}, [dependencias]);
 
-  // Module 1: Herramientas Básicas
-  const carpModule1 = await createModule('carp-module-1', carpinteriaCourse.id, 'Herramientas Básicas', 1);
-  await createLesson('carp-lesson-1-1', carpModule1.id, 'El Martillo', 'multiple_choice', {
-    question: '¿Para qué se usa principalmente un martillo de carpintero?',
-    options: ['Para medir', 'Para golpear y clavar', 'Para cortar', 'Para lijar'],
-    correctIndex: 1,
-  }, 15, 1);
-  await createLesson('carp-lesson-1-2', carpModule1.id, 'El Serrucho', 'true_false', {
-    statement: 'El serrucho de costilla es ideal para cortes rectos en madera.',
-    correctAnswer: true,
-  }, 15, 2);
-  await createLesson('carp-lesson-1-3', carpModule1.id, 'El Destornillador', 'multiple_choice', {
-    question: '¿Cuántos tipos básicos de destornilladores existen?',
-    options: ['1', '2', '3', '4'],
-    correctIndex: 1,
-  }, 15, 3);
+PATRONES COMUNES:
+- Inicialización lazy: useState(() => expensiveComputation())
+- Estado derivado: const [items, setItems] = useState([])
+- Efectos de limpieza: retornar función en useEffect`,
+    examples: [
+      { code: 'const [count, setCount] = useState(0);', explanation: 'useState básico' },
+      { code: 'useEffect(() => { document.title = count; }, [count]);', explanation: 'useEffect con dependencias' },
+      { code: 'useEffect(() => { const id = setInterval(...); return () => clearInterval(id); }, []);', explanation: 'Cleanup en useEffect' }
+    ]
+  }, 30, 1, 12);
 
-  // Module 2: Medición y Trazado
-  const carpModule2 = await createModule('carp-module-2', carpinteriaCourse.id, 'Medición y Trazado', 2);
-  await createLesson('carp-lesson-2-1', carpModule2.id, 'La Cinta Métrica', 'multiple_choice', {
-    question: '¿Cuál es la unidad de medida más común en carpintería?',
-    options: ['Centímetros', 'Pulgadas y centímetros', 'Metros', 'Kilómetros'],
-    correctIndex: 1,
-  }, 15, 1);
-  await createLesson('carp-lesson-2-2', carpModule2.id, 'El Lápiz de Carpintero', 'true_false', {
-    statement: 'El lápiz de carpintero tiene forma plana para no rodar.',
-    correctAnswer: true,
-  }, 15, 2);
-  await createLesson('carp-lesson-2-3', carpModule2.id, 'Técnicas de Trazado', 'fill_blank', {
-    sentence: 'Para trazar líneas rectas usamos una ___ junto con el lápiz.',
-    correctAnswer: 'escuadra',
-    hint: 'Herramienta en forma de L',
-  }, 20, 3);
+  await createLesson('react-pro-l1-2', reactProM1.id, 'useCallback y useMemo', 'quiz', {
+    questions: [
+      { question: '¿Qué hace useCallback?', options: ['Memoiza un valor', 'Memoiza una función', 'Memoiza un componente', 'Nada'], correctIndex: 1, explanation: 'useCallback memoiza una función para evitar recrearla en cada render.' },
+      { question: '¿Qué hace useMemo?', options: ['Memoiza una función', 'Memoiza un valor calculado', 'Memoiza un componente', 'Memoiza un estado'], correctIndex: 1, explanation: 'useMemo memoiza el resultado de una computación costosa.' },
+      { question: '¿Cuándo usar useMemo?', options: ['Siempre', 'Cuando la computación es costosa y las dependencias cambian poco', 'Nunca', 'Solo en componentes de clase'], correctIndex: 1, explanation: 'useMemo es útil para optimizaciones cuando hay cálculos costosos.' }
+    ],
+    examples: [
+      { code: 'const memoizedValue = useMemo(() => expensiveCompute(a, b), [a, b]);', explanation: 'useMemo para valor costoso' },
+      { code: 'const onClick = useCallback(() => doSomething(a), [a]);', explanation: 'useCallback para función' }
+    ]
+  }, 35, 2, 15);
 
-  // Module 3: Proyectos Prácticos
-  const carpModule3 = await createModule('carp-module-3', carpinteriaCourse.id, 'Proyectos Prácticos', 3);
-  await createLesson('carp-lesson-3-1', carpModule3.id, 'Construir una Cajita', 'multiple_choice', {
-    question: '¿Qué tipo de unión se usa para las esquinas de una cajita simple?',
-    options: ['Unión a 45 grados', 'Unión a 90 grados con clavosen', 'Unión con pegamento solo', 'No importa el tipo'],
-    correctIndex: 1,
-  }, 25, 1);
-  await createLesson('carp-lesson-3-2', carpModule3.id, 'Lijado y Acabado', 'true_false', {
-    statement: 'Se debe lijar en dirección de la veta de la madera para un mejor acabado.',
-    correctAnswer: true,
-  }, 20, 2);
-  await createLesson('carp-lesson-3-3', carpModule3.id, 'Aplicación de Barniz', 'fill_blank', {
-    sentence: 'Antes de aplicar barniz, la madera debe estar ___ y limpia.',
-    correctAnswer: 'lijada',
-    hint: 'Suave al tacto',
-  }, 20, 3);
-  await createLesson('carp-lesson-3-4', carpModule3.id, 'Seguridad en el Taller', 'multiple_choice', {
-    question: '¿Por qué es importante usar gafas de protección al cortar madera?',
-    options: ['Para ver mejor', 'Para proteger los ojos de astillas y polvo', 'Es solo moda', 'No es necesario'],
-    correctIndex: 1,
-  }, 20, 4);
-
-  console.log('✅ Carpintería para Principiantes PRO created (3 módulos, 10 lecciones)');
-
-  console.log('\n👑 PRO Courses Summary:');
-  console.log('   - JavaScript Avanzado: $29.99 (Nivel 5+) - 3 módulos, 4 lecciones');
-  console.log('   - React Mastery: $49.99 (Nivel 8+) - 3 módulos, 4 lecciones');
-  console.log('   - Trading e Inversiones: $39.99 (Nivel 3+) - 2 módulos, 4 lecciones');
-  console.log('   - Python Mastery: $34.99 (Nivel 6+) - 2 módulos, 5 lecciones');
-  console.log('   - DevOps Fundamentals: $59.99 (Nivel 7+) - 3 módulos, 4 lecciones');
-  console.log('   - Data Science con Python: $44.99 (Nivel 5+) - 2 módulos, 4 lecciones');
-  console.log('   - SQL Mastery: $29.99 (Nivel 4+) - 2 módulos, 4 lecciones');
+  console.log('✅ React Mastery PRO completed');
 
   // ===========================================
-  // DEMO DATA
+  // ENROLLMENTS FOR DEMO USER
   // ===========================================
-  console.log('\n👤 Creating demo enrollments and progress...');
-
-  const jsLesson1 = await prisma.lesson.findUnique({ where: { id: 'js-lesson-1-1' } });
-  const jsLesson2 = await prisma.lesson.findUnique({ where: { id: 'js-lesson-1-2' } });
-  const mathLesson1 = await prisma.lesson.findUnique({ where: { id: 'math-lesson-1-1' } });
-  const engLesson1 = await prisma.lesson.findUnique({ where: { id: 'eng-lesson-1-1' } });
-
-  const jsEnrollment = await prisma.enrollment.upsert({
-    where: { userId_courseId: { userId: demo.id, courseId: jsCourse.id } },
-    update: {},
-    create: { userId: demo.id, courseId: jsCourse.id },
-  });
-
-  const mathEnrollment = await prisma.enrollment.upsert({
-    where: { userId_courseId: { userId: demo.id, courseId: mathBasicCourse.id } },
-    update: {},
-    create: { userId: demo.id, courseId: mathBasicCourse.id },
-  });
-
-  const engEnrollment = await prisma.enrollment.upsert({
-    where: { userId_courseId: { userId: demo.id, courseId: englishCourse.id } },
-    update: {},
-    create: { userId: demo.id, courseId: englishCourse.id },
-  });
-
-  if (jsLesson1) {
-    await prisma.lessonProgress.upsert({
-      where: { userId_lessonId: { userId: demo.id, lessonId: jsLesson1.id } },
+  const demo = await prisma.user.findUnique({ where: { email: 'demo@duobijac.com' } });
+  const jsCourseRecord = await prisma.course.findUnique({ where: { id: 'course-js-fundamentals' } });
+  const pyCourseRecord = await prisma.course.findUnique({ where: { id: 'course-python-beginner' } });
+  
+  if (jsCourseRecord && demo) {
+    await prisma.enrollment.upsert({
+      where: { userId_courseId: { userId: demo.id, courseId: jsCourseRecord.id } },
       update: {},
-      create: {
-        userId: demo.id,
-        lessonId: jsLesson1.id,
-        completed: true,
-        score: 100,
-        xpEarned: 20,
-        timeSpent: 120,
-        attempts: 1,
-        completedAt: new Date(),
-      },
+      create: { userId: demo.id, courseId: jsCourseRecord.id },
     });
   }
 
-  if (jsLesson2) {
-    await prisma.lessonProgress.upsert({
-      where: { userId_lessonId: { userId: demo.id, lessonId: jsLesson2.id } },
+  if (pyCourseRecord && demo) {
+    await prisma.enrollment.upsert({
+      where: { userId_courseId: { userId: demo.id, courseId: pyCourseRecord.id } },
       update: {},
-      create: {
-        userId: demo.id,
-        lessonId: jsLesson2.id,
-        completed: true,
-        score: 80,
-        xpEarned: 16,
-        timeSpent: 180,
-        attempts: 2,
-        completedAt: new Date(),
-      },
+      create: { userId: demo.id, courseId: pyCourseRecord.id },
     });
   }
 
-  if (mathLesson1) {
-    await prisma.lessonProgress.upsert({
-      where: { userId_lessonId: { userId: demo.id, lessonId: mathLesson1.id } },
-      update: {},
-      create: {
-        userId: demo.id,
-        lessonId: mathLesson1.id,
-        completed: true,
-        score: 100,
-        xpEarned: 15,
-        timeSpent: 90,
-        attempts: 1,
-        completedAt: new Date(),
-      },
-    });
-  }
+  console.log('✅ Demo enrollments created');
 
-  if (engLesson1) {
-    await prisma.lessonProgress.upsert({
-      where: { userId_lessonId: { userId: demo.id, lessonId: engLesson1.id } },
-      update: {},
-      create: {
-        userId: demo.id,
-        lessonId: engLesson1.id,
-        completed: true,
-        score: 90,
-        xpEarned: 14,
-        timeSpent: 100,
-        attempts: 1,
-        completedAt: new Date(),
-      },
-    });
-  }
-
-  console.log('✅ Demo enrollments and progress created');
-
-  // ===========================================
-  // SYSTEM SETTINGS (Default Configuration)
-  // ===========================================
-  console.log('\n⚙️ Creating system settings...');
-
-  const systemSettings = [
-    { key: 'site_name', value: 'FreeBuffGame', type: 'string', category: 'general', label: 'Nombre del Sitio', description: 'Nombre público de la plataforma', isPublic: true },
-    { key: 'site_description', value: 'Aprende jugando con cursos interactivos, juegos y recompensas', type: 'string', category: 'general', label: 'Descripción del Sitio', description: 'Descripción para SEO y páginas públicas', isPublic: true },
-    { key: 'contact_email', value: 'soporte@freebuffgame.com', type: 'string', category: 'general', label: 'Email de Contacto', description: 'Email para contacto del admin', isPublic: true },
-    { key: 'maintenance_mode', value: 'false', type: 'boolean', category: 'general', label: 'Modo Mantenimiento', description: 'Bloquea el acceso a usuarios no-admin', isPublic: false },
-    { key: 'enable_google_auth', value: 'true', type: 'boolean', category: 'features', label: 'Autenticación Google', description: 'Permite login con Google OAuth', isPublic: true },
-    { key: 'enable_stripe_payments', value: 'false', type: 'boolean', category: 'features', label: 'Pagos con Stripe', description: 'Habilita compras con Stripe', isPublic: true },
-    { key: 'enable_achievements', value: 'true', type: 'boolean', category: 'features', label: 'Sistema de Logros', description: 'Habilita el sistema de logros y recompensas XP', isPublic: true },
-    { key: 'enable_leaderboard', value: 'true', type: 'boolean', category: 'features', label: 'Tabla de Posiciones', description: 'Muestra ranking de usuarios por XP', isPublic: true },
-    { key: 'enable_shop', value: 'true', type: 'boolean', category: 'features', label: 'Tienda Virtual', description: 'Habilita la tienda de avatares y temas', isPublic: true },
-    { key: 'enable_friends', value: 'true', type: 'boolean', category: 'features', label: 'Sistema de Amigos', description: 'Permite agregar y gestionar amigos', isPublic: true },
-    { key: 'enable_streaks', value: 'true', type: 'boolean', category: 'features', label: 'Sistema de Rachas', description: 'Tracking de racha diaria de estudio', isPublic: true },
-    { key: 'max_upload_size_mb', value: '10', type: 'number', category: 'limits', label: 'Tamaño Máximo de Upload (MB)', description: 'Tamaño máximo de archivos subidos por usuario', isPublic: false },
-    { key: 'daily_xp_cap', value: '500', type: 'number', category: 'limits', label: 'Límite Diario de XP', description: 'XP máximo que un usuario puede ganar por día (0 = sin límite)', isPublic: false },
-    { key: 'max_friends', value: '100', type: 'number', category: 'limits', label: 'Máximo de Amigos', description: 'Límite de amigos que un usuario puede tener', isPublic: false },
-    { key: 'cooldown_hours_shop', value: '24', type: 'number', category: 'limits', label: 'Cooldown de Compra (horas)', description: 'Horas entre compras en la tienda', isPublic: false },
-    { key: 'auto_moderation', value: 'false', type: 'boolean', category: 'content', label: 'Auto-Moderación', description: 'Revisa contenido automáticamente con IA', isPublic: false },
-    { key: 'report_threshold', value: '3', type: 'number', category: 'content', label: 'Umbral de Reportes', description: 'Reportes antes de revisar automáticamente', isPublic: false },
-    { key: 'require_approval_courses', value: 'true', type: 'boolean', category: 'content', label: 'Aprobación de Cursos', description: 'Requiere aprobación de admin para publicar cursos', isPublic: false },
-  ];
-
-  for (const setting of systemSettings) {
-    await prisma.systemSetting.upsert({
-      where: { key: setting.key },
-      update: setting,
-      create: setting,
-    });
-  }
-  console.log('✅ System settings created');
-
-  // ===========================================
-  // NOTIFICATION TEMPLATES
-  // ===========================================
-  console.log('\n📬 Creating notification templates...');
-
-  const notificationTemplates = [
-    { key: 'welcome_user', title: '¡Bienvenido a FreeBuffGame!', message: '¡Hola {name}! Bienvenido a la plataforma de aprendizaje gamificado. Empieza tu primera lección y ganar XP desde el primer momento.', type: 'system', variables: ['name'] },
-    { key: 'achievement_unlocked', title: '🏆 ¡Nuevo Logro Desbloqueado!', message: '¡Felicidades {name}! Has desbloqueado "{achievement}" y ganas {xp} XP extra.', type: 'achievement', variables: ['name', 'achievement', 'xp'] },
-    { key: 'level_up', title: '⬆️ ¡Subiste de Nivel!', message: '¡Increíble {name}! Has alcanzado el nivel {level}. Sigue así, champion!', type: 'achievement', variables: ['name', 'level'] },
-    { key: 'streak_milestone', title: '🔥 ¡Racha de {streak} días!', message: '{name}, has mantenido una racha de {streak} días. Estás en racha, no pares!', type: 'streak', variables: ['name', 'streak'] },
-    { key: 'course_completed', title: '🎓 ¡Curso Completado!', message: '¡Felicidades {name}! Has completado "{course}". Tu conocimiento sigue creciendo!', type: 'course', variables: ['name', 'course'] },
-    { key: 'streak_lost', title: '💔 Racha Perdida', message: '{name}, tu racha de {streak} días se ha roto. ¡Pero no te preocupes, puedes empezar una nueva hoy!', type: 'streak', variables: ['name', 'streak'] },
-  ];
-
-  for (const template of notificationTemplates) {
-    await prisma.notificationTemplate.upsert({
-      where: { key: template.key },
-      update: template,
-      create: template,
-    });
-  }
-  console.log('✅ Notification templates created');
-
-  // ===========================================
-  // SUMMARY
-  // ===========================================
-  console.log('\n🎉 Seed completed successfully!');
-  console.log('\n📚 Courses created (EXPANDED):');
-  console.log('   PROGRAMMING:');
-  console.log('   - JavaScript Fundamentals (6 módulos, 18 lecciones) ✅ EXPANDED');
-  console.log('   - Python para Principiantes (5 módulos, 14 lecciones) ✅ EXPANDED');
-  console.log('   - HTML & CSS desde Cero (4 módulos, 16 lecciones) ✅ EXPANDED');
-  console.log('   MATH:');
-  console.log('   - Matemáticas Básicas (5 módulos, 18 lecciones) ✅ EXPANDED');
-  console.log('   - Álgebra Elemental (5 módulos, 18 lecciones) ✅ EXPANDED');
-  console.log('   LANGUAGES:');
-  console.log('   - Inglés para Principiantes (5 módulos, 18 lecciones) ✅ EXPANDED');
-  console.log('   - Inglés Intermedio (4 módulos, 16 lecciones) ✅ EXPANDED');
-  console.log('   OTHER:');
-  console.log('   - Fundamentos de IA (4 módulos, 16 lecciones) ✅ EXPANDED');
-  console.log('   - Finanzas Personales (4 módulos, 16 lecciones) ✅ EXPANDED');
-  console.log('   PRO: 7 cursos con 4-5 módulos cada uno');
-  console.log('   TOTAL: ~175 lecciones en 16 cursos');
+  console.log('\n🎉 ENHANCED Seed completed successfully!');
+  console.log('\n📚 Courses Summary:');
+  console.log('   - JavaScript Fundamentals: 6 modules, 18 lessons, 4 coding exercises, 2 mini-projects');
+  console.log('   - Python para Principiantes: 4 modules, 14 lessons, 3 coding exercises, 2 mini-projects');
+  console.log('   - Matemáticas Aplicadas: 2 modules, 6 lessons, 1 coding exercise');
+  console.log('   - Inglés para Principiantes: 2 modules, 7 lessons, 1 speaking exercise');
+  console.log('   - JavaScript Avanzado PRO: 1 module, 3 lessons, 1 coding exercise');
+  console.log('   - React Mastery PRO: 1 module, 2 lessons');
   console.log('\n📝 Test accounts:');
   console.log('   Admin: admin@duobijac.com / admin123');
   console.log('   Demo: demo@duobijac.com / demo123');
@@ -1744,7 +1531,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e);
+    console.error('❌ Seed error:', e);
     process.exit(1);
   })
   .finally(async () => {
