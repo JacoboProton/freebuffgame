@@ -986,15 +986,16 @@ adminRouter.delete('/notifications/templates/:key', async (req: AuthRequest, res
 
 // ===========================================
 // SEED ENDPOINT (for production use)
+// Only requires the SEED_SECRET, no authentication needed
 // ===========================================
 
-adminRouter.post('/seed', authenticate, requireAdmin, async (req: AuthRequest, res, next) => {
+adminRouter.post('/seed', async (req: AuthRequest, res, next) => {
   try {
     const secret = req.headers['x-seed-secret'];
     const expectedSecret = process.env.SEED_SECRET || 'dev-seed-secret';
     
     if (secret !== expectedSecret) {
-      throw new AppError('Secret invalido', 401);
+      throw new AppError('Secret inválido. Verifica el valor de SEED_SECRET en Render.', 401);
     }
 
     const results = {
