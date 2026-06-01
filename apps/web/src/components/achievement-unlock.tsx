@@ -17,6 +17,13 @@ interface AchievementUnlockProps {
   onClose: () => void;
 }
 
+// Share to social media function
+function shareAchievement(title: string, icon: string) {
+  const text = `¡Desbloqueé el logro "${title}" ${icon} en Duobi-Jac! 🐐 #DuobiJac #AprendeJugando`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  window.open(twitterUrl, '_blank', 'width=550,height=420');
+}
+
 export function AchievementUnlock({ achievement, show, onClose }: AchievementUnlockProps) {
   if (!achievement) return null;
 
@@ -122,10 +129,28 @@ export function AchievementUnlock({ achievement, show, onClose }: AchievementUnl
               initial={{ y: 20, opacity: 0, scale: 0.5 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               transition={{ delay: 0.5, type: 'spring' }}
-              className="flex items-center justify-center gap-2 bg-amber-200 rounded-full px-6 py-3 mb-6"
+              className="flex items-center justify-center gap-2 bg-amber-200 rounded-full px-6 py-3 mb-4"
             >
               <Star className="w-5 h-5 text-amber-700" />
               <span className="text-lg font-bold text-amber-800">+{achievement.xpReward} XP</span>
+            </motion.div>
+
+            {/* Share buttons */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.55 }}
+              className="flex items-center justify-center gap-3 mb-4"
+            >
+              <button
+                onClick={() => shareAchievement(achievement.title, achievement.icon)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm font-medium transition-colors"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                </svg>
+                Compartir
+              </button>
             </motion.div>
 
             {/* Continue button */}
