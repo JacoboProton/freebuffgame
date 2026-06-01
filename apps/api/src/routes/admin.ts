@@ -6,8 +6,23 @@ import bcrypt from 'bcryptjs';
 
 export const adminRouter = Router();
 
-// All admin routes require authentication and admin role
+// All admin routes require authentication and admin role (except seed)
 adminRouter.use(authenticate, requireAdmin);
+
+// ===========================================
+// SEED ENDPOINT - NO AUTH REQUIRED
+// This must be mounted BEFORE the auth middleware above
+// ===========================================
+export const seedRouter = Router();
+
+seedRouter.post('/', async (req: AuthRequest, res, next) => {
+  try {
+    const secret = req.headers['x-seed-secret'];
+    const expectedSecret = process.env.SEED_SECRET || 'dev-seed-secret';
+    
+    if (secret !== expectedSecret) {
+      throw new AppError('Secret inválido. Verifica el valor de SEED_SECRET en Render.', 401);
+    }
 
 // Get dashboard stats
 adminRouter.get('/stats', async (req: AuthRequest, res, next) => {
@@ -985,18 +1000,8 @@ adminRouter.delete('/notifications/templates/:key', async (req: AuthRequest, res
 });
 
 // ===========================================
-// SEED ENDPOINT (for production use)
-// Only requires the SEED_SECRET, no authentication needed
+// PLACEHOLDER - Seed endpoint moved to seedRouter
 // ===========================================
-
-adminRouter.post('/seed', async (req: AuthRequest, res, next) => {
-  try {
-    const secret = req.headers['x-seed-secret'];
-    const expectedSecret = process.env.SEED_SECRET || 'dev-seed-secret';
-    
-    if (secret !== expectedSecret) {
-      throw new AppError('Secret inválido. Verifica el valor de SEED_SECRET en Render.', 401);
-    }
 
     const results = {
       achievements: 0,
