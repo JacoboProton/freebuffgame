@@ -81,7 +81,7 @@ app.use('/api/achievements', achievementsRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/shop', shopRouter);
 app.use('/api/admin', adminRouter);
-app.use('/api/admin/seed', seedRouter); // No auth required - uses secret header
+app.use('/api/seed', seedRouter); // No auth required - uses secret header
 app.use('/api/daily-goals', dailyGoalsRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/notifications', notificationsRouter);
