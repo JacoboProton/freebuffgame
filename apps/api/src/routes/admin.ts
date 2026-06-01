@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, requireAdmin, AuthRequest } from '../middlewares/auth.js';
 import { AppError } from '../middlewares/error.js';
+import bcrypt from 'bcryptjs';
 
 export const adminRouter = Router();
 
@@ -978,6 +979,200 @@ adminRouter.delete('/notifications/templates/:key', async (req: AuthRequest, res
     });
 
     res.json({ status: 'success', message: 'Plantilla eliminada' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ===========================================
+// SEED ENDPOINT (for production use)
+// ===========================================
+
+adminRouter.post('/seed', authenticate, requireAdmin, async (req: AuthRequest, res, next) => {
+  try {
+    const secret = req.headers['x-seed-secret'];
+    const expectedSecret = process.env.SEED_SECRET || 'dev-seed-secret';
+    
+    if (secret !== expectedSecret) {
+      throw new AppError('Secret invalido', 401);
+    }
+
+    const results = {
+      achievements: 0,
+      games: 0,
+      shopItems: 0,
+      courses: 0,
+      modules: 0,
+      lessons: 0,
+      enrollments: 0,
+    };
+
+    // Create achievements
+    const achievementsData = [
+      { key: 'first_lesson', title: 'Primera Lección', description: 'Completa tu primera lección', icon: '📚', xpReward: 10 },
+      { key: 'streak_7_days', title: 'Racha de 7 Días', description: 'Mantén una racha de 7 días consecutivos', icon: '🔥', xpReward: 50 },
+      { key: 'streak_30_days', title: 'Racha de 30 Días', description: 'Mantén una racha de 30 días consecutivos', icon: '⚡', xpReward: 200 },
+      { key: 'first_course', title: 'Primer Curso', description: 'Inscríbete en tu primer curso', icon: '🎓', xpReward: 20 },
+      { key: 'course_master', title: 'Maestro del Curso', description: 'Completa un curso completo', icon: '🏆', xpReward: 100 },
+      { key: 'level_5', title: 'Nivel 5', description: 'Alcanza el nivel 5', icon: '⭐', xpReward: 30 },
+      { key: 'level_10', title: 'Nivel 10', description: 'Alcanza el nivel 10', icon: '🌟', xpReward: 50 },
+      { key: 'first_purchase', title: 'Primera Compra', description: 'Realiza tu primera compra en la tienda', icon: '🛒', xpReward: 15 },
+      { key: 'code_ninja', title: 'Ninja del Código', description: 'Completa 10 ejercicios de código', icon: '💻', xpReward: 75 },
+      { key: 'perfect_score', title: 'Puntuación Perfecta', description: 'Obtén 100% en una lección', icon: '💯', xpReward: 25 },
+    ];
+
+    for (const data of achievementsData) {
+      await prisma.achievement.upsert({
+        where: { key: data.key },
+        update: data,
+        create: data,
+      });
+      results.achievements++;
+    }
+
+    // Create games
+    const gamesData = [
+      { key: 'memory_match', title: 'Memory Match', description: 'Encuentra las parejas matching correctas', icon: '🧠', xpReward: 15 },
+      { key: 'speed_quiz', title: 'Quiz Rápido', description: 'Responde preguntas lo más rápido posible', icon: '⚡', xpReward: 20 },
+      { key: 'word_puzzle', title: 'Puzzle de Palabras', description: 'Forma palabras correctas', icon: '🔤', xpReward: 15 },
+    ];
+
+    for (const data of gamesData) {
+      await prisma.game.upsert({
+        where: { key: data.key },
+        update: data,
+        create: data,
+      });
+      results.games++;
+    }
+
+    // Create shop items
+    const shopItemsData = [
+      { key: 'xp_boost_2x', name: 'XP Boost 2x', description: 'Duplica tu XP por 1 hora', type: 'booster', price: 100, icon: '⚡' },
+      { key: 'streak_shield', name: 'Escudo de Racha', description: 'Protege tu racha por un día', type: 'booster', price: 150, icon: '🛡️' },
+      { key: 'avatar_flame', name: 'Avatar Flame', description: 'Flama animada para tu perfil', type: 'avatar', price: 200, icon: '🔥' },
+      { key: 'avatar_glow', name: 'Avatar Glow', description: 'Brillo especial para tu perfil', type: 'avatar', price: 150, icon: '✨' },
+      { key: 'theme_dark', name: 'Tema Oscuro', description: 'Activa el tema oscuro', type: 'theme', price: 75, icon: '🌙' },
+    ];
+
+    for (const data of shopItemsData) {
+      await prisma.shopItem.upsert({
+        where: { key: data.key },
+        update: data,
+        create: data,
+      });
+      results.shopItems++;
+    }
+
+    // Create courses helper
+    const createCourse = async (id: string, title: string, description: string, category: string, difficulty: string, estimatedHours: number, imageUrl: string, options: { isPro?: boolean; price?: number; requiredLevel?: number } = {}) => {
+      const course = await prisma.course.upsert({
+        where: { id },
+        update: { title, description, category, difficulty, estimatedHours, imageUrl, isPublished: true, ...options },
+        create: { id, title, description, category, difficulty, estimatedHours, imageUrl, isPublished: true, ...options },
+      });
+      results.courses++;
+      return course;
+    };
+
+    // Create module helper
+    const createModule = async (courseId: string, title: string, order: number) => {
+      const module = await prisma.module.create({
+        data: { courseId, title, order },
+      });
+      results.modules++;
+      return module;
+    };
+
+    // Create lesson helper
+    const createLesson = async (moduleId: string, title: string, type: string, content: any, xpReward: number, order: number) => {
+      await prisma.lesson.create({
+        data: { moduleId, title, type, content, xpReward, order },
+      });
+      results.lessons++;
+    };
+
+    // Create JavaScript Fundamentals course
+    const jsCourse = await createCourse(
+      'course-js-fundamentals',
+      'JavaScript Fundamentals',
+      'Aprende JavaScript desde cero. Variables, funciones, objetos, arrays y más. El lenguaje de programación más popular del mundo.',
+      'Programación',
+      'beginner',
+      15,
+      'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=600&h=400&fit=crop'
+    );
+
+    const jsModule1 = await createModule(jsCourse.id, 'Variables y Tipos de Datos', 1);
+    await createLesson(jsModule1.id, '¿Qué es una variable?', 'multiple_choice', {
+      question: '¿Qué es una variable en JavaScript?',
+      options: ['Un tipo de dato', 'Un contenedor para almacenar datos', 'Una función especial', 'Un operador'],
+      correctIndex: 1,
+    }, 20, 1);
+    await createLesson(jsModule1.id, 'Tipos de datos', 'multiple_choice', {
+      question: '¿Cuál NO es un tipo de dato primitivo en JavaScript?',
+      options: ['String', 'Number', 'Array', 'Boolean'],
+      correctIndex: 2,
+    }, 20, 2);
+    await createLesson(jsModule1.id, 'Declaración de variables', 'fill_blank', {
+      instruction: 'Completa la frase: En JavaScript, usamos ___ para declarar una variable que no puede cambiar.',
+      correctAnswers: ['const'],
+    }, 25, 3);
+
+    const jsModule2 = await createModule(jsCourse.id, 'Funciones', 2);
+    await createLesson(jsModule2.id, 'Introducción a funciones', 'multiple_choice', {
+      question: '¿Qué es una función en JavaScript?',
+      options: ['Un tipo de dato', 'Un bloque de código reutilizable', 'Una variable especial', 'Un operador lógico'],
+      correctIndex: 1,
+    }, 20, 1);
+    await createLesson(jsModule2.id, 'Parámetros y argumentos', 'fill_blank', {
+      instruction: 'Completa: Los ___ son los valores que recibe una función cuando se llama.',
+      correctAnswers: ['argumentos', 'parameters', 'parametros'],
+    }, 25, 2);
+    await createLesson(jsModule2.id, 'Arrow functions', 'multiple_choice', {
+      question: '¿Cuál es la sintaxis correcta de una arrow function?',
+      options: ['function => ()', '() => {}', '=> function()', 'function () =>'],
+      correctIndex: 1,
+    }, 20, 3);
+
+    // Create Python course
+    const pyCourse = await createCourse(
+      'course-python-beginner',
+      'Python para Principiantes',
+      'Domina Python desde cero. Sintaxis, variables, funciones y más. El lenguaje favorito de los beginners y expertos.',
+      'Programación',
+      'beginner',
+      12,
+      'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&h=400&fit=crop'
+    );
+
+    const pyModule1 = await createModule(pyCourse.id, 'Introducción a Python', 1);
+    await createLesson(pyModule1.id, '¿Qué es Python?', 'multiple_choice', {
+      question: '¿Python es un lenguaje...?',
+      options: ['Compilado', 'Interpretado', 'Ensamblador', 'Máquina'],
+      correctIndex: 1,
+    }, 20, 1);
+    await createLesson(pyModule1.id, 'Tu primer programa', 'fill_blank', {
+      instruction: '¿Qué función usas para mostrar texto en Python?',
+      correctAnswers: ['print'],
+    }, 25, 2);
+
+    // Create demo user enrollment
+    const demo = await prisma.user.findUnique({ where: { email: 'demo@duobijac.com' } });
+    if (demo && jsCourse) {
+      await prisma.enrollment.upsert({
+        where: { userId_courseId: { userId: demo.id, courseId: jsCourse.id } },
+        update: {},
+        create: { userId: demo.id, courseId: jsCourse.id },
+      });
+      results.enrollments++;
+    }
+
+    res.json({
+      status: 'success',
+      message: 'Seed completado exitosamente',
+      results,
+    });
   } catch (err) {
     next(err);
   }
