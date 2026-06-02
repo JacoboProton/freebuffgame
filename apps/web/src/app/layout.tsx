@@ -45,7 +45,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      allowedRedirectOrigins={[
+        'http://localhost:3000',
+        'https://freebuffgame-web.onrender.com',
+        'https://rxktk3y4.insforge.site',
+        /^https:\/\/.*\.vercel\.app$/,
+      ]}
+    >
       <html lang='es'>
         <body className={`${inter.variable} ${nunito.variable} ${jetbrainsMono.variable}`}>
           <QueryProvider>
