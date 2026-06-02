@@ -22,24 +22,43 @@ seedRouter.post('/', async (req: AuthRequest, res: any, next: any) => {
     }
 
     console.log('🚀 Starting comprehensive seed from /api/seed...');
+    console.log('📁 Working directory:', __dirname + '/../..');
     
     // Execute seed.ts using tsx spawn
+    // Capture stdout/stderr to see what's happening
+    let stdoutData = '';
+    let stderrData = '';
+    
     await new Promise<void>((resolve, reject) => {
       const seed = spawn('npx', ['tsx', 'prisma/seed.ts'], {
         cwd: __dirname + '/../..',
-        stdio: 'inherit',
         shell: true
       });
       
+      seed.stdout?.on('data', (data) => {
+        stdoutData += data.toString();
+        console.log('[seed stdout]', data.toString().trim());
+      });
+      
+      seed.stderr?.on('data', (data) => {
+        stderrData += data.toString();
+        console.error('[seed stderr]', data.toString().trim());
+      });
+      
       seed.on('close', (code) => {
+        console.log(`[seed] Process exited with code ${code}`);
+        console.log(`[seed] Full stdout: ${stdoutData}`);
+        console.log(`[seed] Full stderr: ${stderrData}`);
+        
         if (code === 0) {
           resolve();
         } else {
-          reject(new Error(`Seed process exited with code ${code}`));
+          reject(new Error(`Seed process exited with code ${code}. Stderr: ${stderrData}`));
         }
       });
       
       seed.on('error', (err) => {
+        console.error('[seed] Spawn error:', err);
         reject(err);
       });
     });
@@ -50,9 +69,13 @@ seedRouter.post('/', async (req: AuthRequest, res: any, next: any) => {
       status: 'success', 
       message: 'Seed completo ejecutado exitosamente. Todos los cursos, logros, juegos y items creados.'
     });
-  } catch (error) {
-    console.error('❌ Seed endpoint error:', error);
-    next(error);
+  } catch (error: any) {
+    console.error('❌ Seed endpoint error:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ 
+      status: 'error', 
+      message: error.message || 'Algo salió mal. Por favor intenta de nuevo.'
+    });
   }
 });
 
