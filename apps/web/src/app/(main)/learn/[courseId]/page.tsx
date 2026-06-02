@@ -39,7 +39,7 @@ export default function LessonPage() {
   const router = useRouter();
   const courseId = params.courseId as string;
   const { updateLocalStats, fetchStats } = useUserStore();
-  const { lessonsAPI, userAPI } = useClerkAPIs();
+  const { lessonsAPI, userAPI, coursesAPI } = useClerkAPIs();
 
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [progress, setProgress] = useState<{ completed: boolean; score: number; xpEarned: number } | null>(null);
@@ -58,62 +58,53 @@ export default function LessonPage() {
   const [leveledUp, setLeveledUp] = useState(false);
   const [courseCompleted, setCourseCompleted] = useState(false);
   const [startTime] = useState(Date.now());
+  const [courseProgress, setCourseProgress] = useState<{ completedLessons: number; totalLessons: number; percentage: number } | null>(null);
   
   // Toast notifications
   const { showLessonComplete, showCourseComplete, showLevelUp } = useLessonCompletion();
 
-  // Fetch lesson from API
+  // Fetch lesson from API - first get current lesson for this course
   useEffect(() => {
     const loadLesson = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Try to fetch from API - use demo lesson ID for now if courseId doesn't match
-        const lessonId = courseId || 'ai-lesson-1';
+        // First, get the current lesson for this course (continue where left off)
+        const currentLessonResponse = await coursesAPI.getCurrentLesson(courseId).catch(() => null);
         
-        // For demo purposes, use the first lesson from the course
-        // In a real app, we'd navigate to a specific lesson
-        const response = await lessonsAPI.getById(lessonId).catch(() => null);
-        
-        if (response?.lesson) {
-          setLesson(response.lesson);
-          setProgress(response.progress);
-          setJacMessage(`Veo que quieres aprender sobre ${response.lesson.moduleTitle || 'este tema'}. ¡Vamos allá!`);
-        } else {
-          // Use demo data if API fails
-          const demoLessons: Record<string, Lesson> = {
-            'ai-lesson-1': { 
-              id: 'ai-lesson-1', 
-              title: 'Introduccion a la IA', 
-              type: 'multiple_choice', 
-              content: { 
-                question: '¿Qué es la Inteligencia Artificial?', 
-                options: ['Un tipo de robot', 'Sistemas que pueden aprender y tomar decisiones', 'Solo computadoras', 'Un lenguaje de programación'], 
-                correctIndex: 1,
-                hint: 'Piensa en sistemas que pueden pensar como humanos...'
-              }, 
-              xpReward: 20,
-              moduleTitle: 'Introducción a la IA',
-              courseTitle: 'Fundamentos de IA'
-            },
-          };
+        if (currentLessonResponse?.currentLesson) {
+          // Fetch the actual lesson content
+          const lessonId = currentLessonResponse.currentLesson.id;
+          const response = await lessonsAPI.getById(lessonId).catch(() => null);
           
-          const demoLesson = demoLessons[courseId] || demoLessons['ai-lesson-1'];
-          setLesson(demoLesson);
-          setJacMessage('¡Hola! Soy Jac. Vamos a aprender juntos 🐐');
+          if (response?.lesson) {
+            setLesson(response.lesson);
+            setProgress(response.progress);
+            setCourseProgress(currentLessonResponse.progress);
+            setJacMessage(`¡Sigue así! Vamos a continuar con: ${response.lesson.moduleTitle || 'esta lección'}`);
+          } else {
+            throw new Error('No se pudo cargar el contenido de la lección');
+          }
+        } else {
+          // User is not enrolled or course doesn't exist
+          throw new Error('No estás enrolled en este curso');
         }
-      } catch (err) {
-        setError('Error al cargar la lección');
+      } catch (err: any) {
+        setError(err.message || 'Error al cargar la lección');
         setJacMood('sad');
-        setJacMessage('¡Ups! No pude cargar la lección. ¿Intentamos de nuevo? 😅');
+        setJacMessage(err.message?.includes('enrolled') 
+          ? 'Parece que no estás enrolled en este curso. ¡Inscríbete para comenzar!' 
+          : '¡Ups! No pude cargar la lección. ¿Intentamos de nuevo? 😅');
       } finally {
         setLoading(false);
       }
     };
 
-    loadLesson();
-  }, [courseId]);
+    if (courseId) {
+      loadLesson();
+    }
+  }, [courseId, coursesAPI, lessonsAPI]);
 
   // Jac reactions based on user actions
   const updateJacReaction = (mood: JacMood, message: string) => {

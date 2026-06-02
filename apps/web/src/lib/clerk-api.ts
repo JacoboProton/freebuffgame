@@ -59,6 +59,9 @@ function createClerkAPI(getToken: () => Promise<string | null>) {
       
       getEnrollments: () =>
         baseFetchAPI<{ enrollments: any[] }>('/courses/user/enrollments', { getToken }),
+      
+      getCurrentLesson: (courseId: string) =>
+        baseFetchAPI<{ currentLesson: any; progress: any }>(`/courses/${courseId}/current-lesson`, { getToken }),
     },
 
     // Lessons API
