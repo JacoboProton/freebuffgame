@@ -1532,7 +1532,7 @@ PATRONES COMUNES:
 main()
   .catch((e) => {
     console.error('❌ Seed error:', e);
-    process.exit(1);
+    throw e; // Don't exit - let the caller handle the error
   })
   .finally(async () => {
     await prisma.$disconnect();
