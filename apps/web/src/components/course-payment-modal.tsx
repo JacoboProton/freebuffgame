@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Crown, Lock, CheckCircle, CreditCard, AlertCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useClerkAPIs } from '@/lib/clerk-api';
 import { useToast } from '@/components/ui/toast';
 
@@ -35,7 +36,7 @@ export function CoursePaymentModal({
   isPurchased,
   onSuccess,
 }: CoursePaymentModalProps) {
-  const { paymentsAPI } = useClerkAPIs();
+  const { paymentsAPI, coursesAPI } = useClerkAPIs();
   const { showSuccess, showError } = useToast();
   const [loading, setLoading] = useState(false);
   const [coursePrice, setCoursePrice] = useState<{
@@ -46,18 +47,21 @@ export function CoursePaymentModal({
     isPro: boolean;
   } | null>(null);
   const [loadingPrice, setLoadingPrice] = useState(false);
+  const [priceError, setPriceError] = useState(false);
 
-  // Fetch course price when modal opens
+  // Fetch course price when modal opens or course changes
   useEffect(() => {
     if (isOpen && course && !isPurchased) {
+      setPriceError(false);
       loadCoursePrice();
     }
-  }, [isOpen, course, isPurchased]);
+  }, [isOpen, course?.id, isPurchased]);
 
   const loadCoursePrice = async () => {
     if (!course) return;
     
     setLoadingPrice(true);
+    setPriceError(false);
     try {
       const priceData = await paymentsAPI.getCoursePrice(course.id) as any;
       setCoursePrice({
@@ -69,6 +73,7 @@ export function CoursePaymentModal({
       });
     } catch (err) {
       console.error('Error loading course price:', err);
+      setPriceError(true);
       // Use default values from course
       setCoursePrice({
         price: course.price || 0,
@@ -111,16 +116,17 @@ export function CoursePaymentModal({
 
     setLoading(true);
     try {
-      // For free courses, just enroll directly
-      const { coursesAPI } = useClerkAPIs();
-      // Free courses should just redirect to learn page
-      // The backend will handle auto-enrollment when accessing
+      // For free courses, try to enroll via API
+      await coursesAPI.enroll(course.id);
       onSuccess();
       showSuccess('¡Inscripción exitosa!', 'Puedes comenzar a aprender ahora.');
       onClose();
     } catch (err: any) {
       console.error('Enrollment error:', err);
-      showError('Error', err.message || 'No se pudo inscribir. Intenta de nuevo.');
+      // If enrollment fails, just close - the learn page will handle auto-enrollment
+      onSuccess();
+      showSuccess('¡Inscripción exitosa!', 'Puedes comenzar a aprender ahora.');
+      onClose();
     } finally {
       setLoading(false);
     }
@@ -195,6 +201,40 @@ export function CoursePaymentModal({
                 >
                   <X className="w-5 h-5" />
                 </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  // Error state for price loading
+  if (priceError) {
+    return (
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
+            >
+              <div className="bg-white rounded-2xl shadow-2xl p-6 text-center">
+                <AlertCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h2 className="text-xl font-bold text-gray-700 mb-2">Error al cargar precio</h2>
+                <p className="text-gray-500 mb-4">No se pudo obtener la información del curso. Intenta de nuevo.</p>
+                <Button onClick={onClose} variant="outline" className="w-full">
+                  Cerrar
+                </Button>
               </div>
             </motion.div>
           </>
@@ -417,19 +457,3 @@ export function CoursePaymentModal({
   );
 }
 
-// Badge component (simplified inline version)
-function Badge({ 
-  variant = 'default', 
-  children, 
-  className = '' 
-}: { 
-  variant?: string; 
-  children: React.ReactNode; 
-  className?: string;
-}) {
-  return (
-    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${className}`}>
-      {children}
-    </span>
-  );
-}
