@@ -2,26 +2,29 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, Lock, X, Check, AlertCircle, ChevronRight, Star } from 'lucide-react';
-import { useAuth } from '@clerk/nextjs';
+import { X, Crown, Lock, CheckCircle, CreditCard, AlertCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/toast';
 import { useClerkAPIs } from '@/lib/clerk-api';
+import { useToast } from '@/components/ui/toast';
+
+interface Course {
+  id: string;
+  title: string;
+  description?: string;
+  category?: string;
+  imageUrl?: string;
+  isPro?: boolean;
+  price?: number;
+  requiredLevel?: number;
+}
 
 interface CoursePaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  course: {
-    id: string;
-    title: string;
-    isPro?: boolean;
-    price?: number;
-    requiredLevel?: number;
-  } | null;
+  course: Course | null;
   userLevel: number;
-  isPurchased?: boolean;
-  onSuccess?: () => void;
+  isPurchased: boolean;
+  onSuccess: () => void;
 }
 
 export function CoursePaymentModal({
@@ -29,127 +32,297 @@ export function CoursePaymentModal({
   onClose,
   course,
   userLevel,
-  isPurchased = false,
+  isPurchased,
   onSuccess,
 }: CoursePaymentModalProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [priceData, setPriceData] = useState<{
-    isPurchased: boolean;
-    isPro: boolean;
-    price: number;
-    requiredLevel: number;
-    meetsLevelRequirement: boolean;
-  } | null>(null);
-  const { getToken } = useAuth();
-  const { showError, showSuccess } = useToast();
   const { paymentsAPI } = useClerkAPIs();
+  const { showSuccess, showError } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [coursePrice, setCoursePrice] = useState<{
+    price: number;
+    isPurchased: boolean;
+    meetsLevelRequirement: boolean;
+    requiredLevel: number;
+    isPro: boolean;
+  } | null>(null);
+  const [loadingPrice, setLoadingPrice] = useState(false);
 
-  // Reset state when modal opens/closes
+  // Fetch course price when modal opens
   useEffect(() => {
-    if (isOpen && course) {
-      setError(null);
-      // Fetch price data from API with Clerk token
-      getToken().then(() => {
-        return paymentsAPI.getCoursePrice(course.id).then(data => {
-          setPriceData({
-            isPurchased: data.isPurchased,
-            isPro: data.isPro,
-            price: data.price,
-            requiredLevel: data.requiredLevel,
-            meetsLevelRequirement: data.meetsLevelRequirement,
-          });
-        });
-      }).catch(err => {
-        // If API call fails (401 = not authenticated), use course props as fallback
-        console.log('Using course props as fallback for price data');
-        setPriceData(null);
-      });
-    } else if (!isOpen) {
-      setPriceData(null);
+    if (isOpen && course && !isPurchased) {
+      loadCoursePrice();
     }
-  }, [isOpen, course, getToken]);
+  }, [isOpen, course, isPurchased]);
 
-  if (!course) return null;
-
-  const handlePurchase = async () => {
+  const loadCoursePrice = async () => {
     if (!course) return;
-    setIsLoading(true);
-    setError(null);
-
+    
+    setLoadingPrice(true);
     try {
-      console.log('[CHECKOUT] Starting checkout for course:', course.id);
-      
-      // Get Clerk token for authentication
-      const clerkToken = await getToken();
-      console.log('[CHECKOUT] Clerk token obtained:', clerkToken ? 'yes' : 'no');
-
-      // Use priceData from API if available, otherwise use course props
-      const purchaseData = priceData || {
-        isPurchased: isPurchased,
-        isPro: course.isPro,
+      const priceData = await paymentsAPI.getCoursePrice(course.id) as any;
+      setCoursePrice({
+        price: priceData.price || 0,
+        isPurchased: priceData.isPurchased || isPurchased,
+        meetsLevelRequirement: priceData.meetsLevelRequirement ?? true,
+        requiredLevel: priceData.requiredLevel || 0,
+        isPro: priceData.isPro || course.isPro || false,
+      });
+    } catch (err) {
+      console.error('Error loading course price:', err);
+      // Use default values from course
+      setCoursePrice({
         price: course.price || 0,
-        requiredLevel: course.requiredLevel || 0,
+        isPurchased: isPurchased,
         meetsLevelRequirement: true,
-      };
-      console.log('[CHECKOUT] Purchase data:', purchaseData);
-
-      if (purchaseData.isPurchased) {
-        showSuccess('¡Ya tienes este curso!');
-        onClose();
-        return;
-      }
-
-      if (!purchaseData.meetsLevelRequirement) {
-        setError(`Necesitas nivel ${purchaseData.requiredLevel || 0} para desbloquear este curso PRO. Tu nivel actual: ${userLevel}`);
-        setIsLoading(false);
-        return;
-      }
-
-      console.log('[CHECKOUT] Calling paymentsAPI.checkout...');
-      // Create checkout session with Clerk token
-      const response = await paymentsAPI.checkout(course.id);
-      console.log('[CHECKOUT] Response received:', response);
-      console.log('[CHECKOUT] checkoutUrl from response:', response?.data?.checkoutUrl);
-      console.log('[CHECKOUT] Full response structure:', JSON.stringify(response, null, 2));
-
-      if (response?.data?.checkoutUrl) {
-        const checkoutUrl = response.data.checkoutUrl;
-        console.log('[CHECKOUT] Redirecting to:', checkoutUrl);
-        // Show redirecting state before opening
-        setIsRedirecting(true);
-        // Open Stripe checkout in a new tab (avoids popup blockers)
-        const opened = window.open(checkoutUrl, '_blank');
-        if (opened) {
-          showSuccess('Redirigiendo a Stripe...');
-          onClose();
-        } else {
-          setError('No se pudo abrir Stripe. Permite ventanas emergentes para este sitio e intenta de nuevo.');
-          setIsRedirecting(false);
-        }
-      } else {
-        console.log('[CHECKOUT] No checkoutUrl in response:', response);
-        setError('No se pudo obtener la página de pago. Intenta de nuevo.');
-      }
-    } catch (err: any) {
-      console.error('[CHECKOUT] Error:', err);
-      const message = err?.message || 'Error al procesar el pago';
-      setError(message);
-      showError(message);
+        requiredLevel: course.requiredLevel || 0,
+        isPro: course.isPro || false,
+      });
     } finally {
-      setIsLoading(false);
-      setIsRedirecting(false);
+      setLoadingPrice(false);
     }
   };
 
-  const priceInUSD = (course.price || 0) / 100;
+  const handlePurchase = async () => {
+    if (!course) return;
 
+    setLoading(true);
+    try {
+      // Create Stripe checkout session
+      const response = await paymentsAPI.checkout(course.id) as any;
+      
+      if (response?.data?.checkoutUrl) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.checkoutUrl;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (err: any) {
+      console.error('Purchase error:', err);
+      showError(
+        'Error al iniciar compra',
+        err.message || 'No se pudo iniciar el proceso de pago. Intenta de nuevo.'
+      );
+      setLoading(false);
+    }
+  };
+
+  const handleFreeEnrollment = async () => {
+    if (!course) return;
+
+    setLoading(true);
+    try {
+      // For free courses, just enroll directly
+      const { coursesAPI } = useClerkAPIs();
+      // Free courses should just redirect to learn page
+      // The backend will handle auto-enrollment when accessing
+      onSuccess();
+      showSuccess('¡Inscripción exitosa!', 'Puedes comenzar a aprender ahora.');
+      onClose();
+    } catch (err: any) {
+      console.error('Enrollment error:', err);
+      showError('Error', err.message || 'No se pudo inscribir. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!course) return null;
+
+  const price = coursePrice?.price || course.price || 0;
+  const alreadyPurchased = coursePrice?.isPurchased || isPurchased;
+  const meetsLevel = coursePrice?.meetsLevelRequirement ?? true;
+  const requiredLevel = coursePrice?.requiredLevel || course.requiredLevel || 0;
+  const isProCourse = coursePrice?.isPro || course.isPro;
+
+  // If already purchased, show success state
+  if (alreadyPurchased) {
+    return (
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
+            >
+              <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                {/* Header with success gradient */}
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-6 text-white text-center">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-10 h-10" />
+                  </div>
+                  <h2 className="text-2xl font-bold">¡Ya tienes este curso!</h2>
+                  <p className="opacity-90 mt-1">Puedes acceder cuando quieras</p>
+                </div>
+
+                {/* Course info */}
+                <div className="p-6">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-14 h-14 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center text-3xl">
+                      📚
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">{course.title}</h3>
+                      <p className="text-gray-500 text-sm">Curso PRO</p>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => {
+                      onClose();
+                      window.location.href = `/learn/${course.id}`;
+                    }}
+                    className="w-full"
+                    size="lg"
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    Continuar Aprendiendo
+                  </Button>
+                </div>
+
+                {/* Close button */}
+                <button
+                  onClick={onClose}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  // Loading price state
+  if (loadingPrice) {
+    return (
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
+            >
+              <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
+                <div className="animate-pulse">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4" />
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto mb-2" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto" />
+                </div>
+                <p className="text-gray-500 mt-4">Cargando información...</p>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  // Level requirement not met
+  if (!meetsLevel && requiredLevel > 0) {
+    return (
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
+            >
+              <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                {/* Header with warning */}
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white text-center">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Lock className="w-10 h-10" />
+                  </div>
+                  <h2 className="text-2xl font-bold">Nivel requerido</h2>
+                  <p className="opacity-90 mt-1">Sube de nivel para desbloquear</p>
+                </div>
+
+                {/* Course info */}
+                <div className="p-6">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-14 h-14 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center text-3xl">
+                      📚
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">{course.title}</h3>
+                      <p className="text-gray-500 text-sm">Curso PRO</p>
+                    </div>
+                  </div>
+
+                  {/* Level comparison */}
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                    <div className="flex items-center justify-between">
+                      <span className="text-amber-800 font-medium">Tu nivel actual</span>
+                      <span className="text-amber-900 font-bold text-lg">Nivel {userLevel}</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-amber-800 font-medium">Nivel requerido</span>
+                      <span className="text-amber-900 font-bold text-lg">Nivel {requiredLevel}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 text-center text-sm mb-4">
+                    Completa más lecciones para subir de nivel y acceder a este curso.
+                  </p>
+
+                  <Button
+                    onClick={onClose}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Continuar Aprendiendo
+                  </Button>
+                </div>
+
+                {/* Close button */}
+                <button
+                  onClick={onClose}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  // Main purchase modal for PRO courses
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -157,174 +330,81 @@ export function CoursePaymentModal({
             onClick={onClose}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
           />
-
-          {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-0 flex items-center justify-center z-50 p-4"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
           >
-            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
               {/* Header with PRO gradient */}
-              <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 p-6 text-white relative">
-                <button
-                  onClick={onClose}
-                  className="absolute top-4 right-4 p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                    <Crown className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold">Curso PRO</h2>
-                    <p className="text-white/80 text-sm">Contenido premium exclusivo</p>
-                  </div>
+              <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white">
+                <div className="flex items-center justify-between mb-4">
+                  <Badge variant="outline" className="bg-white/20 border-white/40 text-white">
+                    <Crown className="w-4 h-4 mr-1" />
+                    CURSO PRO
+                  </Badge>
+                  <button
+                    onClick={onClose}
+                    className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
+                <h2 className="text-2xl font-bold">{course.title}</h2>
+                {course.description && (
+                  <p className="opacity-90 mt-1 line-clamp-2">{course.description}</p>
+                )}
               </div>
 
-              {/* Content */}
+              {/* Price section */}
               <div className="p-6">
-                {/* Course info */}
-                <div className="mb-6">
-                  <h3 className="font-bold text-lg mb-2">{course.title}</h3>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Badge variant="warning" className="gap-1">
-                      <Crown className="w-3 h-3" />
-                      Contenido PRO
-                    </Badge>
-                    {(course.requiredLevel || 0) > 0 && (
-                      <Badge variant="secondary" className="gap-1">
-                        <Star className="w-3 h-3" />
-                        Nivel {course.requiredLevel}+
-                      </Badge>
-                    )}
+                <div className="text-center mb-6">
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-gray-400 line-through text-lg">
+                      ${((price * 1.3) / 100).toFixed(2)}
+                    </span>
+                    <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full font-medium">
+                      -23%
+                    </span>
                   </div>
+                  <div className="text-5xl font-bold text-gray-900 mt-2">
+                    ${(price / 100).toFixed(2)}
+                  </div>
+                  <p className="text-gray-500 text-sm mt-1">Pago único • Acceso de por vida</p>
                 </div>
 
                 {/* Features */}
                 <div className="space-y-3 mb-6">
-                  <h4 className="font-semibold text-sm text-gray-700">¿Qué incluye?</h4>
-                  <ul className="space-y-2">
-                    {[
-                      'Lecciones avanzadas exclusivas',
-                      'Proyectos prácticos del mundo real',
-                      'Certificado de finalización',
-                      'Acceso directo al instructor',
-                      'Recursos descargables premium',
-                    ].map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm">
-                        <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
-                          <Check className="w-3 h-3 text-green-600" />
-                        </div>
-                        <span className="text-gray-600">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {[
+                    'Acceso ilimitado a todas las lecciones',
+                    'Certificado de finalización',
+                    'Ejercicios prácticos interactivos',
+                    'Soporte prioritario',
+                  ].map((feature, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      </div>
+                      <span className="text-gray-700">{feature}</span>
+                    </div>
+                  ))}
                 </div>
 
-                {/* Level requirement warning - hide if already purchased */}
-                {(course.requiredLevel || 0) > 0 && userLevel < (course.requiredLevel || 0) && !isPurchased && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-amber-800 text-sm">Nivel requerido</p>
-                        <p className="text-amber-700 text-sm">
-                          Necesitas nivel <strong>{course.requiredLevel || 0}</strong> para desbloquear este curso.
-                          Tu nivel actual: <strong>{userLevel}</strong>
-                        </p>
-                        <p className="text-amber-600 text-xs mt-1">
-                          Sigue aprendiendo para alcanzar el nivel requerido.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Error message */}
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-                      <p className="text-red-700 text-sm">{error}</p>
-                    </div>
-                  </div>
-                )}
-
-
-
-                {/* Purchase status or price */}
-                {(priceData?.isPurchased || isPurchased) ? (
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                        <Check className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-green-800">¡Ya tienes este curso!</p>
-                        <p className="text-green-600 text-sm">Tienes acceso completo al contenido PRO</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (priceData?.price || course.price || 0) > 0 ? (
-                  <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Precio del curso</span>
-                      <span className="text-2xl font-bold text-gray-900">
-                        ${((priceData?.price || course.price || 0) / 100).toFixed(2)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Pago único • Acceso de por vida
-                    </p>
-                  </div>
-                ) : null}
-
-                {/* Actions */}
-                <div className="flex gap-3">
-                  <Button variant="outline" onClick={onClose} className="flex-1">
-                    {isPurchased ? 'Cerrar' : 'Cancelar'}
-                  </Button>
-                  {!isPurchased && !(priceData?.isPurchased) && (
-                    <Button
-                      onClick={handlePurchase}
-                      isLoading={isLoading || isRedirecting}
-                      disabled={isLoading || isRedirecting || (priceData ? !priceData.meetsLevelRequirement : ((course.requiredLevel || 0) > 0 && userLevel < (course.requiredLevel || 0)))}
-                      className="flex-1 gap-2"
-                      style={{
-                        background: 'linear-gradient(to right, #f59e0b, #ea580c)',
-                      }}
-                    >
-                      {(isLoading || isRedirecting) ? (
-                        <>
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                            className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                          />
-                          {isRedirecting ? 'Abriendo Stripe...' : 'Procesando...'}
-                        </>
-                      ) : (priceData?.price || course.price || 0) > 0 ? (
-                        <>
-                          <Crown className="w-4 h-4" />
-                          Desbloquear por ${((priceData?.price || course.price || 0) / 100).toFixed(2)}
-                        </>
-                      ) : (
-                        <>
-                          <Star className="w-4 h-4" />
-                          Desbloquear Gratis
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
+                {/* Purchase button */}
+                <Button
+                  onClick={handlePurchase}
+                  disabled={loading}
+                  loading={loading}
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                  size="lg"
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  {loading ? 'Procesando...' : 'Comprar ahora'}
+                </Button>
 
                 {/* Secure payment note */}
-                <div className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-400">
+                <div className="flex items-center justify-center gap-2 mt-4 text-gray-400 text-xs">
                   <Lock className="w-3 h-3" />
                   <span>Pago seguro procesado por Stripe</span>
                 </div>
@@ -334,5 +414,22 @@ export function CoursePaymentModal({
         </>
       )}
     </AnimatePresence>
+  );
+}
+
+// Badge component (simplified inline version)
+function Badge({ 
+  variant = 'default', 
+  children, 
+  className = '' 
+}: { 
+  variant?: string; 
+  children: React.ReactNode; 
+  className?: string;
+}) {
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${className}`}>
+      {children}
+    </span>
   );
 }
