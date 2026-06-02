@@ -46,6 +46,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider
+      signInUrl="/login"
+      signUpUrl="/register"
+      afterSignInUrl="/dashboard"
+      afterSignUpUrl="/dashboard"
       allowedRedirectOrigins={[
         'http://localhost:3000',
         'https://freebuffgame-web.onrender.com',
