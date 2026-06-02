@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { spawn } from 'child_process';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, requireAdmin, AuthRequest } from '../middlewares/auth.js';
 import { AppError } from '../middlewares/error.js';
@@ -22,10 +23,26 @@ seedRouter.post('/', async (req: AuthRequest, res: any, next: any) => {
 
     console.log('🚀 Starting comprehensive seed from /api/seed...');
     
-    // Import the seed function - use .js extension for compiled file
-    // Note: seed.ts must be compiled to seed.js first (run: npx tsx prisma/seed.ts to compile)
-    const { main } = await import('../../prisma/seed.js');
-    await main();
+    // Execute seed.ts using tsx spawn
+    await new Promise<void>((resolve, reject) => {
+      const seed = spawn('npx', ['tsx', 'prisma/seed.ts'], {
+        cwd: __dirname + '/../..',
+        stdio: 'inherit',
+        shell: true
+      });
+      
+      seed.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Seed process exited with code ${code}`));
+        }
+      });
+      
+      seed.on('error', (err) => {
+        reject(err);
+      });
+    });
     
     console.log('✅ Comprehensive seed completed successfully');
     
