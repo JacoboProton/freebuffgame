@@ -157,7 +157,7 @@ export function UserManagement() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-users', page, search],
-    queryFn: () => fetchAPI<{ data: { users: User[]; pagination: { page: number; pages: number; total: number } } }>(
+    queryFn: () => fetchAPI<{ users: User[]; pagination: { page: number; pages: number; total: number } }>(
       `/admin/users?page=${page}&limit=20&search=${search}`
     ),
   });
@@ -172,8 +172,8 @@ export function UserManagement() {
     },
   });
 
-  const users = data?.data?.users || [];
-  const pagination = data?.data?.pagination || { page: 1, pages: 1, total: 0 };
+  const users = data?.users || [];
+  const pagination = data?.pagination || { page: 1, pages: 1, total: 0 };
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('es-ES', {

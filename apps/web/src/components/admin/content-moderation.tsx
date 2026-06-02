@@ -50,9 +50,9 @@ export function ContentModeration() {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery<{ data: ReportsResponse }>({
+  const { data, isLoading } = useQuery<ReportsResponse>({
     queryKey: ['moderation-reports', page, statusFilter],
-    queryFn: () => fetchAPI<{ data: ReportsResponse }>(
+    queryFn: () => fetchAPI<ReportsResponse>(
       `/admin/moderation/reports?status=${statusFilter}&page=${page}&limit=10`
     ),
   });
@@ -80,8 +80,8 @@ export function ContentModeration() {
     },
   });
 
-  const reports = data?.data?.reports || [];
-  const pagination = data?.data?.pagination || { page: 1, pages: 1, total: 0 };
+  const reports = data?.reports || [];
+  const pagination = data?.pagination || { page: 1, pages: 1, total: 0 };
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('es-ES', {

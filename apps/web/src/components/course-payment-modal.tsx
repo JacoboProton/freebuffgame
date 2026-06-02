@@ -95,9 +95,9 @@ export function CoursePaymentModal({
       // Create Stripe checkout session
       const response = await paymentsAPI.checkout(course.id) as any;
       
-      if (response?.data?.checkoutUrl) {
+      if (response?.checkoutUrl) {
         // Redirect to Stripe checkout
-        window.location.href = response.data.checkoutUrl;
+        window.location.href = response.checkoutUrl;
       } else {
         throw new Error('No checkout URL received');
       }

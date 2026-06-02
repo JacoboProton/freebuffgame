@@ -148,7 +148,7 @@ function createClerkAPI(getToken: () => Promise<string | null>) {
         }>(`/payments/course/${courseId}/price`, { getToken }),
 
       checkout: (courseId: string) =>
-        baseFetchAPI<{ status: string; data: { checkoutUrl: string; sessionId: string } }>(
+        baseFetchAPI<{ checkoutUrl: string; sessionId: string }>(
           `/payments/course/${courseId}/checkout`,
           { method: 'POST', getToken }
         ),

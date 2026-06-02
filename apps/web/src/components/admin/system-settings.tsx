@@ -210,11 +210,11 @@ export function SystemSettings() {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery<{ data: { settings: SystemSetting[] } }>({
+  const { data, isLoading } = useQuery<{ settings: SystemSetting[] }>({
     queryKey: ['admin-settings', categoryFilter],
     queryFn: () => {
       const url = categoryFilter ? `/admin/settings?category=${categoryFilter}` : '/admin/settings';
-      return fetchAPI<{ data: { settings: SystemSetting[] } }>(url);
+      return fetchAPI<{ settings: SystemSetting[] }>(url);
     },
   });
 
@@ -227,7 +227,7 @@ export function SystemSettings() {
     },
   });
 
-  const settings = data?.data?.settings || [];
+  const settings = data?.settings || [];
 
   const filteredSettings = settings.filter((s) =>
     s.key.toLowerCase().includes(search.toLowerCase()) ||

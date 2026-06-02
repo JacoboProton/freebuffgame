@@ -58,7 +58,7 @@ function SendNotificationModal({ onClose, onSuccess }: SendNotificationModalProp
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       if (data.type === 'broadcast') {
-        const result = await fetchAPI<{ data: { count: number; message: string } }>('/admin/notifications/broadcast', {
+        const result = await fetchAPI<{ count: number; message: string }>('/admin/notifications/broadcast', {
           method: 'POST',
           body: JSON.stringify({ title: data.title, message: data.message }),
         });
@@ -172,17 +172,17 @@ export function NotificationManagement() {
 
   const queryClient = useQueryClient();
 
-  const { data: notificationsData, isLoading: notificationsLoading } = useQuery<{ data: { notifications: Notification[]; pagination: any } }>({
+  const { data: notificationsData, isLoading: notificationsLoading } = useQuery<{ notifications: Notification[]; pagination: any }>({
     queryKey: ['admin-notifications', typeFilter],
     queryFn: () => {
       const url = typeFilter ? `/admin/notifications?type=${typeFilter}` : '/admin/notifications';
-      return fetchAPI<{ data: { notifications: Notification[]; pagination: any } }>(url);
+      return fetchAPI<{ notifications: Notification[]; pagination: any }>(url);
     },
   });
 
-  const { data: templatesData, isLoading: templatesLoading } = useQuery<{ data: { templates: NotificationTemplate[] } }>({
+  const { data: templatesData, isLoading: templatesLoading } = useQuery<{ templates: NotificationTemplate[] }>({
     queryKey: ['notification-templates'],
-    queryFn: () => fetchAPI<{ data: { templates: NotificationTemplate[] } }>('/admin/notifications/templates'),
+    queryFn: () => fetchAPI<{ templates: NotificationTemplate[] }>('/admin/notifications/templates'),
   });
 
   const deleteMutation = useMutation({
@@ -221,8 +221,8 @@ export function NotificationManagement() {
     },
   });
 
-  const notifications = notificationsData?.data?.notifications || [];
-  const templates = templatesData?.data?.templates || [];
+  const notifications = notificationsData?.notifications || [];
+  const templates = templatesData?.templates || [];
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('es-ES', {

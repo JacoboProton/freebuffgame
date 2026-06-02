@@ -70,7 +70,12 @@ async function fetchAPI<T>(
       credentials: 'include',
     });
 
-    const data = await response.json().catch(() => ({ message: 'Invalid response' }));
+    const raw = await response.json().catch(() => ({ message: 'Invalid response' }));
+
+    // Unwrap { status: 'success', data: { ... } } envelope so callers receive the inner payload directly
+    const data = raw && typeof raw === 'object' && raw.status === 'success' && 'data' in raw
+      ? raw.data
+      : raw;
 
     if (!response.ok) {
       // Check for token expired error and retry with fresh token if getToken available

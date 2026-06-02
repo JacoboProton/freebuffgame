@@ -51,17 +51,17 @@ const defaultAnalytics: AnalyticsData = {
 export function Analytics() {
   const { data: analyticsResponse, isLoading } = useQuery({
     queryKey: ['admin-analytics'],
-    queryFn: () => fetchAPI<{ data: AnalyticsData }>('/admin/analytics'),
+    queryFn: () => fetchAPI<AnalyticsData>('/admin/analytics'),
   });
 
   const { data: courseAnalyticsResponse } = useQuery({
     queryKey: ['admin-analytics-courses'],
-    queryFn: () => fetchAPI<{ data: { courses: any[] } }>('/admin/analytics/courses'),
+    queryFn: () => fetchAPI<{ courses: any[] }>('/admin/analytics/courses'),
   });
 
   const { data: userAnalyticsResponse } = useQuery({
     queryKey: ['admin-analytics-users'],
-    queryFn: () => fetchAPI<{ data: { topUsers: any[] } }>('/admin/analytics/users'),
+    queryFn: () => fetchAPI<{ topUsers: any[] }>('/admin/analytics/users'),
   });
 
   if (isLoading) {
@@ -70,9 +70,9 @@ export function Analytics() {
     );
   }
 
-  const analytics = analyticsResponse?.data || defaultAnalytics;
-  const courses = courseAnalyticsResponse?.data?.courses || [];
-  const topUsers = userAnalyticsResponse?.data?.topUsers || [];
+  const analytics = analyticsResponse || defaultAnalytics;
+  const courses = courseAnalyticsResponse?.courses || [];
+  const topUsers = userAnalyticsResponse?.topUsers || [];
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-ES', {

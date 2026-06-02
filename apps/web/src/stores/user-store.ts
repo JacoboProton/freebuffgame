@@ -74,11 +74,11 @@ export const useUserStore = create<UserState>((set, get) => ({
   fetchDailyGoals: async (getToken?: () => Promise<string | null>) => {
     try {
       if (getToken) {
-        const response = await clerkFetchAPI<{ data: { dailyGoals: DailyGoal[]; summary: any } }>('/daily-goals', getToken);
-        set({ dailyGoals: response.data.dailyGoals });
+        const response = await clerkFetchAPI<{ dailyGoals: DailyGoal[]; summary: any }>('/daily-goals', getToken);
+        set({ dailyGoals: response.dailyGoals });
       } else {
-        const response = await fetchAPI<{ data: { dailyGoals: DailyGoal[]; summary: any } }>('/daily-goals');
-        set({ dailyGoals: response.data.dailyGoals });
+        const response = await fetchAPI<{ dailyGoals: DailyGoal[]; summary: any }>('/daily-goals');
+        set({ dailyGoals: response.dailyGoals });
       }
     } catch (error) {
       console.error('Error fetching daily goals:', error);
@@ -97,13 +97,13 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       // Call the API to claim the reward
       if (getToken) {
-        await clerkFetchAPI<{ data: { xpEarned: number; coinsEarned: number; user: any } }>(
+        await clerkFetchAPI<{ xpEarned: number; coinsEarned: number; user: any }>(
           `/daily-goals/claim/${goalId}`,
           getToken,
           { method: 'POST' }
         );
       } else {
-        await fetchAPI<{ data: { xpEarned: number; coinsEarned: number; user: any } }>(
+        await fetchAPI<{ xpEarned: number; coinsEarned: number; user: any }>(
           `/daily-goals/claim/${goalId}`,
           { method: 'POST' }
         );

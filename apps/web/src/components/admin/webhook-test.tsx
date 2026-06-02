@@ -68,14 +68,14 @@ export function WebhookTest() {
       setLoading(true);
       setError(null);
       const [statusRes, sessionsRes, purchasesRes] = await Promise.all([
-        fetchAPI<{ data: StripeStatus }>('/payments/admin/stripe-status'),
-        fetchAPI<{ data: { sessions: StripeSession[] } }>('/payments/admin/sessions?limit=20'),
-        fetchAPI<{ data: { purchases: Purchase[] } }>('/payments/admin/purchases?limit=50'),
+        fetchAPI<StripeStatus>('/payments/admin/stripe-status'),
+        fetchAPI<{ sessions: StripeSession[] }>('/payments/admin/sessions?limit=20'),
+        fetchAPI<{ purchases: Purchase[] }>('/payments/admin/purchases?limit=50'),
       ]);
       
-      setStripeStatus(statusRes.data);
-      setSessions(sessionsRes.data.sessions);
-      setPurchases(purchasesRes.data.purchases);
+      setStripeStatus(statusRes);
+      setSessions(sessionsRes.sessions);
+      setPurchases(purchasesRes.purchases);
     } catch (err: any) {
       console.error('Error loading webhook test data:', err);
       setError(err.message || 'Error al cargar datos');
@@ -87,12 +87,12 @@ export function WebhookTest() {
   const handleVerifyPurchase = async (sessionId: string) => {
     try {
       setVerifying(sessionId);
-      const result = await fetchAPI<{ data: any }>('/payments/admin/verify-purchase', {
+      const result = await fetchAPI<any>('/payments/admin/verify-purchase', {
         method: 'POST',
         body: JSON.stringify({ sessionId }),
       });
       
-      alert(`✅ ${result.data.message}`);
+      alert(`✅ ${result.message}`);
       loadData(); // Refresh data
     } catch (err: any) {
       alert(`❌ Error: ${err.message}`);
@@ -125,12 +125,12 @@ export function WebhookTest() {
       if (manualForm.courseId) body.courseId = manualForm.courseId.trim();
       if (manualForm.userId) body.userId = manualForm.userId.trim();
       
-      const result = await fetchAPI<{ data: any }>('/payments/admin/verify-purchase', {
+      const result = await fetchAPI<any>('/payments/admin/verify-purchase', {
         method: 'POST',
         body: JSON.stringify(body),
       });
       
-      setVerificationResult(result.data);
+      setVerificationResult(result);
       // Clear form on success
       if (result.data.verified) {
         setManualForm({ sessionId: '', courseId: '', userId: '' });
