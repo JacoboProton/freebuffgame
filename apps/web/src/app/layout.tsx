@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ClerkProvider } from '@clerk/nextjs';
+import { ClerkProviderWrapper } from '@/components/clerk-provider-wrapper';
 import { Inter, Nunito, JetBrains_Mono } from 'next/font/google';
 import { QueryProvider } from '@/lib/query-provider';
 import { ToastProvider } from '@/components/ui/toast';
@@ -45,18 +45,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider
-      signInUrl="/login"
-      signUpUrl="/register"
-      afterSignInUrl="/dashboard"
-      afterSignUpUrl="/dashboard"
-      allowedRedirectOrigins={[
-        'http://localhost:3000',
-        'https://freebuffgame-web.onrender.com',
-        'https://rxktk3y4.insforge.site',
-        /^https:\/\/.*\.vercel\.app$/,
-      ]}
-    >
+    <ClerkProviderWrapper>
       <html lang='es'>
         <body className={`${inter.variable} ${nunito.variable} ${jetbrainsMono.variable}`}>
           <QueryProvider>
@@ -70,6 +59,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </QueryProvider>
         </body>
       </html>
-    </ClerkProvider>
+    </ClerkProviderWrapper>
   );
 }
