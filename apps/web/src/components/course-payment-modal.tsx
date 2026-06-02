@@ -380,7 +380,7 @@ export function CoursePaymentModal({
               {/* Header with PRO gradient */}
               <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white">
                 <div className="flex items-center justify-between mb-4">
-                  <Badge variant="outline" className="bg-white/20 border-white/40 text-white">
+                  <Badge variant="secondary" className="bg-white/20 border-white/40 text-white">
                     <Crown className="w-4 h-4 mr-1" />
                     CURSO PRO
                   </Badge>
