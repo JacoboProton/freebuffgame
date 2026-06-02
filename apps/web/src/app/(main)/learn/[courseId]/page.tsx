@@ -70,11 +70,11 @@ export default function LessonPage() {
         setLoading(true);
         setError(null);
         
-        // First, get the current lesson for this course (continue where left off)
+        // First, try to get current lesson for this course (continue where left off)
         const currentLessonResponse = await coursesAPI.getCurrentLesson(courseId).catch(() => null);
         
         if (currentLessonResponse?.currentLesson) {
-          // Fetch the actual lesson content
+          // User is enrolled and has a current lesson
           const lessonId = currentLessonResponse.currentLesson.id;
           const response = await lessonsAPI.getById(lessonId).catch(() => null);
           
@@ -86,15 +86,37 @@ export default function LessonPage() {
           } else {
             throw new Error('No se pudo cargar el contenido de la lección');
           }
+        } else if (currentLessonResponse?.error?.includes('403') || currentLessonResponse?.message?.includes('enrolled')) {
+          // User is not enrolled - auto-enroll them
+          await coursesAPI.enroll(courseId).catch(() => null);
+          
+          // After enrolling, get the first lesson
+          const firstLessonResponse = await coursesAPI.getCurrentLesson(courseId).catch(() => null);
+          
+          if (firstLessonResponse?.currentLesson) {
+            const lessonId = firstLessonResponse.currentLesson.id;
+            const response = await lessonsAPI.getById(lessonId).catch(() => null);
+            
+            if (response?.lesson) {
+              setLesson(response.lesson);
+              setProgress(response.progress);
+              setCourseProgress(firstLessonResponse.progress);
+              setJacMessage('¡Bienvenido! Esta es tu primera lección. ¡Vamos a empezar!');
+            } else {
+              throw new Error('No se pudo cargar el contenido de la lección');
+            }
+          } else {
+            throw new Error('No se encontraron lecciones en este curso');
+          }
         } else {
-          // User is not enrolled or course doesn't exist
-          throw new Error('No estás enrolled en este curso');
+          // Course doesn't exist or other error
+          throw new Error(currentLessonResponse?.message || 'Curso no encontrado');
         }
       } catch (err: any) {
         setError(err.message || 'Error al cargar la lección');
         setJacMood('sad');
-        setJacMessage(err.message?.includes('enrolled') 
-          ? 'Parece que no estás enrolled en este curso. ¡Inscríbete para comenzar!' 
+        setJacMessage(err.message?.includes('enrolled') || err.message?.includes('Curso no encontrado')
+          ? 'Parece que no estás enrolled en este curso. ¡Inscríbete para comenzar!'
           : '¡Ups! No pude cargar la lección. ¿Intentamos de nuevo? 😅');
       } finally {
         setLoading(false);
