@@ -4,18 +4,14 @@ import { authenticate, requireAdmin, AuthRequest } from '../middlewares/auth.js'
 import { AppError } from '../middlewares/error.js';
 import bcrypt from 'bcryptjs';
 
-export const adminRouter = Router();
+// ============================================
+// SEED ROUTER - NO AUTH REQUIRED
+// ============================================
 
-// All admin routes require authentication and admin role (except seed)
-adminRouter.use(authenticate, requireAdmin);
-
-// ===========================================
-// SEED ENDPOINT - NO AUTH REQUIRED
-// This must be mounted BEFORE the auth middleware above
-// ===========================================
 export const seedRouter = Router();
 
-seedRouter.post('/', async (req: AuthRequest, res, next) => {
+// SEED ENDPOINT - Uses comprehensive seed.ts data
+seedRouter.post('/', async (req: AuthRequest, res: any, next: any) => {
   try {
     const secret = req.headers['x-seed-secret'];
     const expectedSecret = process.env.SEED_SECRET || 'dev-seed-secret';
@@ -23,6 +19,33 @@ seedRouter.post('/', async (req: AuthRequest, res, next) => {
     if (secret !== expectedSecret) {
       throw new AppError('Secret inválido. Verifica el valor de SEED_SECRET en Render.', 401);
     }
+
+    console.log('🚀 Starting comprehensive seed from /api/seed...');
+    
+    // Dynamically import and execute the seed function
+    const { main } = await import('../seed.js');
+    await main();
+    
+    console.log('✅ Comprehensive seed completed successfully');
+    
+    res.json({ 
+      status: 'success', 
+      message: 'Seed completo ejecutado exitosamente. Todos los cursos, logros, juegos y items creados.'
+    });
+  } catch (error) {
+    console.error('❌ Seed endpoint error:', error);
+    next(error);
+  }
+});
+
+// ============================================
+// ADMIN ROUTER - AUTH REQUIRED
+// ============================================
+
+export const adminRouter = Router();
+
+// All admin routes require authentication and admin role
+adminRouter.use(authenticate, requireAdmin);
 
 // Get dashboard stats
 adminRouter.get('/stats', async (req: AuthRequest, res, next) => {
@@ -450,17 +473,14 @@ adminRouter.get('/analytics', async (req: AuthRequest, res, next) => {
       }),
     ]);
 
-    // Calculate total revenue
     const totalRevenue = revenueData.reduce((sum, p) => sum + p.amountPaid, 0) / 100;
 
-    // Calculate user growth by month
     const userGrowthByMonth: Record<string, number> = {};
     userGrowth.forEach((user) => {
       const month = user.createdAt.toISOString().substring(0, 7);
       userGrowthByMonth[month] = (userGrowthByMonth[month] || 0) + 1;
     });
 
-    // Calculate category stats
     const categoryStatsMap: Record<string, { enrollments: number; completions: number }> = {};
     categoryStats.forEach((course) => {
       if (!categoryStatsMap[course.category]) {
@@ -560,7 +580,6 @@ adminRouter.get('/analytics/users', async (req: AuthRequest, res, next) => {
       take: 50,
     });
 
-    // Group by level
     const levelDistribution: Record<number, number> = {};
     const xpDistribution: { range: string; count: number }[] = [
       { range: '0-100', count: 0 },
@@ -593,10 +612,7 @@ adminRouter.get('/analytics/users', async (req: AuthRequest, res, next) => {
   }
 });
 
-// ===========================================
 // CONTENT MODERATION
-// ===========================================
-
 adminRouter.get('/moderation/reports', async (req: AuthRequest, res, next) => {
   try {
     const { status = 'pending', page = 1, limit = 20 } = req.query;
@@ -693,10 +709,7 @@ adminRouter.post('/moderation/reports', async (req: AuthRequest, res, next) => {
   }
 });
 
-// ===========================================
 // SYSTEM SETTINGS
-// ===========================================
-
 adminRouter.get('/settings', async (req: AuthRequest, res, next) => {
   try {
     const { category } = req.query;
@@ -723,7 +736,6 @@ adminRouter.get('/settings/public', async (req: AuthRequest, res, next) => {
       where: { isPublic: true },
     });
 
-    // Convert to key-value object
     const settingsObj: Record<string, any> = {};
     settings.forEach((s) => {
       if (s.type === 'number') settingsObj[s.key] = Number(s.value);
@@ -781,10 +793,7 @@ adminRouter.delete('/settings/:key', async (req: AuthRequest, res, next) => {
   }
 });
 
-// ===========================================
 // NOTIFICATIONS
-// ===========================================
-
 adminRouter.get('/notifications', async (req: AuthRequest, res, next) => {
   try {
     const { type, page = 1, limit = 50 } = req.query;
@@ -844,13 +853,11 @@ adminRouter.post('/notifications/broadcast', async (req: AuthRequest, res, next)
   try {
     const { title, message, data } = req.body;
 
-    // Get all user IDs
     const users = await prisma.user.findMany({
       select: { id: true },
       where: { role: 'user' },
     });
 
-    // Create notifications for all users
     const notifications = await prisma.notification.createMany({
       data: users.map((user) => ({
         userId: user.id,
@@ -929,10 +936,7 @@ adminRouter.delete('/notifications/clear-all', async (req: AuthRequest, res, nex
   }
 });
 
-// ===========================================
 // NOTIFICATION TEMPLATES
-// ===========================================
-
 adminRouter.get('/notifications/templates', async (req: AuthRequest, res, next) => {
   try {
     const templates = await prisma.notificationTemplate.findMany({
@@ -999,187 +1003,186 @@ adminRouter.delete('/notifications/templates/:key', async (req: AuthRequest, res
   }
 });
 
-// ===========================================
-// PLACEHOLDER - Seed endpoint moved to seedRouter
-// ===========================================
+// WEBHOOK MANAGEMENT
+adminRouter.get('/webhooks', async (req: AuthRequest, res, next) => {
+  try {
+    const webhooks = await prisma.webhook.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
 
-    const results = {
-      achievements: 0,
-      games: 0,
-      shopItems: 0,
-      courses: 0,
-      modules: 0,
-      lessons: 0,
-      enrollments: 0,
-    };
+    res.json({ status: 'success', data: { webhooks } });
+  } catch (err) {
+    next(err);
+  }
+});
 
-    // Create achievements
-    const achievementsData = [
-      { key: 'first_lesson', title: 'Primera Lección', description: 'Completa tu primera lección', icon: '📚', xpReward: 10 },
-      { key: 'streak_7_days', title: 'Racha de 7 Días', description: 'Mantén una racha de 7 días consecutivos', icon: '🔥', xpReward: 50 },
-      { key: 'streak_30_days', title: 'Racha de 30 Días', description: 'Mantén una racha de 30 días consecutivos', icon: '⚡', xpReward: 200 },
-      { key: 'first_course', title: 'Primer Curso', description: 'Inscríbete en tu primer curso', icon: '🎓', xpReward: 20 },
-      { key: 'course_master', title: 'Maestro del Curso', description: 'Completa un curso completo', icon: '🏆', xpReward: 100 },
-      { key: 'level_5', title: 'Nivel 5', description: 'Alcanza el nivel 5', icon: '⭐', xpReward: 30 },
-      { key: 'level_10', title: 'Nivel 10', description: 'Alcanza el nivel 10', icon: '🌟', xpReward: 50 },
-      { key: 'first_purchase', title: 'Primera Compra', description: 'Realiza tu primera compra en la tienda', icon: '🛒', xpReward: 15 },
-      { key: 'code_ninja', title: 'Ninja del Código', description: 'Completa 10 ejercicios de código', icon: '💻', xpReward: 75 },
-      { key: 'perfect_score', title: 'Puntuación Perfecta', description: 'Obtén 100% en una lección', icon: '💯', xpReward: 25 },
-    ];
+adminRouter.post('/webhooks', async (req: AuthRequest, res, next) => {
+  try {
+    const { name, url, events, secret } = req.body;
 
-    for (const data of achievementsData) {
-      await prisma.achievement.upsert({
-        where: { key: data.key },
-        update: data,
-        create: data,
-      });
-      results.achievements++;
+    const webhook = await prisma.webhook.create({
+      data: {
+        name,
+        url,
+        events: events || [],
+        secret: secret || null,
+        isActive: true,
+      },
+    });
+
+    res.status(201).json({ status: 'success', data: { webhook } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch('/webhooks/:id', async (req: AuthRequest, res, next) => {
+  try {
+    const { name, url, events, secret, isActive } = req.body;
+
+    const webhook = await prisma.webhook.update({
+      where: { id: req.params.id },
+      data: {
+        ...(name && { name }),
+        ...(url && { url }),
+        ...(events && { events }),
+        ...(secret !== undefined && { secret }),
+        ...(isActive !== undefined && { isActive }),
+      },
+    });
+
+    res.json({ status: 'success', data: { webhook } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete('/webhooks/:id', async (req: AuthRequest, res, next) => {
+  try {
+    await prisma.webhook.delete({
+      where: { id: req.params.id },
+    });
+
+    res.json({ status: 'success', message: 'Webhook eliminado' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post('/webhooks/:id/test', async (req: AuthRequest, res, next) => {
+  try {
+    const webhook = await prisma.webhook.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!webhook) {
+      throw new AppError('Webhook no encontrado', 404);
     }
 
-    // Create games
-    const gamesData = [
-      { key: 'memory_match', title: 'Memory Match', description: 'Encuentra las parejas matching correctas', icon: '🧠', xpReward: 15 },
-      { key: 'speed_quiz', title: 'Quiz Rápido', description: 'Responde preguntas lo más rápido posible', icon: '⚡', xpReward: 20 },
-      { key: 'word_puzzle', title: 'Puzzle de Palabras', description: 'Forma palabras correctas', icon: '🔤', xpReward: 15 },
-    ];
-
-    for (const data of gamesData) {
-      await prisma.game.upsert({
-        where: { key: data.key },
-        update: data,
-        create: data,
-      });
-      results.games++;
-    }
-
-    // Create shop items
-    const shopItemsData = [
-      { key: 'xp_boost_2x', name: 'XP Boost 2x', description: 'Duplica tu XP por 1 hora', type: 'booster', price: 100, icon: '⚡' },
-      { key: 'streak_shield', name: 'Escudo de Racha', description: 'Protege tu racha por un día', type: 'booster', price: 150, icon: '🛡️' },
-      { key: 'avatar_flame', name: 'Avatar Flame', description: 'Flama animada para tu perfil', type: 'avatar', price: 200, icon: '🔥' },
-      { key: 'avatar_glow', name: 'Avatar Glow', description: 'Brillo especial para tu perfil', type: 'avatar', price: 150, icon: '✨' },
-      { key: 'theme_dark', name: 'Tema Oscuro', description: 'Activa el tema oscuro', type: 'theme', price: 75, icon: '🌙' },
-    ];
-
-    for (const data of shopItemsData) {
-      await prisma.shopItem.upsert({
-        where: { key: data.key },
-        update: data,
-        create: data,
-      });
-      results.shopItems++;
-    }
-
-    // Create courses helper
-    const createCourse = async (id: string, title: string, description: string, category: string, difficulty: string, estimatedHours: number, imageUrl: string, options: { isPro?: boolean; price?: number; requiredLevel?: number } = {}) => {
-      const course = await prisma.course.upsert({
-        where: { id },
-        update: { title, description, category, difficulty, estimatedHours, imageUrl, isPublished: true, ...options },
-        create: { id, title, description, category, difficulty, estimatedHours, imageUrl, isPublished: true, ...options },
-      });
-      results.courses++;
-      return course;
+    // Send test payload
+    const testPayload = {
+      event: 'test',
+      timestamp: new Date().toISOString(),
+      data: { message: 'This is a test webhook payload' },
     };
 
-    // Create module helper
-    const createModule = async (courseId: string, title: string, order: number) => {
-      const module = await prisma.module.create({
-        data: { courseId, title, order },
-      });
-      results.modules++;
-      return module;
-    };
-
-    // Create lesson helper
-    const createLesson = async (moduleId: string, title: string, type: string, content: any, xpReward: number, order: number) => {
-      await prisma.lesson.create({
-        data: { moduleId, title, type, content, xpReward, order },
-      });
-      results.lessons++;
-    };
-
-    // Create JavaScript Fundamentals course
-    const jsCourse = await createCourse(
-      'course-js-fundamentals',
-      'JavaScript Fundamentals',
-      'Aprende JavaScript desde cero. Variables, funciones, objetos, arrays y más. El lenguaje de programación más popular del mundo.',
-      'Programación',
-      'beginner',
-      15,
-      'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=600&h=400&fit=crop'
-    );
-
-    const jsModule1 = await createModule(jsCourse.id, 'Variables y Tipos de Datos', 1);
-    await createLesson(jsModule1.id, '¿Qué es una variable?', 'multiple_choice', {
-      question: '¿Qué es una variable en JavaScript?',
-      options: ['Un tipo de dato', 'Un contenedor para almacenar datos', 'Una función especial', 'Un operador'],
-      correctIndex: 1,
-    }, 20, 1);
-    await createLesson(jsModule1.id, 'Tipos de datos', 'multiple_choice', {
-      question: '¿Cuál NO es un tipo de dato primitivo en JavaScript?',
-      options: ['String', 'Number', 'Array', 'Boolean'],
-      correctIndex: 2,
-    }, 20, 2);
-    await createLesson(jsModule1.id, 'Declaración de variables', 'fill_blank', {
-      instruction: 'Completa la frase: En JavaScript, usamos ___ para declarar una variable que no puede cambiar.',
-      correctAnswers: ['const'],
-    }, 25, 3);
-
-    const jsModule2 = await createModule(jsCourse.id, 'Funciones', 2);
-    await createLesson(jsModule2.id, 'Introducción a funciones', 'multiple_choice', {
-      question: '¿Qué es una función en JavaScript?',
-      options: ['Un tipo de dato', 'Un bloque de código reutilizable', 'Una variable especial', 'Un operador lógico'],
-      correctIndex: 1,
-    }, 20, 1);
-    await createLesson(jsModule2.id, 'Parámetros y argumentos', 'fill_blank', {
-      instruction: 'Completa: Los ___ son los valores que recibe una función cuando se llama.',
-      correctAnswers: ['argumentos', 'parameters', 'parametros'],
-    }, 25, 2);
-    await createLesson(jsModule2.id, 'Arrow functions', 'multiple_choice', {
-      question: '¿Cuál es la sintaxis correcta de una arrow function?',
-      options: ['function => ()', '() => {}', '=> function()', 'function () =>'],
-      correctIndex: 1,
-    }, 20, 3);
-
-    // Create Python course
-    const pyCourse = await createCourse(
-      'course-python-beginner',
-      'Python para Principiantes',
-      'Domina Python desde cero. Sintaxis, variables, funciones y más. El lenguaje favorito de los beginners y expertos.',
-      'Programación',
-      'beginner',
-      12,
-      'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&h=400&fit=crop'
-    );
-
-    const pyModule1 = await createModule(pyCourse.id, 'Introducción a Python', 1);
-    await createLesson(pyModule1.id, '¿Qué es Python?', 'multiple_choice', {
-      question: '¿Python es un lenguaje...?',
-      options: ['Compilado', 'Interpretado', 'Ensamblador', 'Máquina'],
-      correctIndex: 1,
-    }, 20, 1);
-    await createLesson(pyModule1.id, 'Tu primer programa', 'fill_blank', {
-      instruction: '¿Qué función usas para mostrar texto en Python?',
-      correctAnswers: ['print'],
-    }, 25, 2);
-
-    // Create demo user enrollment
-    const demo = await prisma.user.findUnique({ where: { email: 'demo@duobijac.com' } });
-    if (demo && jsCourse) {
-      await prisma.enrollment.upsert({
-        where: { userId_courseId: { userId: demo.id, courseId: jsCourse.id } },
-        update: {},
-        create: { userId: demo.id, courseId: jsCourse.id },
-      });
-      results.enrollments++;
-    }
+    const response = await fetch(webhook.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(webhook.secret && { 'X-Webhook-Secret': webhook.secret }),
+      },
+      body: JSON.stringify(testPayload),
+    });
 
     res.json({
       status: 'success',
-      message: 'Seed completado exitosamente',
-      results,
+      data: {
+        sent: true,
+        statusCode: response.status,
+        success: response.ok,
+      },
     });
   } catch (err) {
     next(err);
   }
 });
+
+// INNGEST EVENT TRIGGERS (SECURE)
+adminRouter.post('/inngest/trigger', async (req: AuthRequest, res, next) => {
+  try {
+    const { eventName, data } = req.body;
+
+    if (!eventName) {
+      throw new AppError('eventName es requerido', 400);
+    }
+
+    // Validate event name against allowed events
+    const allowedEvents = [
+      'user/created',
+      'course/completed',
+      'achievement/unlocked',
+      'streak/milestone',
+      'daily-reminder',
+      'weekly-progress',
+    ];
+
+    if (!allowedEvents.includes(eventName)) {
+      throw new AppError(`Evento no permitido. Eventos válidos: ${allowedEvents.join(', ')}`, 400);
+    }
+
+    // Import inngest client
+    const { inngest } = await import('../services/inngest.js');
+    
+    await inngest.send({
+      name: eventName,
+      data: data || {},
+    });
+
+    res.json({
+      status: 'success',
+      data: {
+        eventName,
+        triggered: true,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin password verification (separate from Clerk auth for emergency access)
+adminRouter.post('/verify-password', async (req: AuthRequest, res, next) => {
+  try {
+    const { password } = req.body;
+
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      throw new AppError('ADMIN_PASSWORD no configurado', 500);
+    }
+
+    if (password !== adminPassword) {
+      throw new AppError('Contraseña incorrecta', 401);
+    }
+
+    // Generate a temporary admin token
+    const token = generateAdminToken(req.user!.id);
+    
+    res.json({
+      status: 'success',
+      data: {
+        token,
+        expiresIn: '1h',
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Helper function to generate admin token
+function generateAdminToken(userId: string): string {
+  const payload = { userId, type: 'admin-override', iat: Date.now() };
+  const base64 = Buffer.from(JSON.stringify(payload)).toString('base64');
+  return `admin-${base64}`;
+}
