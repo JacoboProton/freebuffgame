@@ -22,9 +22,9 @@ seedRouter.post('/', async (req: AuthRequest, res: any, next: any) => {
 
     console.log('🚀 Starting comprehensive seed from /api/seed...');
     
-    // Dynamically import and execute the seed function
-    // Use .ts extension - tsx (used in Render) supports direct .ts imports
-    const { main } = await import('../../prisma/seed.ts');
+    // Import the seed function - use .js extension for compiled file
+    // Note: seed.ts must be compiled to seed.js first (run: npx tsx prisma/seed.ts to compile)
+    const { main } = await import('../../prisma/seed.js');
     await main();
     
     console.log('✅ Comprehensive seed completed successfully');
