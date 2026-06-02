@@ -71,7 +71,7 @@ export default function LessonPage() {
         setError(null);
         
         // First, try to get current lesson for this course (continue where left off)
-        const currentLessonResponse = await coursesAPI.getCurrentLesson(courseId).catch(() => null);
+        const currentLessonResponse = await coursesAPI.getCurrentLesson(courseId).catch((err) => err);
         
         if (currentLessonResponse?.currentLesson) {
           // User is enrolled and has a current lesson
@@ -86,9 +86,13 @@ export default function LessonPage() {
           } else {
             throw new Error('No se pudo cargar el contenido de la lección');
           }
-        } else if (currentLessonResponse?.error?.includes('403') || currentLessonResponse?.message?.includes('enrolled')) {
+        } else if (currentLessonResponse?.status === 403 || currentLessonResponse?.message?.includes('enrolled')) {
           // User is not enrolled - auto-enroll them
-          await coursesAPI.enroll(courseId).catch(() => null);
+          const enrollResult = await coursesAPI.enroll(courseId).catch((err) => err);
+          
+          if (!enrollResult?.enrollment) {
+            throw new Error('No se pudo inscribir en el curso. Intenta de nuevo.');
+          }
           
           // After enrolling, get the first lesson
           const firstLessonResponse = await coursesAPI.getCurrentLesson(courseId).catch(() => null);
