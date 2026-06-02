@@ -17,8 +17,8 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: CORS_ORIGIN
-        # Replace with your actual web app URL once deployed
-        value: https://freebuffgame-web.onrender.com
+        # Comma-separated list of allowed origins
+        value: https://freebuffgame-web.onrender.com,https://rxktk3y4.insforge.site
       - key: API_URL
         value: https://freebuffgame-api.onrender.com
       - key: FRONTEND_URL
