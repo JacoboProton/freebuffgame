@@ -23,8 +23,8 @@ seedRouter.post('/', async (req: AuthRequest, res: any, next: any) => {
     console.log('🚀 Starting comprehensive seed from /api/seed...');
     
     // Dynamically import and execute the seed function
-    // seed.ts is at apps/api/prisma/seed.ts, so from routes/admin.ts we need ../../prisma/seed.js
-    const { main } = await import('../../prisma/seed.js');
+    // Use .ts extension - tsx (used in Render) supports direct .ts imports
+    const { main } = await import('../../prisma/seed.ts');
     await main();
     
     console.log('✅ Comprehensive seed completed successfully');
