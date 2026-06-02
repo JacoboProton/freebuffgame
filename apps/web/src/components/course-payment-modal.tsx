@@ -435,7 +435,7 @@ export function CoursePaymentModal({
                 <Button
                   onClick={handlePurchase}
                   disabled={loading}
-                  loading={loading}
+                  isLoading={loading}
                   className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
                   size="lg"
                 >
