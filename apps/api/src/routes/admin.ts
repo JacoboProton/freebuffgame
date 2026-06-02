@@ -23,7 +23,8 @@ seedRouter.post('/', async (req: AuthRequest, res: any, next: any) => {
     console.log('🚀 Starting comprehensive seed from /api/seed...');
     
     // Dynamically import and execute the seed function
-    const { main } = await import('../seed.js');
+    // seed.ts is at apps/api/prisma/seed.ts, so from routes/admin.ts we need ../../prisma/seed.js
+    const { main } = await import('../../prisma/seed.js');
     await main();
     
     console.log('✅ Comprehensive seed completed successfully');
