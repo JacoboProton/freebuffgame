@@ -26,37 +26,13 @@ jobs:
       - name: Run lint
         run: cd apps/web && npx next lint
 
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build web app
-        run: cd apps/web && npm run build
-
   deploy-production:
     name: Deploy Production
     runs-on: ubuntu-latest
-    needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
       url: https://rxktk3y4.insforge.site
-    env:
-      NEXT_PUBLIC_CLERK_SIGN_IN_URL: /login
-      NEXT_PUBLIC_CLERK_SIGN_UP_URL: /register
-      NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: /dashboard
-      NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: /dashboard
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -65,12 +41,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build
-        run: cd apps/web && npm run build
 
       - name: Deploy to InsForge
         run: npx @insforge/cli deployments deploy apps/web --project-id ${{ secrets.INSFORGE_PROJECT_ID }}
