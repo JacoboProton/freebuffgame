@@ -18,8 +18,8 @@ services:
         value: https://freebuffgame-api.onrender.com/api
       - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
         sync: false
-      - key: CLERK_SECRET_KEY
-        sync: false
+      # Set the public Clerk key manually in Render Dashboard.
+      # Do not store the secret key in the frontend service.
       - key: NEXT_PUBLIC_CLERK_SIGN_IN_URL
         value: /login
       - key: NEXT_PUBLIC_CLERK_SIGN_UP_URL
