@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@duobijac/shared'],
   async rewrites() {
     return [
       {
