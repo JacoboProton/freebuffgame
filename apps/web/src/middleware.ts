@@ -18,7 +18,7 @@ export default clerkMiddleware(async (auth, req) => {
       // Redirect to /login manually instead of using auth().protect()
       // which reads the corrupted NEXT_PUBLIC_CLERK_SIGN_IN_URL env var
       const signInUrl = new URL('/login', req.url);
-      signInUrl.searchParams.set('redirect_url', req.url.href);
+      signInUrl.searchParams.set('redirect_url', req.url);
       return NextResponse.redirect(signInUrl);
     }
   }
