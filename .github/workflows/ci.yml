@@ -52,6 +52,11 @@ jobs:
     environment:
       name: production
       url: https://rxktk3y4.insforge.site
+    env:
+      NEXT_PUBLIC_CLERK_SIGN_IN_URL: /login
+      NEXT_PUBLIC_CLERK_SIGN_UP_URL: /register
+      NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: /dashboard
+      NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: /dashboard
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,7 +76,3 @@ jobs:
         run: npx @insforge/cli deployments deploy apps/web --project-id ${{ secrets.INSFORGE_PROJECT_ID }}
         env:
           INSFORGE_API_KEY: ${{ secrets.INSFORGE_API_KEY }}
-          NEXT_PUBLIC_CLERK_SIGN_IN_URL: /login
-          NEXT_PUBLIC_CLERK_SIGN_UP_URL: /register
-          NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: /dashboard
-          NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: /dashboard
