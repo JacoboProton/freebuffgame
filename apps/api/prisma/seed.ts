@@ -1260,7 +1260,125 @@ const proyectoFinal = {
     tips: ['Elige un problema que te apasiona — el mejor proyecto es uno que usarías', 'No necesitas entrenar el modelo real; el diseño y la arquitectura son lo importante', 'Piensa siempre en el usuario final: ¿cómo interactuaría con tu solución?']
   }, 80, 3);
 
-  console.log('✅ Fundamentos de IA completed (8 modules, 23 lessons)');
+  // MÓDULO 9: Examen Final del Curso
+  const aiM9 = await createModule('ai-mod-9', aiCourse.id, 'Examen Final: Demuestra tu Dominio de la IA', 9);
+
+  await createLesson('ai-9-1', aiM9.id, 'Quiz Final: Fundamentos de Inteligencia Artificial', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué fue el \"invierno de la IA\" y por qué ocurrió?',
+        options: [
+          'Una temporada de nieve en un laboratorio de investigación',
+          'Períodos donde las promesas de la IA no se cumplieron y el financiamiento se redujo drásticamente',
+          'La primera vez que una IA funcionó correctamente',
+          'Una actualización de software que eliminó datos de entrenamiento'
+        ],
+        correctIndex: 1,
+        explanation: 'Los inviernos de la IA (décadas de 1970 y 1980-90) fueron períodos de desilusión donde las promesas exageradas no se cumplieron, provocando recortes masivos de financiamiento. Aprendizaje de la historia: la IA requiere datos, cómputo y algoritmos para funcionar.'
+      },
+      {
+        question: '¿Qué tipo de Machine Learning se usa para detectar anomalías en transacciones bancarias SIN datos etiquetados?',
+        options: [
+          'Aprendizaje supervisado (clasificación)',
+          'Aprendizaje por refuerzo',
+          'Aprendizaje no supervisado (clustering / detección de anomalías)',
+          'Deep Learning supervisado'
+        ],
+        correctIndex: 2,
+        explanation: 'El aprendizaje NO supervisado trabaja sin etiquetas y busca patrones anómalos en los datos. Algoritmos como Isolation Forest, DBSCAN o Autoencoders pueden detectar transacciones inusuales comparándolas con el patrón normal, sin necesidad de ejemplos previos de fraude.'
+      },
+      {
+        question: '¿Qué hace que los Transformers sean superiores a las RNNs para procesamiento de lenguaje?',
+        options: [
+          'Usan menos memoria y son más rápidos de entrenar siempre',
+          'Procesan todo el texto en paralelo usando mecanismos de atención, capturando dependencias largas',
+          'No necesitan datos de entrenamiento',
+          'Solo funcionan con textos en inglés'
+        ],
+        correctIndex: 1,
+        explanation: 'Los Transformers procesan toda la secuencia simultáneamente (paralelo) usando self-attention, mientras que las RNNs procesan secuencialmente. Esto permite capturar relaciones entre palabras lejanas y entrenar mucho más rápido. El paper \"Attention Is All You Need\" (2017) revolucionó el NLP.'
+      },
+      {
+        question: '¿Qué es el \"data drift\" y por qué es crítico en producción?',
+        options: [
+          'Cuando los datos se mueven entre servidores en la nube',
+          'Cuando la distribución de datos en producción cambia respecto a los datos de entrenamiento, degradando el rendimiento del modelo',
+          'Cuando se pierden datos por errores de hardware',
+          'Cuando los datos son demasiado grandes para procesar'
+        ],
+        correctIndex: 1,
+        explanation: 'El data drift es uno de los mayores desafíos en MLOps. Los patrones del mundo real cambian con el tiempo (estaciones, tendencias, comportamiento). Un modelo entrenado en 2023 puede fallar en 2025 si no se monitorea y reentrena. Por eso MLOps y el monitoreo continuo son esenciales.'
+      },
+      {
+        question: '¿Qué es un \"alucinación\" (hallucination) en un LLM y cómo se maneja?',
+        options: [
+          'Cuando el modelo se congela durante el procesamiento',
+          'Cuando el modelo genera información falsa con apariencia de ser cierta; se maneja verificando con fuentes confiables',
+          'Un error de sintaxis en el código generado',
+          'Cuando el modelo tarda más de 10 segundos en responder'
+        ],
+        correctIndex: 1,
+        explanation: 'Las alucinaciones son respuestas que parecen convincentes pero contienen información falsa. Los LLMs pueden inventar fuentes, datos estadísticos o hechos. La solución: siempre verificar con fuentes confiables, usar RAG (Retrieval-Augmented Generation), y mejorar los prompts para reducir alucinaciones.'
+      },
+      {
+        question: '¿En Computer Vision, qué diferencia hay entre \"detección de objetos\" y \"segmentación\"?',
+        options: [
+          'Son exactamente lo mismo técnicamente',
+          'Detección pone rectángulos (bounding boxes); segmentación clasifica cada píxel individual de la imagen',
+          'Detección es para video únicamente, segmentación para fotos',
+          'Segmentación es más rápida pero menos precisa'
+        ],
+        correctIndex: 1,
+        explanation: 'La detección dibuja bounding boxes alrededor de objetos (YOLO, SSD). La segmentación es más precisa: asigna una etiqueta a CADA píxel, creando máscaras que siguen el contorno exacto del objeto. Modelos como U-Net y Mask R-CNN hacen segmentación.'
+      },
+      {
+        question: '¿Qué es el \"sesgo algorítmico\" y dónde se ha demostrado ser un problema real?',
+        options: [
+          'Un error de programación que hace lento al algoritmo',
+          'Cuando el algoritmo perpetúa prejuicios de los datos de entrenamiento, como el sistema de contratación de Amazon que discriminaba mujeres',
+          'Cuando el algoritmo usa mucha memoria RAM',
+          'Una actualización automática del modelo'
+        ],
+        correctIndex: 1,
+        explanation: 'El sesgo algorítmico ocurre cuando los datos de entrenamiento contienen prejuicios que el modelo aprende y perpetúa. Ejemplo real: Amazon creó un sistema de contratación que penalizaba CVs con la palabra \"mujer\" porque se entrenó con 20 años de datos donde la mayoría de empleados eran hombres.'
+      },
+      {
+        question: '¿Qué es el \"transfer learning\" y por qué es revolucionario?',
+        options: [
+          'Mover datos de un servidor a otro',
+          'Reutilizar un modelo pre-entrenado con millones de datos para una tarea similar con pocos datos nuevos, ahorrando tiempo y recursos enormemente',
+          'Copiar código de un proyecto a otro',
+          'Un tipo de red neuronal recurrente'
+        ],
+        correctIndex: 1,
+        explanation: 'Transfer learning toma un modelo ya entrenado (ej: BERT para texto, ResNet para imágenes) y lo ajusta para una tarea específica. Esto permite lograr resultados impresionantes con pocos datos y sin costos masivos de entrenamiento. Es la base de la IA moderna accesible.'
+      },
+      {
+        question: '¿Qué es el \"alignment problem\" en IA y por qué preocupa a los investigadores?',
+        options: [
+          'El problema de alinear servidores en un data center',
+          'El desafío de asegurar que los objetivos de la IA cada vez más poderosa coincidan con los valores e intenciones humanas',
+          'Un error común en la tokenización de texto',
+          'El problema de que las GPUs no son suficientemente rápidas'
+        ],
+        correctIndex: 1,
+        explanation: 'El alignment problem es uno de los mayores desafíos existenciales de la IA: cómo nos aseguramos de que una IA cada vez más poderosa actúe de acuerdo con los valores humanos? Incluso una IA \"beneficiosa\" mal alineada puede causar daño involuntario. Organizaciones como Anthropic y OpenAI invierten miles de millones en resolver esto.'
+      },
+      {
+        question: 'Según el curso completo, ¿cuál es la secuencia CORRECTA del pipeline de ML en producción?',
+        options: [
+          'Desplegar → Entrenar → Recolectar datos → Evaluar',
+          'Recolectar datos → Limpiar → Entrenar → Evaluar → Desplegar → Monitorear y reentrenar',
+          'Escribir código → Probar → Subir a GitHub → Olvidar',
+          'Entrenar una vez → Desplegar → Nunca actualizar'
+        ],
+        correctIndex: 1,
+        explanation: 'El pipeline completo de ML es: 1) Recolectar datos, 2) Limpiar y preparar, 3) Entrenar el modelo, 4) Evaluar métricas (accuracy, F1, recall), 5) Desplegar en producción (API, containers), 6) Monitorear data drift y reentrenar cuando el rendimiento baje. El paso 6 es el que más se olvida pero es crítico.'
+      }
+    ]
+  }, 100, 1);
+
+  console.log('✅ Fundamentos de IA completed (9 modules, 24 lessons)');
 
   // ===========================================
   // 💰 CURSO 2: FINANZAS PERSONALES PARA PRINCIPIANTES
@@ -3146,7 +3264,7 @@ CANTIDAD: 1 botella por 4 personas.`,
 
   console.log('Seed completed successfully!');
   console.log('Courses Summary:');
-  console.log('  Fundamentos de IA: 8 modules, 23 lessons (reading, quiz, coding, project)');
+  console.log('  Fundamentos de IA: 9 modules, 24 lessons (reading, quiz, coding, project, final exam)');
   console.log('  Finanzas Personales: 7 modules, 17 lessons (reading, quiz, coding, project)');
   console.log('  Cocina Italiana: 5 modules, 17 lessons (reading, quiz, project)');
     console.log('  Desarrollo Web: 3 modules, 6 lessons (reading, quiz, project)');
