@@ -183,10 +183,10 @@ async function main() {
   const aiCourse = await createCourse(
     'course-ai-fundamentals',
     'Fundamentos de Inteligencia Artificial',
-    'Aprende los conceptos fundamentales de la IA, desde machine learning hasta redes neuronales. Descubre cómo la inteligencia artificial está transformando el mundo y cómo puedes empezar a usarla.',
+    'Domina la Inteligencia Artificial de principio a fin: fundamentos, machine learning, redes neuronales, ética, NLP, Computer Vision, herramientas prácticas y despliegue en producción.',
     'Inteligencia Artificial',
     'beginner',
-    12,
+    18,
     'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop'
   );
 
@@ -747,7 +747,520 @@ top_productos = df.groupby('producto')['cantidad'].sum().nlargest(10)`,
     tips: ['La IA es un asistente, no un reemplazo de tu criterio', 'Siempre verifica datos y código generado', 'Experimenta con diferentes prompts para comparar resultados']
   }, 50, 3);
 
-  console.log('✅ Fundamentos de IA completed (5 modules, 13 lessons)');
+  // MÓDULO 6: Procesamiento de Lenguaje Natural (NLP)
+  const aiM6 = await createModule('ai-mod-6', aiCourse.id, 'Procesamiento de Lenguaje Natural (NLP)', 6);
+
+  await createLesson('ai-6-1', aiM6.id, 'NLP: Enseñándole a las Máquinas a Entender el Lenguaje', 'reading', {
+    introduction: 'El Procesamiento de Lenguaje Natural (NLP) es la rama de la IA que permite a las máquinas leer, comprender y generar texto y voz humana. Es lo que hace posible a ChatGPT, los traductores automáticos y los asistentes de voz.',
+    content: `¿QUÉ ES EL NLP?
+
+NLP combina lingüística computacional y machine learning para que las computadoras procesen el lenguaje humano. El lenguaje natural es ambiguo, contextual y lleno de matices — hacer que una máquina lo entienda es uno de los mayores desafíos de la IA.
+
+TAREAS FUNDAMENTALES DE NLP:
+
+1. TOKENIZACIÓN
+   Dividir texto en unidades más pequeñas (tokens).
+   Ej: "La IA cambia el mundo" → ["La", "IA", "cambia", "el", "mundo"]
+   Subword tokenization (BPE): "inteligencia" → ["inteli", "gencia"]
+
+2. ANÁLISIS DE SENTIMIENTO
+   Determinar si un texto es positivo, negativo o neutral.
+   Ejemplo: "¡Me encanta este producto!" → Positivo (0.95)
+            "Es horrible, no lo recomiendo" → Negativo (0.89)
+   Aplicaciones: reseñas de productos, redes sociales, atención al cliente
+
+3. CLASIFICACIÓN DE TEXTO
+   Asignar categorías a documentos.
+   Ejemplo: Clasificar emails en spam/no spam, categorizar noticias
+
+4. RESPUESTA A PREGUNTAS (QA)
+   Extraer respuestas de un contexto dado.
+   Ejemplo: Contexto + pregunta → respuesta precisa
+   Base de sistemas como FAQ bots y recherche en documentos
+
+5. TRADUCCIÓN AUTOMÁTICA
+   Traducir texto de un idioma a otro.
+   Evolución: reglas → estadístico → neural → Transformer
+   Google Translate usa modelos Transformer con atención
+
+6. RESUMEN AUTOMÁTICO
+   Generar un resumen conciso de un texto largo.
+   Extractivo: selecciona frases clave del original
+   Abstractivo: genera nuevas frases que capturan la idea
+
+7. GENERACIÓN DE TEXTO
+   Crear texto nuevo que sea coherente y relevante.
+   GPT, Claude, LLaMA: modelos autoregresivos que predicen la siguiente palabra
+   Aplicaciones: chatbots, creación de contenido, programación
+
+LOS TRANSFORMERS REVOLUCIONARON EL NLP:
+
+Antes de Transformers (2017):
+• RNN/LSTM procesaban texto secuencialmente (lento)
+• Olvidaban información de contextos largos
+• Difíciles de paralelizar
+
+Después de Transformers:
+• Procesan todo el texto simultáneamente (paralelo)
+• Mecanismo de atención: entiende relaciones entre palabras
+  sin importar la distancia
+• Escalan con datos masivos (scaling laws)
+
+EVOLUCIÓN DE LOS LLMs:
+• GPT-1 (2018): 117M parámetros
+• GPT-2 (2019): 1.5B parámetros
+• GPT-3 (2020): 175B parámetros
+• GPT-4 (2023): ~1.8T parámetros (estimado)
+• LLaMA (2023): Modelos open-source de Meta
+• Claude (2023-): Modelo de Anthropic enfocado en seguridad`,
+    keyPoints: [
+      'NLP permite a las máquinas entender, generar y traducir lenguaje humano',
+      'Los Transformers revolucionaron el NLP con el mecanismo de atención',
+      'Los LLMs son modelos de lenguaje masivos que generan texto coherente',
+      'Las aplicaciones de NLP van desde chatbots hasta análisis de sentimiento'
+    ]
+  }, 25, 1);
+
+  await createLesson('ai-6-2', aiM6.id, 'Aplicaciones y Desafíos del NLP', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué es la "tokenización" en NLP?',
+        options: [
+          'Crear tokens de criptomonedas',
+          'Dividir texto en unidades más pequeñas (palabras o subpalabras) para procesarlo',
+          'Encriptar un mensaje',
+          'Traducir texto a otro idioma'
+        ],
+        correctIndex: 1,
+        explanation: 'La tokenización es el primer paso en NLP: dividir el texto en tokens (palabras, subpalabras o caracteres). Los modelos como GPT usan BPE (Byte Pair Encoding) que divide palabras en subpalabras frecuentes para manejar vocabulario eficientemente.'
+      },
+      {
+        question: '¿Qué es el "análisis de sentimiento" y dónde se usa?',
+        options: [
+          'Analizar la gramática de un texto',
+          'Determinar la emoción o actitud expresada en un texto (positivo/negativo/neutral)',
+          'Traducir texto a otros idiomas',
+          'Resumir textos largos'
+        ],
+        correctIndex: 1,
+        explanation: 'El análisis de sentimiento clasifica el tono emocional de un texto. Se usa masivamente en redes sociales (monitorear opiniones sobre marcas), reseñas de productos, y atención al cliente para detectar quejas automáticamente.'
+      },
+      {
+        question: '¿Por qué los Transformers son superiores a las RNNs para NLP?',
+        options: [
+          'Usan menos memoria',
+          'Procesan texto en paralelo y capturan dependencias largas con atención',
+          'Son más simples de programar',
+          'No necesitan datos de entrenamiento'
+        ],
+        correctIndex: 1,
+        explanation: 'Los Transformers procesan toda la secuencia simultáneamente (paralelo) usando self-attention, mientras que las RNNs procesan secuencialmente. Esto permite que los Transformers capturen relaciones entre palabras lejanas y entrenen mucho más rápido.'
+      },
+      {
+        question: '¿Qué diferencia hay entre resumen extractivo y abstractivo?',
+        options: [
+          'No hay diferencia',
+          'Extractivo selecciona frases del original; abstractivo genera nuevas frases',
+          'Extractivo es más preciso, abstractivo es más rápido',
+          'Extractivo usa IA, abstractivo no'
+        ],
+        correctIndex: 1,
+        explanation: 'El extractivo copia las frases más importantes del texto original. El abstractivo "entiende" el contenido y genera un resumen nuevo con sus propias palabras, como haría un humano. Los LLMs modernos hacen resumen abstractivo.'
+      },
+      {
+        question: '¿Cuál es el desafío principal de la "ambigüedad" en NLP?',
+        options: [
+          'El texto siempre es claro',
+          'Las palabras y frases pueden tener múltiples significados según el contexto',
+          'Los computadores no pueden leer texto',
+          'El NLP solo funciona en inglés'
+        ],
+        correctIndex: 1,
+        explanation: 'La ambigüedad es uno de los mayores desafíos: "bank" puede ser banco (institución) o orilla (río). "Banco sentado en el parque" — ¿es una institución o una persona? El contexto resuelve la ambigüedad, y los Transformers lo hacen bien.'
+      }
+    ]
+  }, 30, 2);
+
+  await createLesson('ai-6-3', aiM6.id, 'Ejercicio: Análisis de Sentimiento con JavaScript', 'coding', {
+    instructions: 'Implementa un sistema básico de análisis de sentimiento para entender cómo la IA procesa el lenguaje:',
+    exercise: {
+      task: 'Crea un analizador de sentimiento paso a paso',
+      challenges: [
+        {
+          id: 'nlp-sent-1',
+          description: 'Crea un diccionario de palabras con scores de sentimiento (positivas y negativas)',
+          initialCode: '// Crea un diccionario con palabras y sus scores\n// Positivas: 1, Negativas: -1\nconst sentimientos = {\n  // Agrega al menos 5 positivas y 5 negativas\n};\n',
+          hint: 'Ejemplo: "genial": 1, "horrible": -1, "bueno": 0.8',
+          solution: 'const sentimientos = {\n  genial: 1, excelente: 1, amor: 1, feliz: 1, bueno: 0.8,\n  horrible: -1, terrible: -1, odio: -1, triste: -1, malo: -0.8\n};'
+        },
+        {
+          id: 'nlp-sent-2',
+          description: 'Escribe una función que analice un texto y calcule el sentimiento promedio',
+          initialCode: 'function analizarSentimiento(texto, sentimientos) {\n  const palabras = texto.toLowerCase().split(/\\s+/);\n  // Calcula el score promedio de todas las palabras conocidas\n  // Retorna: { score, positivas, negativas, total }\n}',
+          hint: 'Busca cada palabra en el diccionario, promedia los scores encontrados',
+          solution: 'function analizarSentimiento(texto, sentimientos) {\n  const palabras = texto.toLowerCase().split(/\\s+/);\n  let positivas = 0, negativas = 0, totalScore = 0, conocidas = 0;\n  for (const p of palabras) {\n    if (sentimientos[p] !== undefined) {\n      totalScore += sentimientos[p];\n      conocidas++;\n      if (sentimientos[p] > 0) positivas++;\n      if (sentimientos[p] < 0) negativas++;\n    }\n  }\n  const score = conocidas > 0 ? totalScore / conocidas : 0;\n  return { score: Math.round(score * 100) / 100, positivas, negativas, total: conocidas };\n}'
+        },
+        {
+          id: 'nlp-sent-3',
+          description: 'Prueba tu analizador con 3 frases y clasifícalas como positiva, negativa o neutral',
+          initialCode: '// Prueba con estas frases:\n// 1. "Me encanta este producto, es excelente"\n// 2. "Esto es horrible y terrible"\n// 3. "El gato está en la mesa"\n\nfunction clasificar(score) {\n  // Retorna "positivo", "negativo" o "neutral" según el score\n}',
+          hint: 'Score > 0.1 = positivo, < -0.1 = negativo, resto = neutral',
+          solution: 'function clasificar(score) {\n  if (score > 0.1) return "positivo";\n  if (score < -0.1) return "negativo";\n  return "neutral";\n}'
+        }
+      ]
+    }
+  }, 50, 3);
+
+  // MÓDULO 7: Computer Vision
+  const aiM7 = await createModule('ai-mod-7', aiCourse.id, 'Computer Vision: La IA que Ve el Mundo', 7);
+
+  await createLesson('ai-7-1', aiM7.id, 'Computer Vision: Cómo las Máquinas "Ven"', 'reading', {
+    introduction: 'Computer Vision (CV) es la rama de la IA que permite a las computadoras interpretar y comprender imágenes y videos. Desde el reconocimiento facial hasta los coches autónomos, CV está transformando nuestra interacción con el mundo visual.',
+    content: `¿QUÉ ES COMPUTER VISION?
+
+Computer Vision busca replicar la capacidad del ojo y cerebro humano para procesar información visual. Las máquinas "ven" como matrices de números (píxeles), no como nosotros.
+
+CÓMO FUNCIONA UNA IMAGEN PARA UNA COMPUTADORA:
+• Imagen en blanco y negro: matriz 2D de valores 0-255
+  [0 = negro, 255 = blanco]
+• Imagen a color: 3 canales (RGB) — cada píxel tiene 3 valores
+  [R: 255, G: 0, B: 0] = rojo puro
+• Una foto 1920x1080 = 2,073,600 píxeles × 3 canales = 6,220,800 valores
+
+TAREAS PRINCIPALES DE COMPUTER VISION:
+
+1. CLASIFICACIÓN DE IMÁGENES
+   ¿Qué hay en esta imagen? (perro, gato, auto, persona)
+   Redes CNN: detectan bordes → texturas → patrones → objetos
+   Ejemplo: Medical imaging — detectar tumores en radiografías
+
+2. DETECCIÓN DE OBJETOS
+   ¿Qué hay y DÓNDE está? (bounding boxes)
+   Modelos: YOLO, SSD, Faster R-CNN
+   Aplicaciones: conducción autónoma, vigilancia, retail
+
+3. SEGMENTACIÓN
+   Clasificar CADA píxel de la imagen
+   Semántica: todos los "cielo" en azul, todas las "personas" en rojo
+   Instancia: cada persona individual tiene su color
+   Aplicaciones:自动驾驶, edición de imágenes, medicina
+
+4. RECONOCIMIENTO FACIAL
+   Identificar o verificar quién es una persona
+   Passo 1: detectar cara (bounding box)
+   Passo 2: extraer features ("face embedding")
+   Passo 3: comparar con base de datos
+   Aplicaciones: desbloqueo de celular, aeropuertos, tag en fotos
+
+5. ESTIMACIÓN DE POSE
+   Detectar puntos clave del cuerpo (articulaciones)
+   17-33 puntos: hombros, codos, muñecas, caderas, rodillas...
+   Aplicaciones: deportes, fitness, control de gestos, realidad aumentada
+
+6. GENERACIÓN DE IMÁGENES
+   Crear imágenes nuevas que no existen
+   DALL-E, Midjourney, Stable Diffusion: difusión latent
+   Proceso: ruido →逐步 denoising → imagen coherente
+
+APLICACIONES REALES:
+• Conducción autónoma: detectar peatones, señales, otros autos
+• Medicina: detectar cáncer en mamografías, retinografía, patología
+• Agricultura: monitorear cultivos con drones, detectar plagas
+• Retail: cajas sin checkout (Amazon Go), análisis de tráfico
+• Arte: style transfer, upscaling de imágenes antiguas
+• Seguridad: detección de objetos sospechosos, control de acceso`,
+    keyPoints: [
+      'Las computadoras ven imágenes como matrices de números (píxeles RGB)',
+      'Las CNNs son la base de la mayoría de sistemas de Computer Vision',
+      'Tareas clave: clasificación, detección, segmentación, reconocimiento facial',
+      'CV tiene aplicaciones en medicina, autonomía, agricultura y más'
+    ]
+  }, 25, 1);
+
+  await createLesson('ai-7-2', aiM7.id, 'Aplicaciones y Tecnologías de CV', 'quiz', {
+    questions: [
+      {
+        question: '¿Cómo "ve" una computadora una imagen?',
+        options: [
+          'Igual que los humanos, con ojos',
+          'Como una matriz de números donde cada píxel tiene valores RGB (0-255)',
+          'Como un archivo de texto con descripciones',
+          'Como una secuencia de sonidos'
+        ],
+        correctIndex: 1,
+        explanation: 'Una imagen digital es una matriz de píxeles. En color, cada píxel tiene 3 valores (Red, Green, Blue) de 0-255. Una foto de 1920x1080 es literalmente 6+ millones de números que la computadora procesa matemáticamente.'
+      },
+      {
+        question: '¿Qué diferencia hay entre "detección de objetos" y "segmentación"?',
+        options: [
+          'Son lo mismo',
+          'Detección pone bounding boxes; segmentación clasifica cada píxel individual',
+          'Detección es para video, segmentación para fotos',
+          'Segmentación es más simple que detección'
+        ],
+        correctIndex: 1,
+        explanation: 'La detección dibuja rectángulos (bounding boxes) alrededor de objetos. La segmentación es más precisa: asigna una etiqueta a CADA píxel de la imagen, creando "máscaras" que siguen el contorno exacto del objeto.'
+      },
+      {
+        question: '¿Cómo funciona el reconocimiento facial paso a paso?',
+        options: [
+          'Compara fotos directamente pixel por pixel',
+          'Detecta la cara, extrae un "embedding" numérico y lo compara con una base de datos',
+          'Lee el nombre de la persona en la imagen',
+          'Usa reconocimiento de voz junto con la imagen'
+        ],
+        correctIndex: 1,
+        explanation: 'El proceso es: 1) Detectar dónde está la cara (bounding box), 2) Normalizar y extraer un "face embedding" (vector numérico de 128-512 dimensiones que representa la cara), 3) Comparar con embeddings almacenados usando distancia euclidiana.'
+      },
+      {
+        question: '¿Qué tipo de red neuronal es la estándar para procesamiento de imágenes?',
+        options: [
+          'Red Recurrente (RNN)',
+          'Red Convolucional (CNN)',
+          'Red Generativa Antagónica (GAN)',
+          'Autoencoder'
+        ],
+        correctIndex: 1,
+        explanation: 'Las CNNs (Convolutional Neural Networks) son la arquitectura estándar para imágenes. Usan filtros convolucionales que se deslizan sobre la imagen detectando patrones jerárquicos: bordes → texturas → formas → objetos completos.'
+      },
+      {
+        question: '¿En qué领域的medicina se usa Computer Vision para detectar enfermedades?',
+        options: [
+          'Solo en cirugías robóticas',
+          'En radiología, patología, dermatología y oftalmología para detectar anomalías',
+          'Solo para medir la presión arterial',
+          'No se usa en medicina'
+        ],
+        correctIndex: 1,
+        explanation: 'CV revoluciona la medicina: detecta tumores en mamografías, analiza radiografías de pulmón, identifica lesiones en piel, revisa imágenes de retina para diabetes, y analiza biopsias patológicas. A veces supera la precisión de radiólogos humanos.'
+      }
+    ]
+  }, 30, 2);
+
+  await createLesson('ai-7-3', aiM7.id, '🚀 Mini-Proyecto: Análisis de Imágenes con IA', 'project', {
+    title: 'Explora Computer Vision con Herramientas Reales',
+    description: 'Usa APIs y herramientas de Computer Vision para analizar imágenes y entender cómo la IA interpreta el mundo visual.',
+    objectives: [
+      'Comprender cómo las CNNs procesan imágenes',
+      'Usar APIs de Computer Vision reales',
+      'Evaluar la precisión y limitaciones de los sistemas de CV'
+    ],
+    requirements: [
+      'Usa Google Vision API o similar para clasificar 5 imágenes diferentes',
+      'Compara los resultados entre imágenes de buena y mala calidad',
+      'Documenta: ¿qué acierta la IA? ¿Qué errores comete?',
+      'Investiga un caso de uso de CV en tu campo de interés',
+      'Evalúa las implicaciones éticas (privacidad, sesgo en reconocimiento facial)'
+    ],
+    exampleCode: `// Ejemplo: Usando la API de Google Vision (pseudocódigo)
+
+// 1. Clasificar una imagen
+const resultado = await visionAPI.classify(imagenUrl);
+// → [{ label: "golden retriever", score: 0.94 },
+//    { label: "dog", score: 0.91 },
+//    { label: "animal", score: 0.88 }]
+
+// 2. Detectar objetos con bounding boxes
+const objetos = await visionAPI.detect(imagenUrl);
+// → [{ label: "person", bbox: [x,y,w,h], score: 0.96 },
+//    { label: "car", bbox: [x,y,w,h], score: 0.89 }]
+
+// 3. Análisis de sentimiento en rostros
+const rostros = await visionAPI.faceDetect(imagenUrl);
+// → [{ joy: 0.9, sorrow: 0.02, anger: 0.01, surprise: 0.3 }]
+
+// Preguntas de reflexión:
+// 1. ¿La IA detectó correctamente todos los objetos?
+// 2. ¿Qué tipo de imagen confunde más a la IA?
+// 3. ¿Cuáles son los riesgos del reconocimiento facial masivo?`,
+    tips: ['Prueba con imágenes difíciles: oscuras, borrosas, multitudinarias', 'Compara resultados entre APIs diferentes', 'Piensa siempre en la ética: ¿debería la IA identificar personas sin consentimiento?']
+  }, 50, 3);
+
+  // MÓDULO 8: IA en Producción y el Futuro
+  const aiM8 = await createModule('ai-mod-8', aiCourse.id, 'IA en Producción: Del Laboratorio al Mundo Real', 8);
+
+  await createLesson('ai-8-1', aiM8.id, 'MLOps: Cómo se Despliega la IA en Producción', 'reading', {
+    introduction: 'Entrenar un modelo es solo el 20% del trabajo. MLOps (Machine Learning Operations) es el conjunto de prácticas para desplegar, monitorear y mantener modelos de IA en producción de forma confiable.',
+    content: `EL CICLO DE VIDA DE UN MODELO DE IA:
+
+1. DEFINIR EL PROBLEMA
+   • ¿Qué queremos predecir/clasificar/generar?
+   • ¿Cuáles son las métricas de éxito?
+   • ¿Tenemos los datos necesarios?
+
+2. RECOPILAR Y PREPARAR DATOS
+   • Limpiar datos faltantes, duplicados, errores
+   • Balancear clases (si hay desbalanceo)
+   • Dividir: entrenamiento (70%), validación (15%), test (15%)
+   • Ingeniería de features: crear variables útiles
+
+3. ENTRENAR EL MODELO
+   • Seleccionar arquitectura/algoritmo
+   • Entrenar con datos de entrenamiento
+   • Evaluar con datos de validación
+   • Ajustar hiperparámetros (grid search, random search)
+
+4. EVALUAR Y VALIDAR
+   • Métricas de clasificación: Accuracy, Precision, Recall, F1
+   • Métricas de regresión: MSE, MAE, R²
+   • Validación cruzada (k-fold)
+   • Análisis de errores: ¿dónde falla el modelo?
+
+5. DESPLEGAR EN PRODUCCIÓN
+   • Model serving: API REST, batch predictions, edge
+   • Frameworks: TensorFlow Serving, TorchServe, ONNX Runtime
+   • Containers: Docker + Kubernetes
+   • Cloud: AWS SageMaker, GCP Vertex AI, Azure ML
+
+6. MONITOREAR Y MANTENER
+   • Data drift: ¿los datos de producción cambian?
+   • Model drift: ¿el modelo decae en rendimiento?
+   • Retraining automático cuando el rendimiento baja
+   • A/B testing: comparar versiones del modelo
+
+MÉTRICAS CLAVE DE EVALUACIÓN:
+
+EXACTITUD (Accuracy):
+Porcentaje de predicciones correctas.
+Ej: 95/100 correctas = 95% accuracy
+⚠️ Engañosa con datos desbalanceados
+
+PRECISIÓN (Precision):
+De todos los que predije como positivos, ¿cuántos realmente lo son?
+Ej: 90 de 100 spam detectado realmente era spam → 90%
+
+RECUPERACIÓN (Recall):
+De todos los positivos reales, ¿cuántos detecté?
+Ej: 90 de 120 spams totales detecté → 75%
+
+F1-SCORE:
+Media armónica de precisión y recall. Balance entre ambos.
+F1 = 2 × (Precision × Recall) / (Precision + Recall)
+
+EL PROBLEMA DEL DATA DRIFT:
+Los datos del mundo real cambian constantemente:
+• Patrones de compra cambian con estaciones
+• Lenguaje en redes sociales evoluciona
+• Imágenes de cámaras cambian con iluminación
+Un modelo entrenado en 2023 puede ser inútil en 2025 si no se actualiza.`,
+    keyPoints: [
+      'Entrenar un modelo es solo el 20% del trabajo; MLOps es clave para producción',
+      'El data drift puede degradar modelos que funcionaban bien',
+      'Métricas como F1-score son más informativas que accuracy alone',
+      'Los modelos necesitan retraining continuo para mantenerse relevantes'
+    ]
+  }, 25, 1);
+
+  await createLesson('ai-8-2', aiM8.id, 'El Futuro de la IA: Tendencias y Desafíos', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué es "data drift" y por qué es un problema para los modelos de IA?',
+        options: [
+          'Cuando los datos se mueven de un servidor a otro',
+          'Cuando la distribución de datos en producción cambia respecto a los datos de entrenamiento',
+          'Cuando se pierden datos por errores de hardware',
+          'Cuando los datos son demasiado grandes para procesar'
+        ],
+        correctIndex: 1,
+        explanation: 'Data drift ocurre cuando los datos del mundo real cambian con el tiempo respecto a los datos con los que se entrenó el modelo. Ejemplo: un modelo de detección de spam entrenado en 2020 puede fallar con spam de 2026 porque el lenguaje y las tácticas cambiaron.'
+      },
+      {
+        question: '¿Qué es MLOps?',
+        options: [
+          'Un nuevo lenguaje de programación',
+          'Prácticas para desplegar, monitorear y mantener modelos de IA en producción',
+          'Una empresa de tecnología',
+          'Un tipo de algoritmo de machine learning'
+        ],
+        correctIndex: 1,
+        explanation: 'MLOps es la intersección de Machine Learning, DevOps y ingeniería de datos. Incluye versionado de modelos, CI/CD para ML, monitoreo de rendimiento, A/B testing, y retraining automático.'
+      },
+      {
+        question: '¿Cuál es la diferencia entre AGI (Inteligencia Artificial General) e IA actual?',
+        options: [
+          'No hay diferencia, es lo mismo',
+          'AGI sería capaz de realizar cualquier tarea intelectual humana; la IA actual es especializada',
+          'AGI es más lenta que la IA actual',
+          'AGI ya existe y se usa en producción'
+        ],
+        correctIndex: 1,
+        explanation: 'La IA actual (Narrow AI) es excelente en tareas específicas pero no puede generalizar. La AGI sería una IA con inteligencia flexible comparable a la humana: capaz de aprender cualquier tarea, razonar abstractamente y transferir conocimiento entre dominios. Aún no existe.'
+      },
+      {
+        question: '¿Qué es el "alignment problem" en IA?',
+        options: [
+          'Alinear los datos en columnas',
+          'El desafío de asegurar que los objetivos de la IA coincidan con los valores humanos',
+          'Un error de programación común',
+          'El problema de alinear servidores en un data center'
+        ],
+        correctIndex: 1,
+        explanation: 'El alignment problem es uno de los mayores desafíos: ¿cómo nos aseguramos de que una IA cada vez más poderosa actúe de acuerdo con los valores e intenciones humanas? Incluso una IA "beneficiosa" mal alineada puede causar daño involuntario.'
+      }
+    ]
+  }, 30, 2);
+
+  await createLesson('ai-8-3', aiM8.id, '🚀 Proyecto Final: Diseña tu Solución de IA', 'project', {
+    title: 'Diseña una Solución de IA para un Problema Real',
+    description: 'Usa todo lo que aprendiste en el curso para diseñar una solución de IA completa: desde la definición del problema hasta el plan de despliegue.',
+    objectives: [
+      'Integrar todos los conceptos del curso en un proyecto práctico',
+      'Diseñar el pipeline completo de un sistema de IA',
+      'Considerar aspectos éticos y de producción'
+    ],
+    requirements: [
+      'Elige un problema real de tu comunidad, trabajo o interés personal',
+      'Define: ¿qué tipo de IA usarías? (ML, NLP, CV, combinación)',
+      'Describe los datos necesarios y cómo los Obtendrías',
+      'Diseña la arquitectura: modelo, API, interfaz de usuario',
+      'Incluye: métricas de evaluación, plan de monitoreo, consideraciones éticas',
+      'Crea un "pitch deck" de 5 diapositivas presentando tu solución'
+    ],
+    exampleCode: `// Estructura del proyecto final
+
+const proyectoFinal = {
+  problema: "Descripción clara del problema a resolver",
+  
+  tipoIA: "NLP | Computer Vision | RecSys | Reinforcement Learning | Mixto",
+  
+  datos: {
+    fuentes: ["API pública", "Web scraping", "Datos propios"],
+    volumen: "~10,000 registros",
+    preprocesamiento: "Limpieza, normalización, split 70/15/15"
+  },
+  
+  modelo: {
+    algoritmo: "Random Forest | CNN | Transformer | etc",
+    justificacion: "Por qué este modelo para este problema",
+    metricas: { accuracy: 0.92, f1: 0.89, recall: 0.95 }
+  },
+  
+  arquitectura: {
+    frontend: "React / Flutter",
+    backend: "FastAPI / Express",
+    modelo: "FastAPI + scikit-learn / PyTorch",
+    hosting: "AWS / GCP / Vercel"
+  },
+  
+  produccion: {
+    monitoreo: "Data drift detection, métricas en tiempo real",
+    retraining: "Mensual con datos nuevos",
+    ABTesting: "Comparar v1 vs v2"
+  },
+  
+  etica: {
+    sesgo: "Evaluar fairness entre grupos demográficos",
+    privacidad: "GDPR compliance, datos anonimizados",
+    transparencia: "Explicabilidad del modelo (SHAP/LIME)"
+  }
+};
+
+// Presenta tu proyecto como si fueras el CTO de un startup
+// Explica: el problema, la solución, cómo funciona, métricas, ética`,
+    tips: ['Elige un problema que te apasiona — el mejor proyecto es uno que usarías', 'No necesitas entrenar el modelo real; el diseño y la arquitectura son lo importante', 'Piensa siempre en el usuario final: ¿cómo interactuaría con tu solución?']
+  }, 80, 3);
+
+  console.log('✅ Fundamentos de IA completed (8 modules, 23 lessons)');
 
   // ===========================================
   // 💰 CURSO 2: FINANZAS PERSONALES PARA PRINCIPIANTES
@@ -1854,7 +2367,7 @@ const menuItaliano = {
 
   console.log('\n🎉 Seed completed successfully!');
   console.log('\n📚 Courses Summary:');
-  console.log('   🤖 Fundamentos de IA: 5 modules, 13 lessons (reading, quiz, coding, project)');
+  console.log('   🤖 Fundamentos de IA: 8 modules, 23 lessons (reading, quiz, coding, project)');
   console.log('   💰 Finanzas Personales: 4 modules, 9 lessons (reading, quiz, coding, project)');
   console.log('   🍝 Cocina Italiana: 3 modules, 11 lessons (reading, quiz, project)');
   console.log('\n📝 Test accounts:');
