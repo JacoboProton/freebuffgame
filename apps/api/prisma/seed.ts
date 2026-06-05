@@ -2829,6 +2829,274 @@ CANTIDAD: 1 botella por 4 personas.`,
   console.log('Cocina Italiana Tradicional completed (5 modules, 17 lessons)');
 
   // ===========================================
+  // ===========================================
+  // CURSO 4: DESARROLLO WEB COMPLETO
+  // ===========================================
+  console.log('\n💻 Creating Desarrollo Web Completo course...');
+
+  const webCourse = await createCourse(
+    'course-desarrollo-web',
+    'Desarrollo Web Completo',
+    'Aprende a crear sitios web profesionales desde cero. HTML, CSS, JavaScript, React y Node.js.',
+    'Programacion',
+    'beginner',
+    20,
+    'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&h=400&fit=crop'
+  );
+
+  const webM1 = await createModule('web-mod-1', webCourse.id, 'HTML y CSS: Los Cimientos del Web', 1);
+
+  await createLesson('web-1-1', webM1.id, 'HTML: La Estructura de la Web', 'reading', {
+    introduction: 'HTML (HyperText Markup Language) es el lenguaje que da estructura a todas las paginas web.',
+    content: `ETIQUETAS HTML BASICAS:\n\nEstructura basica:\n<!DOCTYPE html>\n<html lang="es">\n<head>\n  <meta charset="UTF-8">\n  <title>Mi pagina</title>\n</head>\n<body>\n  <h1>Titulo principal</h1>\n  <p>Parrafo de texto</p>\n</body>\n</html>\n\nETIQUETAS DE TEXTO:\n<h1> a <h6> - Titulos\n<p> - Parrafos\n<strong> - Negrita\n<em> - Italica\n\nETIQUETAS SEMANTICAS:\n<header>, <nav>, <main>, <section>, <article>, <footer>\n\nFORMULARIOS:\n<form>, <input>, <textarea>, <select>, <button>\n\nREGLAS DE ORO:\n1. Usa etiquetas semanticas\n2. Siempre incluye alt en imagenes\n3. Un solo h1 por pagina`,
+    keyPoints: ['HTML da estructura a la web', 'Usa etiquetas semanticas', 'Un solo h1 por pagina', 'Siempre agrega alt a imagenes']
+  }, 20, 1);
+
+  await createLesson('web-1-2', webM1.id, 'CSS: El Estilo Visual', 'reading', {
+    introduction: 'CSS controla la apariencia visual: colores, fuentes, espaciado, layouts y animaciones.',
+    content: `SELECTORES CSS:\n- p { color: blue; } (elemento)\n- .clase { } (clase)\n- #id { } (ID)\n\nBOX MODEL:\ncontent -> padding -> border -> margin\n\nFLEXBOX (layout 1D):\ndisplay: flex; justify-content: center;\n\nGRID (layout 2D):\ndisplay: grid; grid-template-columns: 1fr 2fr;\n\nRESPONSIVE:\n@media (max-width: 768px) { ... }\n\nUNIDADES: px, %, em, rem, vh, vw`,
+    keyPoints: ['Flexbox para layouts 1D, Grid para 2D', 'Siempre usa responsive design', 'Las variables CSS mejoran mantenibilidad']
+  }, 20, 2);
+
+  await createLesson('web-1-3', webM1.id, 'Ejercicio: Tu Primera Pagina Web', 'coding', {
+    instructions: 'Crea una pagina web completa con HTML y CSS:',
+    exercise: {
+      task: 'Crea una pagina de perfil personal',
+      challenges: [
+        {
+          id: 'web-html-1',
+          description: 'Escribe la estructura HTML basica con DOCTYPE, head y body',
+          initialCode: '<!DOCTYPE html>\n<html lang="es">\n<head>\n  <!-- charset y title -->\n</head>\n<body>\n  <!-- h1 con tu nombre -->\n</body>\n</html>',
+          hint: 'Usa <meta charset="UTF-8"> y <title>Mi Perfil</title>',
+          solution: '<!DOCTYPE html>\n<html lang="es">\n<head>\n  <meta charset="UTF-8">\n  <title>Mi Perfil</title>\n</head>\n<body>\n  <h1>Juan Perez</h1>\n</body>\n</html>'
+        }
+      ]
+    }
+  }, 40, 3);
+
+  const webM2 = await createModule('web-mod-2', webCourse.id, 'JavaScript: Interactividad', 2);
+
+  await createLesson('web-2-1', webM2.id, 'JavaScript Basico', 'reading', {
+    introduction: 'JavaScript da vida interactiva a tus paginas web.',
+    content: `VARIABLES:\nlet nombre = 'Juan'; (mutable)\nconst edad = 25; (inmutable)\n\nTIPOS: string, number, boolean, null, undefined, array, object\n\nFUNCIONES:\nconst saludar = (nombre) => \`Hola \${nombre}!\`;\n\nCONDICIONALES: if/else\nBUCLES: for, forEach, map, filter\n\nDOM:\ndocument.querySelector('#id')\nbtn.addEventListener('click', () => {})\n\nEVENTOS: click, submit, keydown, input`,
+    keyPoints: ['Usa const por defecto', 'Arrow functions modernas', 'DOM para manipular la pagina', 'Maneja errores con try/catch']
+  }, 20, 1);
+
+  await createLesson('web-2-2', webM2.id, 'DOM y Eventos', 'quiz', {
+    questions: [
+      { question: 'Diferencia entre let y const?', options: ['No hay diferencia', 'let reasigna, const no', 'const es mas rapido', 'let es para strings'], correctIndex: 1, explanation: 'const no puede reasignarse. let si.' },
+      { question: 'Metodo para seleccionar por ID?', options: ['document.getElement()', 'document.querySelector("#id")', 'document.findById()', 'document.get("id")'], correctIndex: 1, explanation: 'querySelector usa selectores CSS.' },
+      { question: 'Que hace .map() en un array?', options: ['Filtra', 'Crea nuevo array transformando cada elemento', 'Ordena', 'Elimina duplicados'], correctIndex: 1, explanation: '.map() crea un nuevo array aplicando una funcion a cada elemento.' }
+    ]
+  }, 30, 2);
+
+  const webM3 = await createModule('web-mod-3', webCourse.id, 'React: Interfaces Modernas', 3);
+
+  await createLesson('web-3-1', webM3.id, 'React: Componentes y JSX', 'reading', {
+    introduction: 'React es la libreria mas popular para interfaces de usuario.',
+    content: `COMPONENTE:\nfunction MiBoton() {\n  return <button>Haz click</button>;\n}\n\nPROPS:\nfunction Saludo({ nombre }) {\n  return <h1>Hola {nombre}!</h1>;\n}\n\nESTADO:\nconst [count, setCount] = useState(0);\n\nEFECTOS:\nuseEffect(() => { ... }, [dependencia]);\n\nREGLAS:\n1. Nombres con mayuscula\n2. Props son solo lectura\n3. Estado es inmutable`,
+    keyPoints: ['Componentes reutilizables', 'useState para estado', 'useEffect para efectos', 'Siempre incluye key en listas']
+  }, 25, 1);
+
+  console.log('Desarrollo Web completed (3 modules, 6 lessons)');
+
+  // ===========================================
+  // CURSO 5: MARKETING DIGITAL
+  // ===========================================
+  console.log('\n📣 Creating Marketing Digital course...');
+
+  const marketingCourse = await createCourse(
+    'course-marketing-digital',
+    'Marketing Digital Moderno',
+    'Domina SEO, redes sociales, email marketing y analytics.',
+    'Marketing',
+    'beginner',
+    14,
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop'
+  );
+
+  const mktM1 = await createModule('mkt-mod-1', marketingCourse.id, 'Fundamentos del Marketing Digital', 1);
+
+  await createLesson('mkt-1-1', mktM1.id, 'Que es el Marketing Digital', 'reading', {
+    introduction: 'El marketing digital usa canales online para promocionar productos. Permite medir cada accion en tiempo real.',
+    content: `LOS 4 PILARES:\n1. ATRAER: SEO, contenido, redes sociales\n2. CONVERTIR: Landing pages, lead magnets\n3. CERRAR: Email marketing, CRM\n4. DELEITAR: Contenido de valor, fidelizacion\n\nFUNNEL:\nTOFU: Conocimiento\nMOFU: Interes\nBOFU: Decision\n\nKPIs:\n- CAC: Costo por adquisicion\n- LTV: Valor de vida del cliente\n- ROI: Retorno de inversion`,
+    keyPoints: ['Atraer, Convertir, Cerrar, Deleitar', 'Funnel guia al cliente', 'CAC < LTV para rentabilidad', 'Inbound mas efectivo']
+  }, 20, 1);
+
+  await createLesson('mkt-1-2', mktM1.id, 'Conceptos Clave', 'quiz', {
+    questions: [
+      { question: 'Que es un funnel de marketing?', options: ['Un embudo fisico', 'El proceso de conversion de visitante a cliente', 'Un tipo de grafico', 'Una herramienta email'], correctIndex: 1, explanation: 'El funnel representa las etapas del cliente.' },
+      { question: 'Que es el CAC?', options: ['Costo total del producto', 'Cuanto cuesta conseguir un cliente', 'Precio de venta', 'Ganancia'], correctIndex: 1, explanation: 'CAC = gasto en marketing / clientes nuevos.' },
+      { question: 'Diferencia inbound vs outbound?', options: ['No hay', 'Inbound atrae con contenido; outbound interrumpe con publicidad', 'Inbound es mas caro', 'Outbound solo TV'], correctIndex: 1, explanation: 'Inbound genera confianza, outbound interrumpe.' }
+    ]
+  }, 25, 2);
+
+  const mktM2 = await createModule('mkt-mod-2', marketingCourse.id, 'SEO: Posicionamiento en Buscadores', 2);
+
+  await createLesson('mkt-2-1', mktM2.id, 'SEO On-Page y Off-Page', 'reading', {
+    introduction: 'SEO posiciona tu sitio en Google. El 75% de usuarios no pasa de la primera pagina.',
+    content: `SEO ON-PAGE:\n1. Palabras clave en titulo, meta, H1, URL\n2. Contenido 1500+ palabras, original\n3. Technical SEO: velocidad, responsive, HTTPS\n4. Meta tags: title 50-60 chars, description 150-160\n\nSEO OFF-PAGE:\n1. Backlinks de calidad > cantidad\n2. Guest posting, directorios\n3. Menciones en redes sociales\n\nRANKING FACTORS:\n- Contenido (40%)\n- Backlinks (30%)\n- UX (20%)\n- Technical (10%)\n\nHERRAMIENTAS: Google Search Console, Analytics, Ubersuggest`,
+    keyPoints: ['75% no pasa de pagina 1', 'Contenido es el factor mas importante', 'Backlinks de calidad', 'Technical SEO obligatorio']
+  }, 25, 1);
+
+  await createLesson('mkt-2-2', mktM2.id, 'SEO Practico', 'quiz', {
+    questions: [
+      { question: 'Longitud ideal de title tag?', options: ['10-20 chars', '50-60 chars', '100-120 chars', 'Sin limite'], correctIndex: 1, explanation: 'Google muestra ~60 caracteres.' },
+      { question: 'Que es un backlink?', options: ['Link que borra', 'Enlace de otro sitio hacia el tuyo', 'Boton de retroceso', 'Enlace interno'], correctIndex: 1, explanation: 'Backlinks son votos de confianza de otros sitios.' },
+      { question: 'Que son Core Web Vitals?', options: ['Estadisticas de visitas', 'Metricas de UX: velocidad, interactividad, estabilidad', 'Tipos de contenido', 'Algoritmos'], correctIndex: 1, explanation: 'LCP, FID, CLS son factores de ranking de Google.' }
+    ]
+  }, 30, 2);
+
+  const mktM3 = await createModule('mkt-mod-3', marketingCourse.id, 'Redes Sociales y Contenido', 3);
+
+  await createLesson('mkt-3-1', mktM3.id, 'Estrategia de Redes Sociales', 'reading', {
+    introduction: 'No se trata de estar en todas las plataformas, sino donde ESTA tu audiencia.',
+    content: `PLATAFORMAS:\n- Instagram: Visual, 18-34 anos\n- TikTok: Video corto, Gen Z\n- LinkedIn: Profesional, B2B\n- YouTube: Video largo, evergreen\n\nESTRATEGIA:\n1. Define buyer persona\n2. Elige 2-3 plataformas maximo\n3. Calendario de contenido\n4. Regla 80/20: 80% valor, 20% venta\n5. Mide engagement, no solo seguidores\n\nHERRAMIENTAS: Canva, CapCut, Buffer`,
+    keyPoints: ['2-3 plataformas donde esta tu audiencia', 'Regla 80/20', 'Primeros 3 segundos del video son criticos', 'Engagement > seguidores']
+  }, 25, 1);
+
+  console.log('Marketing Digital completed (3 modules, 5 lessons)');
+
+  // ===========================================
+  // CURSO 6: FOTOGRAFIA DIGITAL
+  // ===========================================
+  console.log('\n📸 Creating Fotografia Digital course...');
+
+  const fotoCourse = await createCourse(
+    'course-fotografia',
+    'Fotografia Digital Creativa',
+    'Aprende composicion, iluminacion, retrato y edicion digital.',
+    'Arte',
+    'beginner',
+    12,
+    'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=600&h=400&fit=crop'
+  );
+
+  const fotoM1 = await createModule('foto-mod-1', fotoCourse.id, 'Fundamentos de Fotografia', 1);
+
+  await createLesson('foto-1-1', fotoM1.id, 'El Triangulo de Exposicion', 'reading', {
+    introduction: 'La exposicion correcta se controla con apertura, velocidad e ISO.',
+    content: `EL TRIANGULO:\n1. APERTURA (f-stop)\n   f/1.8 = mucha luz, fondo desenfocado\n   f/16 = poca luz, todo enfocado\n   Retrato: f/1.8-2.8 | Paisaje: f/8-11\n\n2. VELOCIDAD\n   1/1000s = congela accion\n   1/60s = limite mano firme\n   30s = efecto seda\n\n3. ISO\n   ISO 100 = maxima calidad\n   ISO 3200 = mucho ruido\n   Usa lo mas bajo posible\n\nREGLA DE LOS TERCIOS:\nDivide en 9 cuadros, sujeto en intersecciones.\nComposiciones dinamicas > centrar.`,
+    keyPoints: ['f bajo = bokeh', 'Velocidad congela o muestra movimiento', 'ISO bajo = mejor calidad', 'Regla de los tercios mejora todo']
+  }, 25, 1);
+
+  await createLesson('foto-1-2', fotoM1.id, 'Exposicion y Composicion', 'quiz', {
+    questions: [
+      { question: 'Para fondo desenfocado, que apertura?', options: ['f/16', 'f/1.8', 'f/8', 'f/22'], correctIndex: 1, explanation: 'f/1.8 crea maximo desenfoque (bokeh).' },
+      { question: 'Que es la regla de los tercios?', options: ['Dividir en 3 partes iguales', 'Componer en puntos de interseccion de grilla 3x3', 'Tomar 3 fotos', 'Usar 3 focos'], correctIndex: 1, explanation: 'Grilla 3x3, sujeto en intersecciones.' },
+      { question: 'Para rio con efecto seda?', options: ['1/1000s', '1/60s', '1s o mas', '1/200s'], correctIndex: 2, explanation: 'Velocidad lenta captura agua como seda.' }
+    ]
+  }, 30, 2);
+
+  const fotoM2 = await createModule('foto-mod-2', fotoCourse.id, 'Iluminacion y Edicion', 2);
+
+  await createLesson('foto-2-1', fotoM2.id, 'Iluminacion Natural y Artificial', 'reading', {
+    introduction: 'La luz es el elemento mas importante en fotografia.',
+    content: `LUZ NATURAL:\n- Golden hour: 1h despues/antes del sol\n- Blue hour: antes/despues del sol\n- Evita luz dura del mediodia\n\nDIRECCION:\n- Frontal: uniforme\n- Lateral: dramatismo\n- Contraluz: siluetas\n\nEDICION:\n1. Exposicion\n2. Contraste\n3. Highlights/Shadows\n4. White balance\n5. Recorte\n6. Nitidez\n\nSiempre edita en RAW.`,
+    keyPoints: ['Golden hour es la mejor luz', 'Luz lateral crea dramatismo', 'RAW > JPEG para edicion', 'Edicion es parte creativa']
+  }, 25, 1);
+
+  console.log('Fotografia Digital completed (2 modules, 4 lessons)');
+
+  // ===========================================
+  // CURSO 7: PRODUCTIVIDAD PERSONAL
+  // ===========================================
+  console.log('\n⏰ Creating Productividad Personal course...');
+
+  const prodCourse = await createCourse(
+    'course-productividad',
+    'Productividad Personal de Alto Rendimiento',
+    'Optimiza tu tiempo, energia y atencion con metodos comprobados.',
+    'Desarrollo Personal',
+    'beginner',
+    10,
+    'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=600&h=400&fit=crop'
+  );
+
+  const prodM1 = await createModule('prod-mod-1', prodCourse.id, 'Gestion del Tiempo', 1);
+
+  await createLesson('prod-1-1', prodM1.id, 'Metodos de Gestion del Tiempo', 'reading', {
+    introduction: 'Gestionar tiempo no es trabajar mas horas, sino trabajar en lo correcto.',
+    content: `METODOS:\n1. MATRIZ DE EISENHOWER\n   Urgente+Importante: HACER\n   Importante+No urgente: PLANIFICAR\n   Urgente+No importante: DELEGAR\n   Ni urgente ni importante: ELIMINAR\n\n2. POMODORO\n   25 min foco + 5 min descanso\n   Cada 4 pomodoros: 15-30 min largo\n\n3. TIME BLOCKING\n   Bloquea horas en calendario\n   Batching de tareas similares\n\n4. MIT\n   1-3 tareas mas importantes ANTES de email\n\n5. 2-MINUTE RULE\n   Si toma < 2 min, hazlo AHORA\n\nENERGIA > TIEMPO\n   Trabaja en horas de mayor energia\n   Tareas dificiles = manana\n   Tareas simples = tarde`,
+    keyPoints: ['Eisenhower clasifica por urgencia/importancia', 'Pomodoro: 25+5', 'Multitasking reduce 40%', 'Energia > tiempo']
+  }, 20, 1);
+
+  await createLesson('prod-1-2', prodM1.id, 'Metodos de Productividad', 'quiz', {
+    questions: [
+      { question: 'Urgentes pero no importantes?', options: ['Hacer', 'Delegar', 'Planificar', 'Eliminar'], correctIndex: 1, explanation: 'Delegar libera tiempo para lo importante.' },
+      { question: 'Que es Pomodoro?', options: ['Cocinar tomates', '25 min foco + 5 min descanso', 'Dieta italiana', 'Metodo para dormir'], correctIndex: 1, explanation: 'Bloques de 25 min de foco total.' },
+      { question: 'Por que multitasking es malo?', options: ['Es mito', 'Reduce productividad 40%', 'Mas lento pero preciso', 'Solo malo para creativas'], correctIndex: 1, explanation: 'El cerebro no puede hacer dos tareas cognitivas a la vez.' }
+    ]
+  }, 25, 2);
+
+  const prodM2 = await createModule('prod-mod-2', prodCourse.id, 'Habitos y Enfoque', 2);
+
+  await createLesson('prod-2-1', prodM2.id, 'Construyendo Habitos que Duran', 'reading', {
+    introduction: 'El 40% de tus acciones son habitos. Cambiar tus habitos cambia tu vida.',
+    content: `CICLO DEL HABITO:\n1. SENAL: detonante\n2. RUTINA: accion\n3. RECOMPENSA: beneficio\n\nCREAR NUEVO HABITO:\n- Empezar MINUSCULO (2 minutos)\n- Stack: "Despues de X, hare Y"\n- Identidad: "soy corredor" > "quiero correr"\n\nROMPER HABITO:\n- Invisible la senal\n- Dificil la rutina\n- Insatisfactoria la recompensa\n\nREGLA DEL 1%:\n1.01^365 = 37x mejor en 1 ano`,
+    keyPoints: ['Senal + Rutina + Recompensa', 'Habito de 2 minutos', 'Identidad guia el habito', '1% diario = 37x en 1 ano']
+  }, 20, 1);
+
+  await createLesson('prod-2-2', prodM2.id, 'Habitos y Enfoque', 'quiz', {
+    questions: [
+      { question: 'Clave para nuevo habito?', options: ['Meta grande', 'Algo tan pequeno que sea imposible fallar', '66 dias', 'Cambiar todo de golpe'], correctIndex: 1, explanation: 'Empezar minusculo es la clave de James Clear.' },
+      { question: 'Que es context switching?', options: ['Cambiar idioma', 'Costo cognitivo de cambiar entre tareas', 'Meditacion', 'Cambiar trabajo'], correctIndex: 1, explanation: 'Cada cambio cuesta 15-25 min de reconcentracion.' },
+      { question: 'Regla del 1%?', options: ['1% ingresos a caridad', 'Mejorar 1% diario = 37x en 1 ano', 'Trabajar 1% del dia', '1% cafeina'], correctIndex: 1, explanation: 'Consistencia minima diaria supera cambios dramaticos.' }
+    ]
+  }, 25, 2);
+
+  console.log('Productividad Personal completed (2 modules, 4 lessons)');
+
+  // ===========================================
+  // CURSO 8: EMPRENDIMIENTO
+  // ===========================================
+  console.log('\n🚀 Creating Emprendimiento course...');
+
+  const emprendCourse = await createCourse(
+    'course-emprendimiento',
+    'Emprendimiento: De Idea a Negocio',
+    'Transforma tu idea en negocio real. MVP, lean startup, pitch deck.',
+    'Negocios',
+    'beginner',
+    14,
+    'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=600&h=400&fit=crop'
+  );
+
+  const empM1 = await createModule('emp-mod-1', emprendCourse.id, 'Validacion de Ideas', 1);
+
+  await createLesson('emp-1-1', empM1.id, 'Validacion de Ideas de Negocio', 'reading', {
+    introduction: 'El 90% de startups fallan porque construyen algo que nadie quiere.',
+    content: `VALIDACION:\n1. IDENTIFICA EL PROBLEMA\n   - Que problema resuelves?\n   - Para quien?\n   - Cuanto les cuesta no resolverlo?\n\n2. HABLA CON CLIENTES (10-20 entrevistas)\n   - "Cuentame como manejas [problema]"\n   - NO preguntes si les gusta tu idea\n\n3. CREA UN MVP\n   - Version mas simple que resuelve el problema\n   - Landing page + formulario\n   - Video explicativo\n   - Concierge MVP (hacerlo manualmente)\n\n4. MIDE Y APRENDE\n   - Conversion > 5% es bueno\n   - Disposicion a pagar\n   - Signups para waitlist\n\nCANVAS DE MODELO DE NEGOCIO:\n9 bloques: clientes, propuesta de valor,\ncanales, ingresos, costos, etc.`,
+    keyPoints: ['90% fallan por no validar', '10-20 entrevistas ANTES de construir', 'MVP = prueba mas barata', 'Canvas define la estrategia']
+  }, 25, 1);
+
+  await createLesson('emp-1-2', empM1.id, 'Conceptos de Emprendimiento', 'quiz', {
+    questions: [
+      { question: 'Que es un MVP?', options: ['Producto mas barato', 'Version mas simple que valida la idea', 'Prototipo grafico', 'Primer release completo'], correctIndex: 1, explanation: 'MVP permite medir comportamiento real de clientes.' },
+      { question: 'Error mas comun?', options: ['Sin dinero', 'Construir sin validar primero', 'Miedo a empezar', 'Nombre incorrecto'], correctIndex: 1, explanation: '"Build it and they will come" es el error #1.' },
+      { question: 'Que es el Canvas?', options: ['Lienzo para pintar', 'Herramienta visual de 9 bloques de estrategia', 'Plan de 50 paginas', 'Hoja de calculo'], correctIndex: 1, explanation: 'Canvas condensa la estrategia en 9 bloques visuales.' }
+    ]
+  }, 30, 2);
+
+  const empM2 = await createModule('emp-mod-2', emprendCourse.id, 'Lean Startup y Growth', 2);
+
+  await createLesson('emp-2-1', empM2.id, 'Metodologia Lean Startup', 'reading', {
+    introduction: 'Lean Startup: construir, medir, aprender en ciclos rapidos.',
+    content: `CICLO BUILD-MEASURE-LEARN:\n1. CONSTRUIR: version mas simple\n2. MEDIR: datos reales de usuarios\n3. APRENDER: pivot o perseverar\n\nMETRICAS QUE IMPORTAN:\n- Retencion: % que vuelve\n- Revenue: cuanto pagan\n- Referral: cuantos recomiendan\nNO: likes, visitas (metricas vanidosas)\n\nPIVOT:\n- Problem: cambia el problema\n- Solution: cambia la solucion\n- Segment: cambia a quien\n- Channel: cambia como llegas\n\nPRODUCT-MARKET FIT:\n40% de usuarios dirian "muy decepcionado"\nsi el producto desapareciera.\n\nPRIMEROS 100 CLIENTES:\n- Contacto directo\n- Comunidades\n- Content marketing\n- Partnerships\n- PR`,
+    keyPoints: ['Build-Measure-Learn', 'Retencion es la metrica clave', 'Pivot = cambiar de direccion', '40% dice "muy decepcionado" = PMF']
+  }, 25, 1);
+
+  await createLesson('emp-2-2', empM2.id, 'Lean Startup y Growth', 'quiz', {
+    questions: [
+      { question: 'Metodologia central de Lean Startup?', options: ['Planificar todo', 'Construir, Medir, Aprender en ciclos rapidos', 'Copiar exitosos', 'Vender antes de construir'], correctIndex: 1, explanation: 'Ciclo rapido de validacion continua.' },
+      { question: 'Product-Market Fit se mide con?', options: ['1000 seguidores', '40% dirian "muy decepcionado" si desaparece', 'Landing con 100 signups', '$1000/mes ingresos'], correctIndex: 1, explanation: 'Sean Ellis test: 40%+ = PMF.' },
+      { question: 'Que es un pivot?', options: ['Cambiar nombre', 'Cambio de estrategia basado en datos', 'Cerrar negocio', 'Cambiar oficina'], correctIndex: 1, explanation: 'Pivot es cambiar direccion con aprendizaje real.' }
+    ]
+  }, 30, 2);
+
+  console.log('Emprendimiento completed (2 modules, 4 lessons)');
+
+
   // ENROLLMENTS AND PROGRESS FOR DEMO USER
   // ===========================================
   const demo = await prisma.user.findUnique({ where: { email: 'demo@duobijac.com' } });
