@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -19,27 +19,8 @@ const createCourse = async (
 ) => {
   return prisma.course.upsert({
     where: { id },
-    update: { 
-      title, 
-      description, 
-      category, 
-      difficulty, 
-      estimatedHours, 
-      imageUrl, 
-      isPublished: true, 
-      ...options 
-    },
-    create: { 
-      id, 
-      title, 
-      description, 
-      category, 
-      difficulty, 
-      estimatedHours, 
-      imageUrl, 
-      isPublished: true, 
-      ...options 
-    },
+    update: { title, description, category, difficulty, estimatedHours, imageUrl, isPublished: true, ...options },
+    create: { id, title, description, category, difficulty, estimatedHours, imageUrl, isPublished: true, ...options },
   });
 };
 
@@ -52,12 +33,12 @@ const createModule = async (id: string, courseId: string, title: string, order: 
 };
 
 const createLesson = async (
-  id: string, 
-  moduleId: string, 
-  title: string, 
-  type: string, 
-  content: any, 
-  xpReward: number, 
+  id: string,
+  moduleId: string,
+  title: string,
+  type: string,
+  content: any,
+  xpReward: number,
   order: number
 ) => {
   return prisma.lesson.upsert({
@@ -72,12 +53,12 @@ const createLesson = async (
 // ===========================================
 
 async function main() {
-  console.log('🌱 Starting ENHANCED seed with practical coding exercises...\n');
+  console.log('🌱 Starting seed with demo courses...\n');
 
   // ===========================================
   // USERS
   // ===========================================
-  
+
   const adminPassword = await bcrypt.hash('admin123', 12);
   await prisma.user.upsert({
     where: { email: 'admin@duobijac.com' },
@@ -117,7 +98,7 @@ async function main() {
   // ===========================================
   // ACHIEVEMENTS
   // ===========================================
-  
+
   const achievements = [
     { key: 'first_lesson', title: 'Primera Lección', description: 'Completa tu primera lección', icon: '🎯', xpReward: 10 },
     { key: 'first_xp', title: 'Primeros XP', description: 'Gana tus primeros 10 XP', icon: '⭐', xpReward: 5 },
@@ -148,7 +129,7 @@ async function main() {
   // ===========================================
   // GAMES
   // ===========================================
-  
+
   const games = [
     { key: 'speed_match', title: 'Speed Match', description: 'Combina conceptos antes de que se acabe el tiempo', icon: '🎮', xpReward: 30 },
     { key: 'word_puzzle', title: 'Word Puzzle', description: 'Ordena las letras para formar palabras', icon: '🧩', xpReward: 25 },
@@ -170,7 +151,7 @@ async function main() {
   // ===========================================
   // SHOP ITEMS
   // ===========================================
-  
+
   const shopItems = [
     { key: 'avatar_cool', name: 'Avatar Cool', description: 'Un avatar genial para tu perfil', type: 'avatar', price: 100, icon: '😎' },
     { key: 'avatar_ninja', name: 'Avatar Ninja', description: 'Un ninja misterioso', type: 'avatar', price: 150, icon: '🥷' },
@@ -195,1335 +176,1687 @@ async function main() {
   console.log('✅ Shop items created (11 items)');
 
   // ===========================================
-  // JAVASCRIPT FUNDAMENTALS COURSE - ENHANCED
+  // 🤖 CURSO 1: FUNDAMENTOS DE INTELIGENCIA ARTIFICIAL
   // ===========================================
-  console.log('\n📚 Creating ENHANCED JavaScript Fundamentals course...');
+  console.log('\n🤖 Creating Fundamentos de Inteligencia Artificial course...');
 
-  const jsCourse = await createCourse(
-    'course-js-fundamentals',
-    'JavaScript Fundamentals',
-    'Domina los fundamentos de JavaScript, el lenguaje que impulsa la web moderna. Aprende desde variables hasta funciones, de forma práctica con ejercicios interactivos.',
-    'Programación',
+  const aiCourse = await createCourse(
+    'course-ai-fundamentals',
+    'Fundamentos de Inteligencia Artificial',
+    'Aprende los conceptos fundamentales de la IA, desde machine learning hasta redes neuronales. Descubre cómo la inteligencia artificial está transformando el mundo y cómo puedes empezar a usarla.',
+    'Inteligencia Artificial',
     'beginner',
-    25,
-    'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=600&h=400&fit=crop'
+    12,
+    'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop'
   );
 
-  // MODULE 1: Introducción a JavaScript
-  const jsM1 = await createModule('js-m1', jsCourse.id, 'Introducción a JavaScript', 1);
-  
-  await createLesson('js-l1-1', jsM1.id, '¿Qué es JavaScript y para qué sirve?', 'reading', {
-    introduction: 'JavaScript es un lenguaje de programación que permite crear contenido interactivo en páginas web. Es el tercer pilar de la web junto con HTML y CSS.',
-    content: `JavaScript fue creado en 1995 por Brendan Eich mientras trabajaba en Netscape. Originalmente se llamaba "Mocha" y luego "LiveScript", pero finalmente se renombró a JavaScript como estrategia de marketing (aunque no tiene relación directa con Java).
+  // MÓDULO 1: ¿Qué es la IA?
+  const aiM1 = await createModule('ai-mod-1', aiCourse.id, '¿Qué es la Inteligencia Artificial?', 1);
 
-Hoy en día, JavaScript es:
-• El único lenguaje de programación que funciona nativamente en los navegadores
-• Usado para desarrollo web (frontend y backend con Node.js)
-• La tecnología más demandada en la industria de software
-• Extensible a través de frameworks como React, Vue, Angular
+  await createLesson('ai-1-1', aiM1.id, 'Introducción a la Inteligencia Artificial', 'reading', {
+    introduction: 'La Inteligencia Artificial es una rama de la informática que busca crear sistemas capaces de realizar tareas que normalmente requieren inteligencia humana: aprender, razonar, percibir, comprender lenguaje y tomar decisiones.',
+    content: `La IA fue fundada como disciplina en 1956 en la Conferencia de Dartmouth, donde John McCarthy acuñó el término "Inteligencia Artificial". Desde entonces, ha pasado por épocas de gran entusiasmo y de "inviernos de la IA" donde el financiamiento se redujo.
 
-Con JavaScript puedes:
-- Crear páginas web interactivas
-- Desarrollar aplicaciones móviles (React Native)
-- Crear juegos para navegador
-- Desarrollar servidores y APIs (Node.js)
-- Controlar dispositivos IoT`,
-    keyPoints: ['JavaScript se ejecuta en el navegador', 'Es interpretado, no compilado', 'Es flexible y dinámico', 'Tiene una comunidad enorme'],
-    xpExplanation: 'Completando esta lección has aprendido qué es JavaScript y su importancia en el desarrollo web moderno.'
-  }, 15, 1, 5);
+Hoy vivimos una tercera ola de la IA impulsada por:
+• Grandes volúmenes de datos disponibles
+• Poder de cómputo masivo (GPUs)
+• Mejoras en algoritmos de deep learning
 
-  await createLesson('js-l1-2', jsM1.id, 'Tu primer programa en JavaScript', 'multiple_choice', {
-    preamble: 'Vamos a practicar con tu primer código JavaScript. Responde las siguientes preguntas:',
-    questions: [
-      { question: '¿Cuál es la función correcta para mostrar "Hola Mundo" en la consola?', options: ['console.write("Hola Mundo")', 'console.log("Hola Mundo")', 'print("Hola Mundo")', 'echo "Hola Mundo"'], correctIndex: 1, explanation: 'console.log() es la función estándar para mostrar mensajes en la consola del navegador o terminal.' },
-      { question: '¿Qué aparecería en consola al ejecutar: console.log("Hello" + " " + "World")?', options: ['Hello + World', 'HelloWorld', 'Hello World', 'Error de sintaxis'], correctIndex: 2, explanation: 'El operador + concatena strings en JavaScript, uniendo "Hello", el espacio, y "World".' },
-      { question: '¿Dónde se puede ejecutar código JavaScript?', options: ['Solo en el navegador', 'Solo en el servidor', 'En el navegador, servidor y más', 'Solo en archivos .js'], correctIndex: 2, explanation: 'JavaScript puede ejecutarse en múltiples entornos: navegadores, servidores (Node.js), dispositivos móviles, y más.' }
+TIPOS DE IA SEGÚN CAPACIDAD:
+1. IA Débil (Narrow AI): Sistemas diseñados para tareas específicas. Ej: asistentes de voz, recomendaciones de Netflix, filtros de spam.
+
+2. IA General (AGI): Una IA con capacidades cognitivas equivalentes a las humanas. Aún no existe, pero es el objetivo de muchos investigadores.
+
+3. Superinteligencia (ASI): Una IA que supera la inteligencia humana en todos los aspectos. Es un concepto teórico discutido por Nick Bostrom.
+
+EJEMPLOS REALES DE IA HOY:
+• ChatGPT y Bard: procesamiento de lenguaje natural
+• Tesla Autopilot: conducción autónoma
+• AlphaFold: predicción de estructuras de proteínas
+• DALL-E: generación de imágenes
+• DeepMind AlphaGo: jugó Go mejor que cualquier humano`,
+    keyPoints: [
+      'La IA busca crear sistemas que imiten la inteligencia humana',
+      'La IA Narrow es lo que usamos todos los días hoy',
+      'La IA General (AGI) aún no existe',
+      'Los avances actuales se deben a datos, cómputo y algoritmos'
     ],
-    tips: ['Usa console.log() para debugging', 'Los strings pueden usar comillas simples o dobles', 'Punto y coma al final es opcional pero recomendado']
-  }, 25, 2, 8);
+    xpExplanation: '¡Has aprendido los fundamentos de qué es la IA y sus diferentes tipos!'
+  }, 20, 1);
 
-  await createLesson('js-l1-3', jsM1.id, 'Variables: let, const y var', 'quiz', {
+  await createLesson('ai-1-2', aiM1.id, 'Historia de la IA: De Turing a los LLMs', 'quiz', {
     questions: [
-      { question: '¿Cuál es la diferencia principal entre const y let?', options: ['const es más rápido que let', 'const no puede ser reasignado, let sí', 'let no puede ser reasignado, const sí', 'No hay diferencia'], correctIndex: 1, explanation: 'const crea una constante que no puede ser reasignada. let crea una variable que sí puede cambiar.' },
-      { question: '¿Cuál declaración es CORRECTA para una constante en JavaScript?', options: ['constant PI = 3.14', 'var PI = 3.14', 'const PI = 3.14', 'let PI = 3.14'], correctIndex: 2, explanation: 'La palabra clave "const" se usa para declarar constantes en JavaScript moderno.' },
-      { question: '¿Qué sucede al ejecutar: const nombre = "Ana"; nombre = "María";?', options: ['Se muestra "María"', 'Error: Assignment to constant variable', 'Se muestra "Ana"', 'undefined'], correctIndex: 1, explanation: 'Una vez que una variable const es inicializada, no puede ser reasignada. Intentar hacerlo causa un error.' },
-      { question: '¿Cuál es el mejor uso de "var" en JavaScript moderno?', options: ['Para variables que cambiarán', 'Para constantes', 'Evitar var, usar let y const', 'Para crear variables globales'], correctIndex: 2, explanation: 'var tiene un comportamiento de scope complejo (function scope vs block scope) que puede causar confusión. let y const son más predecibles.' }
+      {
+        question: '¿Quién propuso el famoso "Test de Turing" para evaluar si una máquina puede pensar?',
+        options: ['Alan Turing', 'John von Neumann', 'Ada Lovelace', 'Alan Kay'],
+        correctIndex: 0,
+        explanation: 'Alan Turing propuso su famoso test en 1950 en el artículo "Computing Machinery and Intelligence". El test evalúa si una máquina puede engañar a un humano haciéndole creer que es otro humano.'
+      },
+      {
+        question: '¿En qué año se acuñó el término "Inteligencia Artificial"?',
+        options: ['1943', '1950', '1956', '1969'],
+        correctIndex: 2,
+        explanation: 'El término "Inteligencia Artificial" fue acuñado por John McCarthy en la Conferencia de Dartmouth en 1956, considerada el nacimiento oficial de la disciplina.'
+      },
+      {
+        question: '¿Qué es un Large Language Model (LLM)?',
+        options: [
+          'Un tipo de robot humanoide',
+          'Un modelo de IA entrenado con grandes cantidades de texto para generar y comprender lenguaje',
+          'Un programa de traducción automática',
+          'Una base de datos de lenguas'
+        ],
+        correctIndex: 1,
+        explanation: 'Los LLMs como GPT-4, PaLM y LLaMA son modelos de redes neuronales entrenados con billones de tokens de texto que pueden generar, resumir, traducir y responder preguntas.'
+      },
+      {
+        question: '¿Qué fue el "invierno de la IA"?',
+        options: [
+          'Una temporada de nieve en un laboratorio de IA',
+          'Un período de reducción de financiamiento e interés en IA',
+          'El primer robot que funcionó en invierno',
+          'Un virus que afectó servidores de IA'
+        ],
+        correctIndex: 1,
+        explanation: 'Los "inviernos de la IA" fueron períodos (principalmente en los 70s y 80s-90s) donde las promesas de la IA no se cumplieron y el financiamiento y la investigación se redujeron significativamente.'
+      }
     ]
-  }, 30, 3, 12);
+  }, 25, 2);
 
-  // EJERCICIO DE CÓDIGO PRÁCTICO
-  await createLesson('js-l1-4', jsM1.id, '🎮 Ejercicio Práctico: Variables y Constantes', 'coding', {
-    instructions: 'Practica declarando variables y constantes. Completa los siguientes retos:',
-    exercise: {
-      task: 'Declara las variables correctas para los siguientes escenarios',
-      challenges: [
-        {
-          id: 'js-code-1',
-          description: 'Declara una constante PI con valor 3.14159',
-          initialCode: '// Declara la constante PI\n',
-          expectedOutput: 'PI debe ser 3.14159',
-          hint: 'Usa const PI = ...',
-          solution: 'const PI = 3.14159;'
-        },
-        {
-          id: 'js-code-2', 
-          description: 'Declara una variable nombre con tu nombre (puede cambiar)',
-          initialCode: '// Declara la variable nombre\n',
-          expectedOutput: 'nombre debe tener un string como valor',
-          hint: 'Usa let o var para variables que pueden cambiar',
-          solution: 'let nombre = "María";'
-        },
-        {
-          id: 'js-code-3',
-          description: 'Calcula el área de un círculo usando PI y radio=5',
-          initialCode: 'const PI = 3.14159;\nlet radio = 5;\n// Calcula el área y almacénala en la variable area\n',
-          expectedOutput: 'area debe ser aproximadamente 78.54',
-          hint: 'Área = PI * radio * radio',
-          solution: 'const area = PI * radio * radio;'
-        }
-      ]
-    },
-    tips: ['Usa console.log() para verificar tus resultados', 'const para valores que no cambiarán', 'let para valores que sí cambiarán']
-  }, 50, 4, 15);
-
-  // MODULE 2: Tipos de Datos
-  const jsM2 = await createModule('js-m2', jsCourse.id, 'Tipos de Datos', 2);
-
-  await createLesson('js-l2-1', jsM2.id, 'Strings, Numbers y Booleans', 'reading', {
-    introduction: 'JavaScript tiene varios tipos de datos fundamentales que debes conocer. Cada tipo tiene sus propias características y usos.',
-    content: `TIPOS DE DATOS PRIMITIVOS:
-
-1. STRING (Texto)
-   - Secuencia de caracteres entre comillas
-   - Ejemplos: "Hola", 'Mundo', \u0060Plantilla\u0060
-   - Operaciones: concatenación, búsqueda, manipulación
-
-2. NUMBER (Números)
-   - Enteros: 42, -17, 0
-   - Decimales: 3.14, -0.5
-   - Especiales: Infinity, -Infinity, NaN
-
-3. BOOLEAN (Lógico)
-   - Solo dos valores: true y false
-   - Usado en condicionales y operaciones lógicas`,
-    examples: [
-      { code: 'let nombre = "María";', explanation: 'String con comillas dobles' },
-      { code: 'let edad = 25;', explanation: 'Number entero' },
-      { code: 'let esMayor = true;', explanation: 'Boolean true' },
-      { code: 'typeof "hola" // "string"', explanation: 'Verificar tipo con typeof' }
-    ],
-    keyPoints: ['JavaScript tiene 6 tipos primitivos', 'typeof permite verificar el tipo de una variable', 'null es intencional, undefined es por omisión']
-  }, 20, 1, 8);
-
-  await createLesson('js-l2-2', jsM2.id, 'Operadores de Comparación', 'quiz', {
+  await createLesson('ai-1-3', aiM1.id, 'La IA en tu vida diaria', 'quiz', {
     questions: [
-      { question: '¿Cuál es el resultado de 5 === "5"?', options: ['true', 'false', 'undefined', 'Error'], correctIndex: 1, explanation: '=== compara tanto valor como tipo. 5 (number) !== "5" (string), por lo tanto es false.' },
-      { question: '¿Cuál es el resultado de 5 == "5"?', options: ['true', 'false', 'undefined', 'Error'], correctIndex: 0, explanation: '== hace coerción de tipos antes de comparar. Convierte "5" a 5 y luego compara, dando true.' },
-      { question: '¿Qué operador significa "mayor o igual"?', options: ['>', '>>', '>=', '=>'], correctIndex: 2, explanation: '>= significa "mayor o igual". No uses => que es para arrow functions.' },
-      { question: '¿Cuál es el resultado de null == undefined?', options: ['true', 'false', 'Error', 'undefined'], correctIndex: 0, explanation: 'Por diseño del lenguaje, null y undefined son considerados iguales con == (pero no con ===).' }
-    ],
-    tips: ['Siempre usa === en lugar de ==', 'Compara strings con localeCompare para orden natural', 'NaN no es igual a nada, ni a sí mismo']
-  }, 25, 2, 10);
+      {
+        question: '¿Qué tecnología de IA usa Netflix para recomendarte contenido?',
+        options: [
+          'Reconocimiento facial',
+          'Filtros de spam',
+          'Sistemas de recomendación basados en ML',
+          'Asistentes de voz'
+        ],
+        correctIndex: 2,
+        explanation: 'Netflix usa algoritmos de filtrado colaborativo y de contenido que analizan tu historial de visualización, calificaciones y patrones de otros usuarios similares para recomendarte series y películas.'
+      },
+      {
+        question: '¿Cómo usa Google Maps la IA para predecir el tiempo de llegada?',
+        options: [
+          'Solo usa la velocidad promedio',
+          'Analiza tráfico en tiempo real con ML y datos históricos',
+          'Pide al conductor que estime el tiempo',
+          'No usa IA, solo GPS'
+        ],
+        correctIndex: 1,
+        explanation: 'Google Maps combina datos GPS en tiempo real de millones de dispositivos, historial de tráfico, eventos, clima y patrones de conducción con modelos de ML para hacer predicciones precisas.'
+      },
+      {
+        question: '¿Qué asistente virtual de IA se integra con dispositivos inteligentes del hogar?',
+        options: [
+          'Solo Alexa',
+          'Alexa, Google Assistant, Siri y otros',
+          'Solo Siri de Apple',
+          'Ninguno usa IA real'
+        ],
+        correctIndex: 1,
+        explanation: 'Varios asistentes virtuales (Alexa, Google Assistant, Siri) usan procesamiento de lenguaje natural y aprendizaje automático para controlar dispositivos, responder preguntas y ejecutar tareas.'
+      }
+    ]
+  }, 25, 3);
 
-  await createLesson('js-l2-3', jsM2.id, '🎮 Ejercicio: Tipos y Conversión', 'coding', {
-    instructions: 'Practica trabajando con tipos de datos y conversiones:',
+  // MÓDULO 2: Machine Learning
+  const aiM2 = await createModule('ai-mod-2', aiCourse.id, 'Machine Learning: Aprendizaje Automático', 2);
+
+  await createLesson('ai-2-1', aiM2.id, '¿Qué es Machine Learning?', 'reading', {
+    introduction: 'Machine Learning (ML) es el corazón del sistema de aprendizaje automático. Es un enfoque que permite a las computadoras aprender de los datos sin ser programadas explícitamente para cada tarea.',
+    content: `Arthur Samuel definió ML en 1959 como "el campo de estudio que da a las computadoras la capacidad de aprender sin ser programadas explícitamente".
+
+TRES TIPOS PRINCIPALES DE MACHINE LEARNING:
+
+1. APRENDIZAJE SUPERVISADO (Supervised Learning)
+   • Se entrena con datos etiquetados (input → output conocido)
+   • El modelo aprende la relación entre entrada y salida
+   • Ejemplos: clasificación de emails (spam/no spam), predicción de precios
+   • Algoritmos: Regresión Lineal, Árboles de Decisión, Random Forest, SVM, Redes Neuronales
+
+2. APRENDIZAJE NO SUPERVISADO (Unsupervised Learning)
+   • Trabaja con datos SIN etiquetas
+   • Busca patrones y estructuras ocultas
+   • Ejemplos: segmentación de clientes, detección de anomalías, agrupación
+   • Algoritmos: K-Means, DBSCAN, PCA, Autoencoders
+
+3. APRENDIZAJE POR REFUERZO (Reinforcement Learning)
+   • Un agente aprende mediante prueba y error
+   • Recibe recompensas o penalizaciones por sus acciones
+   • Ejemplos: AlphaGo, robots que aprenden a caminar, juegos
+   • Conceptos: agente, estado, acción, recompensa, política
+
+EL PROCESO DE ML:
+1. Recopilar datos relevantes
+2. Limpiar y preparar los datos
+3. Elegir un modelo
+4. Entrenar el modelo con los datos
+5. Evaluar el rendimiento
+6. Ajustar y optimizar
+7. Desplegar en producción`,
+    keyPoints: [
+      'ML permite a las computadoras aprender de los datos',
+      'Supervised Learning usa datos etiquetados',
+      'Unsupervised Learning busca patrones sin etiquetas',
+      'Reinforcement Learning aprende por recompensa y castigo'
+    ]
+  }, 20, 1);
+
+  await createLesson('ai-2-2', aiM2.id, 'Algoritmos de Machine Learning', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué tipo de ML se usa para predecir el precio de una casa basado en metros cuadrados y ubicación?',
+        options: [
+          'Aprendizaje no supervisado',
+          'Aprendizaje supervisado (regresión)',
+          'Aprendizaje por refuerzo',
+          'Deep Learning'
+        ],
+        correctIndex: 1,
+        explanation: 'Predecir un valor numérico continuo (precio) a partir de características conocidas es un problema de REGRESIÓN, que es un tipo de aprendizaje supervisado.'
+      },
+      {
+        question: '¿Qué algoritmo es mejor para encontrar grupos de clientes similares sin etiquetas previas?',
+        options: [
+          'Regresión Lineal',
+          'Árbol de Decisión',
+          'K-Means (clustering)',
+          'Redes Neuronales Convolucionales'
+        ],
+        correctIndex: 2,
+        explanation: 'K-Means es un algoritmo de CLUSTERING que agrupa datos similares sin necesidad de etiquetas previas. Es ideal para segmentación de clientes, donde no sabemos de antemano cuántos grupos hay.'
+      },
+      {
+        question: '¿Qué es un "feature" en Machine Learning?',
+        options: [
+          'Una función del código',
+          'Una característica o variable de entrada del modelo',
+          'Un tipo de error',
+          'Un resultado del modelo'
+        ],
+        correctIndex: 1,
+        explanation: 'Un "feature" (característica) es cada variable de entrada que el modelo usa para hacer predicciones. Ej: para predecir el precio de una casa, los features serían metros cuadrados, número de habitaciones, ubicación, etc.'
+      },
+      {
+        question: '¿Qué es el "overfitting" en Machine Learning?',
+        options: [
+          'Cuando el modelo es perfecto en todos los datos',
+          'Cuando el modelo memoriza los datos de entrenamiento pero falla con datos nuevos',
+          'Cuando el modelo es demasiado simple',
+          'Cuando el modelo tarda mucho en entrenar'
+        ],
+        correctIndex: 1,
+        explanation: 'Overfitting ocurre cuando el modelo "memoriza" los datos de entrenamiento con demasiada detalle, incluyendo el ruido, y luego falla al predecir con datos que nunca ha visto. Es como estudiar solo un examen específico y no poder resolver otros.'
+      }
+    ]
+  }, 30, 2);
+
+  await createLesson('ai-2-3', aiM2.id, 'Regresión Lineal: El algoritmo más simple', 'coding', {
+    instructions: 'La regresión lineal es el algoritmo de ML más básico: busca una línea que mejor se ajuste a los datos. Practica con estos ejercicios:',
     exercise: {
-      task: 'Manipula tipos de datos y verifica conversiones',
+      task: 'Implementa conceptos básicos de regresión lineal',
       challenges: [
         {
-          id: 'js-type-1',
-          description: 'Convierte el string "42" a número y almacénalo en la variable numero',
-          initialCode: 'let texto = "42";\n// Convierte texto a número\n',
-          hint: 'Usa Number() o parseInt()',
-          solution: 'let numero = Number("42");'
+          id: 'ml-reg-1',
+          description: 'Dado el conjunto de datos [(1, 2), (2, 4), (3, 5), (4, 4), (5, 5)], calcula el promedio de X e Y',
+          initialCode: 'const datos = [[1,2], [2,4], [3,5], [4,4], [5,5]];\n// Calcula promedioX y promedioY\n',
+          hint: 'Suma todas las X y divide por la cantidad, luego haz lo mismo con Y',
+          solution: 'const promedioX = datos.reduce((s, [x]) => s + x, 0) / datos.length; // 3\nconst promedioY = datos.reduce((s, [,y]) => s + y, 0) / datos.length; // 4'
         },
         {
-          id: 'js-type-2',
-          description: 'Concatena "Hola" y "Mundo" con un espacio en medio',
-          initialCode: 'let palabra1 = "Hola";\nlet palabra2 = "Mundo";\n// Crea la frase usando concatenación\n',
-          expectedOutput: 'frase debe ser "Hola Mundo"',
-          hint: 'Usa el operador + o template literals',
-          solution: 'let frase = palabra1 + " " + palabra2;'
+          id: 'ml-reg-2',
+          description: 'Calcula la pendiente (m) de la regresión lineal con la fórmula: m = Σ[(xi - x̄)(yi - ȳ)] / Σ[(xi - x̄)²]',
+          initialCode: 'const promedioX = 3;\nconst promedioY = 4;\nconst datos = [[1,2], [2,4], [3,5], [4,4], [5,5]];\n// Calcula la pendiente m\n',
+          hint: 'Usa reduce para calcular el numerador y denominador por separado',
+          solution: 'const numerador = datos.reduce((s, [x,y]) => s + (x - promedioX) * (y - promedioY), 0);\nconst denominador = datos.reduce((s, [x]) => s + (x - promedioX) ** 2, 0);\nconst m = numerador / denominador;'
         },
         {
-          id: 'js-type-3',
-          description: 'Verifica si el tipo de 3.14 es "number"',
-          initialCode: 'let decimal = 3.14;\n// Almacena el resultado de typeof en tipo\n',
-          expectedOutput: 'tipo debe ser "number"',
-          hint: 'Usa el operador typeof',
-          solution: 'let tipo = typeof decimal;'
+          id: 'ml-reg-3',
+          description: 'Usa la fórmula y = mx + b para predecir el valor de Y cuando X = 6',
+          initialCode: '// Usa los valores m y b que calcularás\nconst m = 0.6; // pendiente calculada\n// Calcula b (intercepto) usando b = ȳ - m * x̄\nconst promedioX = 3;\nconst promedioY = 4;\n// Predice Y para X = 6\n',
+          expectedOutput: 'prediccion debe ser 5.2',
+          hint: 'b = promedioY - m * promedioX, luego predice con y = m*6 + b',
+          solution: 'const b = promedioY - m * promedioX; // 2.2\nconst prediccion = m * 6 + b; // 5.2'
         }
       ]
     }
-  }, 50, 3, 15);
+  }, 50, 3);
 
-  // MODULE 3: Control de Flujo
-  const jsM3 = await createModule('js-m3', jsCourse.id, 'Control de Flujo', 3);
+  // MÓDULO 3: Redes Neuronales
+  const aiM3 = await createModule('ai-mod-3', aiCourse.id, 'Redes Neuronales y Deep Learning', 3);
 
-  await createLesson('js-l3-1', jsM3.id, 'Condicionales if/else', 'quiz', {
-    questions: [
-      { question: '¿Cuál es la salida de: if(5 > 3) { console.log("A"); } else { console.log("B"); }?', options: ['A', 'B', 'AB', 'Error'], correctIndex: 0, explanation: '5 > 3 es true, por lo tanto se ejecuta el bloque del if y se imprime "A".' },
-      { question: '¿Qué palabra clave se usa para agregar una condición alternativa?', options: ['elsif', 'elif', 'else if', 'otherwise'], correctIndex: 2, explanation: 'JavaScript usa "else if" (dos palabras separadas) para condiciones adicionales.' },
-      { question: '¿Qué retorna: 5 > 3 ? "sí" : "no"?', options: ['"sí"', '"no"', 'true', 'Error'], correctIndex: 0, explanation: 'El operador ternario (?:) evalúa la condición y retorna el primer valor si es true, el segundo si es false.' }
-    ],
-    tips: ['Usa else if, no elif ni elsif', 'El operador ternario es útil para asignaciones simples', 'Evita anidar muchos if/else']
-  }, 30, 1, 12);
+  await createLesson('ai-3-1', aiM3.id, 'Redes Neuronales: El cerebro artificial', 'reading', {
+    introduction: 'Las redes neuronales artificiales están inspiradas en el cerebro humano. Cada neurona artificial recibe entradas, las pondera y produce una salida que puede ser enviada a otras neuronas.',
+    content: `¿CÓMO FUNCIONA UNA NEURONA ARTIFICIAL?
 
-  await createLesson('js-l3-2', jsM3.id, 'Bucles for y while', 'quiz', {
-    questions: [
-      { question: '¿Cuántas veces se ejecuta: for(let i = 0; i < 5; i++) { console.log(i); }?', options: ['4', '5', '6', 'Infinito'], correctIndex: 1, explanation: 'El bucle va de i=0 a i=4 (i<5), ejecutándose 5 veces: 0, 1, 2, 3, 4.' },
-      { question: '¿Qué hace break dentro de un bucle?', options: ['Salta a la siguiente iteración', 'Termina el bucle completamente', 'Reinicia el bucle', 'No hace nada'], correctIndex: 1, explanation: 'break termina inmediatamente el bucle y continúa con el código después del bucle.' },
-      { question: '¿Qué hace continue dentro de un bucle?', options: ['Salta a la siguiente iteración', 'Termina el bucle', 'Reinicia el bucle', 'Sale de la función'], correctIndex: 0, explanation: 'continue salta el resto del código de la iteración actual y pasa a la siguiente iteración.' }
-    ],
-    examples: [
-      { code: 'for(let i = 0; i < 3; i++) { console.log(i); } // 0, 1, 2', explanation: 'Bucle for estándar' },
-      { code: 'let i = 0; while(i < 3) { console.log(i); i++; }', explanation: 'Bucle while' },
-      { code: 'for(let item of array) { console.log(item); }', explanation: 'for...of para iterar arrays' }
+Una neurona artificial recibe:
+1. Múltiples entradas (x1, x2, x3...)
+2. Cada entrada tiene un peso asociado (w1, w2, w3...)
+3. Se suma: z = w1*x1 + w2*x2 + w3*x3 + bias
+4. Se aplica una función de activación: a = f(z)
+5. La salida se envía a la siguiente capa
+
+FUNCIONES DE ACTIVACIÓN COMUNES:
+• Sigmoid: convierte cualquier número a un valor entre 0 y 1
+• ReLU: output = max(0, z) — la más usada actualmente
+• Softmax: convierte salidas en probabilidades (suma = 1)
+
+ESTRUCTURA DE UNA RED NEURONAL:
+• Capa de entrada (Input): recibe los datos originales
+• Capas ocultas (Hidden): procesan la información
+• Capa de salida (Output): produce la predicción
+
+DEEP LEARNING = Redes con MÚLTIPLES capas ocultas
+
+TIPOS DE REDES NEURONALES:
+
+1. ANN (Artificial Neural Network): Red feedforward básica
+2. CNN (Convolutional Neural Network): Excelente para imágenes
+   - Usa filtros para detectar bordes, texturas, patrones
+   - Aplicaciones: reconocimiento facial, diagnóstico médico
+3. RNN/LSTM: Para secuencias (texto, audio, series temporales)
+   - Tiene "memoria" de datos anteriores
+   - Aplicaciones: traducción, predicción de texto
+4. Transformers: Arquitectura dominante actualmente
+   - Base de GPT, BERT, y todos los LLMs modernos
+   - Usa "attention" para entender relaciones en los datos`,
+    keyPoints: [
+      'Las neuronas artificiales ponderan entradas con pesos',
+      'Deep Learning usa redes con muchas capas ocultas',
+      'CNNs son excelentes para procesar imágenes',
+      'Transformers son la base de los LLMs modernos como GPT'
     ]
-  }, 35, 2, 15);
+  }, 25, 1);
 
-  await createLesson('js-l3-3', jsM3.id, '🎮 Ejercicio: Condicionales y Bucles', 'coding', {
-    instructions: 'Practica condicionales y bucles resolviendo estos problemas:',
-    exercise: {
-      task: 'Implementa lógica de control de flujo',
-      challenges: [
-        {
-          id: 'js-loop-1',
-          description: 'Crea una función esPar(numero) que retorne true si el número es par',
-          initialCode: 'function esPar(numero) {\n  // Retorna true si es par, false si es impar\n}\n',
-          expectedOutput: 'esPar(4) → true, esPar(7) → false',
-          hint: 'Usa el operador módulo (%) para verificar si es divisible por 2',
-          solution: 'function esPar(numero) {\n  return numero % 2 === 0;\n}'
-        },
-        {
-          id: 'js-loop-2',
-          description: 'Suma todos los números del 1 al 10 usando un bucle for',
-          initialCode: '// Usa un bucle for para sumar 1+2+3+...+10\nlet suma = 0;\n',
-          expectedOutput: 'suma debe ser 55',
-          hint: 'Itera de 1 a 10 y acumula en suma',
-          solution: 'let suma = 0;\nfor(let i = 1; i <= 10; i++) {\n  suma += i;\n}'
-        },
-        {
-          id: 'js-loop-3',
-          description: 'Encuentra el número mayor en el array [3, 7, 2, 9, 5]',
-          initialCode: 'let numeros = [3, 7, 2, 9, 5];\nlet mayor = numeros[0];\n// Encuentra el mayor\n',
-          expectedOutput: 'mayor debe ser 9',
-          hint: 'Itera por el array y compara cada elemento',
-          solution: 'let numeros = [3, 7, 2, 9, 5];\nlet mayor = numeros[0];\nfor(let num of numeros) {\n  if(num > mayor) mayor = num;\n}'
-        }
-      ]
-    }
-  }, 60, 3, 20);
+  await createLesson('ai-3-2', aiM3.id, 'Arquitecturas de Deep Learning', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué tipo de red neuronal es la mejor para clasificar imágenes de fotos de animales?',
+        options: [
+          'Red Neuronal Recurrente (RNN)',
+          'Red Convolucional (CNN)',
+          'Red Generativa Antagónica (GAN)',
+          'Regresión Lineal'
+        ],
+        correctIndex: 1,
+        explanation: 'Las CNNs son las redes estándar para procesamiento de imágenes. Usan filtros convolucionales para detectar patrones visuales como bordes, formas, texturas y objetos.'
+      },
+      {
+        question: '¿Qué arquitectura de red se usa en ChatGPT y otros Large Language Models?',
+        options: [
+          'CNN (Convolucional)',
+          'GAN (Generativa Antagónica)',
+          'Transformer',
+          'KNN (K-Nearest Neighbors)'
+        ],
+        correctIndex: 2,
+        explanation: 'Los LLMs como GPT-4 se basan en la arquitectura Transformer, introducida por Google en 2017 en el paper "Attention Is All You Need". Los Transformers usan mecanismos de atención para procesar secuencias.'
+      },
+      {
+        question: '¿Qué es una Red Generativa Antagónica (GAN)?',
+        options: [
+          'Una red que clasifica datos',
+          'Un sistema de dos redes que compiten: una genera y otra evalúa',
+          'Una red que solo hace predicciones',
+          'Un algoritmo de clustering'
+        ],
+        correctIndex: 1,
+        explanation: 'Las GANs tienen dos redes: el Generador (crea contenido falso) y el Discriminador (intenta detectar si es falso). Compiten entre sí, lo que permite al Generador crear contenido cada vez más realista. Se usan para generar imágenes, deepfakes, arte, etc.'
+      },
+      {
+        question: '¿Qué es el "backpropagation" (retropropagación)?',
+        options: [
+          'Enviar datos hacia adelante en la red',
+          'Un algoritmo para ajustar los pesos de la red minimizando el error',
+          'Eliminar neuronas innecesarias',
+          'Copiar una red existente'
+        ],
+        correctIndex: 1,
+        explanation: 'Backpropagation es el algoritmo fundamental de entrenamiento de redes neuronales. Calcula el gradiente del error con respecto a cada peso y lo ajusta usando descenso gradiente para minimizar el error de predicción.'
+      }
+    ]
+  }, 30, 2);
 
-  // MINI PROYECTO: Calculadora Simple
-  await createLesson('js-l3-4', jsM3.id, '🚀 Mini-Proyecto: Calculadora Simple', 'project', {
-    title: 'Calculadora de Propinas',
-    description: 'Crea una calculadora que determine la propia apropiada basada en el total de la cuenta y el porcentaje deseado.',
+  await createLesson('ai-3-3', aiM3.id, 'Deep Learning en la práctica', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué es "transfer learning" en deep learning?',
+        options: [
+          'Mover datos entre servidores',
+          'Reutilizar un modelo pre-entrenado para una tarea similar',
+          'Copiar código de otro proyecto',
+          'Un tipo de red neuronal'
+        ],
+        correctIndex: 1,
+        explanation: 'Transfer learning permite tomar un modelo ya entrenado con millones de datos (como ImageNet) y ajustarlo para una tarea específica con pocos datos. Esto ahorra tiempo y recursos enormemente.'
+      },
+      {
+        question: '¿Cuál es la principal desventaja del deep learning?',
+        options: [
+          'Es demasiado lento para producción',
+          'Requiere grandes cantidades de datos y poder de cómputo',
+          'No puede manejar imágenes',
+          'Solo funciona con Python'
+        ],
+        correctIndex: 1,
+        explanation: 'El deep learning necesita grandes volúmenes de datos etiquetados y potente hardware (GPUs/TPUs) para entrenar. Un modelo GPT puede costar millones de dólares en entrenamiento.'
+      }
+    ]
+  }, 25, 3);
+
+  // MÓDULO 4: IA Ética y Sociedad
+  const aiM4 = await createModule('ai-mod-4', aiCourse.id, 'IA Ética y Sociedad', 4);
+
+  await createLesson('ai-4-1', aiM4.id, 'Ética en la Inteligencia Artificial', 'reading', {
+    introduction: 'A medida que la IA se integra más en nuestra vida, surgen preguntas éticas cruciales: ¿Quién es responsable cuando la IA comete errores? ¿Cómo evitamos el sesgo algorítmico?',
+    content: `PRINCIPALES PROBLEMAS ÉTICOS DE LA IA:
+
+1. SESGO ALGORÍTMICO (Algorithmic Bias)
+   Los datos de entrenamiento pueden contener prejuicios sociales que la IA aprende y perpetúa.
+   Ejemplo real: Amazon creó un sistema de contratación que discriminaba mujeres porque se entrenó con 20 años de datos donde la mayoría de empleados eran hombres.
+
+2. PRIVACIDAD DE DATOS
+   La IA necesita datos, pero ¿cómo protegemos la información personal?
+   - Regulaciones: GDPR (Europa), CCPA (California)
+   - Tecnología: aprendizaje federado, Differential Privacy
+
+3. TRANSPARENCIA EXPLICABLE (XAI)
+   Muchos modelos de IA son "cajas negras" — producen resultados sin explicar el por qué.
+   Ejemplo: Un banco rechaza tu préstamo pero no puede explicar exactamente por qué.
+
+4. RESPONSABILIDAD
+   ¿Quién es responsable cuando la IA falla?
+   - ¿El desarrollador del algoritmo?
+   - ¿La empresa que lo implementó?
+   - ¿El usuario que lo usó?
+
+5. IMPACTO EN EL EMPLEO
+   La IA automatiza tareas, pero también crea nuevos empleos.
+   - Empleos en riesgo: datos repetitivos, clasificación simple
+   - Empleos nuevos: ingenieros de ML, éticos de IA, curadores de datos
+
+PRINCIPIOS DE IA ÉTICA:
+• Justicia: evitar discriminación
+• Transparencia: explicar decisiones
+• Privacidad: proteger datos
+• Seguridad: minimizar riesgos
+• Responsabilidad: rendir cuentas`,
+    keyPoints: [
+      'El sesgo algorítmico perpetúa discriminación existente',
+      'La transparencia es clave para la confianza en la IA',
+      'La regulación de IA está evolucionando rápidamente',
+      'La IA ética requiere esfuerzo de toda la sociedad'
+    ]
+  }, 25, 1);
+
+  await createLesson('ai-4-2', aiM4.id, 'Desafíos Éticos y Regulación', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué es el "sesgo algorítmico" y por qué es un problema?',
+        options: [
+          'Cuando el algoritmo es demasiado rápido',
+          'Cuando el algoritmo perpetúa o amplifica prejuicios presentes en los datos de entrenamiento',
+          'Cuando el algoritmo es ineficiente',
+          'Cuando el algoritmo usa mucha memoria'
+        ],
+        correctIndex: 1,
+        explanation: 'El sesgo algorítmico ocurre cuando los datos de entrenamiento contienen prejuicios históricos (racismo, sexismo, etc.) que el modelo aprende y perpetúa en sus decisiones. Ej: sistemas de contratación que discriminan por género o raza.'
+      },
+      {
+        question: '¿Qué reglamento europeo regula el uso de la IA y protección de datos?',
+        options: [
+          'HIPAA',
+          'GDPR y AI Act',
+          'DMCA',
+          'FERPA'
+        ],
+        correctIndex: 1,
+        explanation: 'El GDPR (2018) protege datos personales, y el AI Act (2024) es la primera regulación integral del mundo para la IA, clasificando sistemas por riesgo y estableciendo requisitos obligatorios.'
+      },
+      {
+        question: '¿Qué es la "transparencia explicable" en IA?',
+        options: [
+          'Mostrar el código del algoritmo',
+          'La capacidad de explicar y comprender cómo la IA toma decisiones',
+          'Hacer que los datos sean públicos',
+          'Usar pantallas transparentes para mostrar IA'
+        ],
+        correctIndex: 1,
+        explanation: 'La transparencia explicable (XAI) busca que los modelos de IA puedan explicar POR QUÉ tomaron una decisión. Es crucial para generar confianza y poder detectar errores o sesgos.'
+      }
+    ]
+  }, 30, 2);
+
+  // MÓDULO 5: Aplicaciones Prácticas
+  const aiM5 = await createModule('ai-mod-5', aiCourse.id, 'Herramientas y Aplicaciones Prácticas de la IA', 5);
+
+  await createLesson('ai-5-1', aiM5.id, 'Herramientas de IA para el Día a Día', 'reading', {
+    introduction: 'La IA ya está disponible como herramientas que cualquiera puede usar. Conoce las principales categorías y cómo sacarles el máximo provecho.',
+    content: `CATEGORÍAS DE HERRAMIENTAS DE IA:
+
+1. CHATBOTS Y ASISTENTES (LLMs)
+   • ChatGPT: El más popular, versátil para escritura, código, análisis
+   • Claude: Enfocado en seguridad y conversaciones largas
+   • Google Gemini: Integrado con servicios de Google
+   • Copilot (Microsoft): Integrado en Office y Windows
+
+2. GENERACIÓN DE IMÁGENES
+   • DALL-E 3: Genera imágenes desde texto (integrado en ChatGPT)
+   • Midjourney: Alta calidad artística
+   • Stable Diffusion: Open source, ejecutable localmente
+   • Adobe Firefly: Integrado en Photoshop
+
+3. GENERACIÓN DE CÓDIGO
+   • GitHub Copilot: Sugiere código en tu editor
+   • Cursor: IDE con IA integrada
+   • Replit AI: Genera y ejecuta código en línea
+
+4. PRODUCTIVIDAD
+   • Notion AI: Organiza notas y genera contenido
+   • Otter.ai: Transcribe reuniones automáticamente
+   • Gamma: Crea presentaciones con IA
+
+5. ANÁLISIS DE DATOS
+   • ChatGPT Code Interpreter: Analiza datasets
+   • Julius AI: Análisis de datos con lenguaje natural
+   • Obviously AI: ML sin código
+
+CÓMO ESCRIBIR BUENOS PROMPTS:
+1. Sé específico: no digas "escríbeme algo", di "escribe un email formal para solicitar una reunión con..."
+2. Da contexto: explica tu situación, audiencia y objetivo
+3. Formato: especifica si quieres una lista, párrafo, tabla, código
+4. Itera: ajusta tu prompt basándote en los resultados
+5. Rol: "Actúa como un experto en..." mejora la respuesta`,
+    keyPoints: [
+      'Existen herramientas de IA para prácticamente cualquier tarea',
+      'Los prompts claros y específicos producen mejores resultados',
+      'La IA es una herramienta poderosa que amplifica tu capacidad',
+      'Es importante verificar los resultados de la IA'
+    ]
+  }, 20, 1);
+
+  await createLesson('ai-5-2', aiM5.id, 'Prompt Engineering: El Arte de Hablar con la IA', 'quiz', {
+    questions: [
+      {
+        question: '¿Cuál de estos prompts producirá MEJORES resultados de ChatGPT?',
+        options: [
+          '"Escríbeme algo sobre marketing"',
+          '"Actúa como un consultor de marketing digital. Escribe 5 estrategias de marketing en redes sociales para una tienda de ropa juvenil en España, con un tono informal y ejemplos prácticos."',
+          '"Marketing. 5 cosas."',
+          '"Hola, necesito ayuda con marketing"'
+        ],
+        correctIndex: 1,
+        explanation: 'El prompt más efectivo incluye: un rol claro (consultor), contexto específico (tienda de ropa juvenil en España), formato (5 estrategias), tono (informal) y ejemplos prácticos. La especificidad es clave.'
+      },
+      {
+        question: '¿Qué es "hallucination" (alucinación) en un LLM?',
+        options: [
+          'Cuando el modelo funciona perfectamente',
+          'Cuando el modelo genera información falsa o inventada con apariencia de ser cierta',
+          'Cuando el modelo tarda mucho en responder',
+          'Cuando el modelo no entiende español'
+        ],
+        correctIndex: 1,
+        explanation: 'Las alucinaciones son respuestas que parecen convincentes pero contienen información falsa. Los LLMs pueden inventar fuentes, datos estadísticos o hechos que no existen. Siempre verifica la información importante.'
+      },
+      {
+        question: '¿Por qué es importante verificar los resultados de la IA?',
+        options: [
+          'Porque la IA siempre da respuestas correctas',
+          'Porque los LLMs pueden cometer errores, alucinar datos y tener sesgos',
+          'Porque la IA es ilegal',
+          'Porque solo funciona en inglés'
+        ],
+        correctIndex: 1,
+        explanation: 'Los LLMs pueden contener errores, generar información falsa (alucinaciones), tener sesgos de sus datos de entrenamiento, y no tener información actualizada. Siempre verifica con fuentes confiables.'
+      }
+    ]
+  }, 25, 2);
+
+  await createLesson('ai-5-3', aiM5.id, '🚀 Mini-Proyecto: Tu Primer Análisis con IA', 'project', {
+    title: 'Análisis de Datos con IA',
+    description: 'Usa herramientas de IA para analizar un conjunto de datos y generar insights accionables.',
     objectives: [
-      'Practicar el uso de variables y operadores',
-      'Implementar condicionales para manejar casos especiales',
-      'Usar funciones para organizar el código'
+      'Aprender a usar IA para análisis de datos',
+      'Formular prompts efectivos para obtención de datos',
+      'Interpretar y evaluar los resultados de la IA'
     ],
     requirements: [
-      'Función que calcule la propina (cuenta × porcentaje)',
-      'Función que calcule el total (cuenta + propina)',
-      'Maneje casos: cuenta negativa, porcentaje inválido',
-      'Muestre un desglose completo'
+      'Elige un dataset público (Kaggle, Google Dataset Search)',
+      'Usa ChatGPT o similar para generar 5 preguntas de análisis',
+      'Solicita a la IA que genere código de Python para analizar los datos',
+      'Documenta los insights más importantes encontrados',
+      'Evalúa la calidad de las respuestas de la IA (¿son correctas? ¿hay errores?)'
     ],
-    exampleCode: `function calcularPropina(cuenta, porcentaje) {
-  if (cuenta < 0) return "La cuenta no puede ser negativa";
-  if (porcentaje < 0 || porcentaje > 100) return "Porcentaje inválido";
-  return (cuenta * porcentaje / 100).toFixed(2);
-}`,
-    tips: ['Usa toFixed(2) para mostrar solo 2 decimales', 'Considera usar condicionales para validar entradas'],
-    xpReward: 100
-  }, 80, 4, 25);
+    exampleCode: `# Prompt para ChatGPT:
+"Actúa como un analista de datos senior. Tengo un dataset de ventas 
+de una tienda online con columnas: fecha, producto, categoría, 
+cantidad, precio, cliente_id. 
 
-  // MODULE 4: Arrays
-  const jsM4 = await createModule('js-m4', jsCourse.id, 'Arrays (Arreglos)', 4);
+1. Sugiere 5 análisis importantes para este dataset
+2. Escribe el código Python usando pandas para cada análisis
+3. Interpreta los posibles resultados"
 
-  await createLesson('js-l4-1', jsM4.id, 'Crear y acceder a arrays', 'reading', {
-    introduction: 'Los arrays son estructuras de datos fundamentales que permiten almacenar múltiples valores en una sola variable.',
-    content: `CREAR ARRAYS:
+# Ejemplo de código que la IA podría generar:
+import pandas as pd
+df = pd.read_csv('ventas.csv')
+ventas_por_categoria = df.groupby('categoria')['precio'].sum()
+top_productos = df.groupby('producto')['cantidad'].sum().nlargest(10)`,
+    tips: ['La IA es un asistente, no un reemplazo de tu criterio', 'Siempre verifica datos y código generado', 'Experimenta con diferentes prompts para comparar resultados']
+  }, 50, 3);
 
-const frutas = ["manzana", "pera", "uva"];
-const numeros = [1, 2, 3, 4, 5];
+  console.log('✅ Fundamentos de IA completed (5 modules, 13 lessons)');
 
-ACCEDER ELEMENTOS:
-- Los índices empiezan en 0
-- frutas[0] → "manzana"
-- frutas[2] → "uva"
+  // ===========================================
+  // 💰 CURSO 2: FINANZAS PERSONALES PARA PRINCIPIANTES
+  // ===========================================
+  console.log('\n💰 Creating Finanzas Personales para Principiantes course...');
 
-MODIFICAR ARRAYS:
-- push(elemento) → añade al final
-- pop() → elimina del final
-- unshift(elemento) → añade al inicio
-- shift() → elimina del inicio`,
-    examples: [
-      { code: 'let arr = [1, 2, 3]; arr.push(4); // [1, 2, 3, 4]', explanation: 'Añadir al final' },
-      { code: 'let arr = [1, 2, 3]; arr.pop(); // [1, 2]', explanation: 'Eliminar del final' },
-      { code: 'arr.length // número de elementos', explanation: 'Obtener longitud' }
+  const finanzasCourse = await createCourse(
+    'course-finanzas-personales',
+    'Finanzas Personales para Principiantes',
+    'Aprende a tomar el control de tu dinero. Desde crear tu primer presupuesto hasta invertir con confianza. Herramientas prácticas para construir tu libertad financiera.',
+    'Finanzas',
+    'beginner',
+    10,
+    'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&h=400&fit=crop'
+  );
+
+  // MÓDULO 1: Mentalidad y Fundamentos Financieros
+  const finM1 = await createModule('fin-mod-1', finanzasCourse.id, 'Mentalidad y Fundamentos Financieros', 1);
+
+  await createLesson('fin-1-1', finM1.id, 'Tu Relación con el Dinero', 'reading', {
+    introduction: 'Antes de hablar de números, es importante entender cómo piensas sobre el dinero. Tu mentalidad financiera determina tus decisiones y resultados a largo plazo.',
+    content: `TU RELACIÓN CON EL DINERO:
+La mayoría de personas nunca fueron enseñadas a manejar dinero. La educación financiera formal es rara en escuelas, lo que crea patrones que se repiten generación tras generación.
+
+LOS 3 PILARES DE LA LIBERTAD FINANCIERA:
+
+1. AHORRO → Tener un fondo de emergencia
+   • Objetivo: 3-6 meses de gastos fijos
+   • Regla: paga primero a ti mismo (antes de gastar)
+
+2. DEUDA → Eliminar deudas tóxicas
+   • Deudas buenas: hipoteca, préstamo estudiantil (tasas bajas, generan valor)
+   • Deudas malas: tarjetas de crédito, préstamos de consumo (tasas altas)
+
+3. INVERSIÓN → Hacer crecer tu dinero
+   • El interés compuesto es la fuerza más poderosa del universo financiero
+   • Einstein lo llamó "la octava maravilla del mundo"
+
+EL COSTO DE NO SABER:
+• Una persona que ahorra $200/mes desde los 25 años al 7% anual tendría ~$525,000 a los 65 años
+• Si empieza a los 35, tendría solo ~$244,000 — pierde más de la mitad por esperar 10 años
+
+LAS 5 REGLAS DE ORO:
+1. Vive por debajo de tus posibilidades
+2. Paga todas tus deudas (excepto hipoteca) antes de invertir
+3. Ten un fondo de emergencia de 3-6 meses
+4. Invierte el 15-20% de tus ingresos consistentemente
+5. Nunca inviertas en lo que no entiendes`,
+    keyPoints: [
+      'Tu mentalidad financiera es tan importante como los números',
+      'El fondo de emergencia es la base de la seguridad financiera',
+      'El interés compuesto premia a quien empieza temprano',
+      'No todas las deudas son iguales'
     ]
-  }, 25, 1, 10);
+  }, 20, 1);
 
-  await createLesson('js-l4-2', jsM4.id, 'Métodos map, filter y reduce', 'quiz', {
+  await createLesson('fin-1-2', finM1.id, 'Conceptos Clave de Finanzas', 'quiz', {
     questions: [
-      { question: '¿Qué retorna: [1, 2, 3].map(x => x * 2)?', options: ['[2, 4, 6]', '[1, 2, 3]', 'undefined', 'Error'], correctIndex: 0, explanation: 'map() transforma cada elemento. Multiplica cada uno por 2: [1*2, 2*2, 3*2] = [2, 4, 6].' },
-      { question: '¿Qué retorna: [1, 2, 3, 4].filter(x => x > 2)?', options: ['[1, 2]', '[3, 4]', '[2, 3, 4]', 'Error'], correctIndex: 1, explanation: 'filter() mantiene solo los elementos que cumplen la condición.' },
-      { question: '¿Qué retorna: [1, 2, 3].reduce((acc, x) => acc + x, 0)?', options: ['6', '[1, 2, 3]', 'undefined', 'Error'], correctIndex: 0, explanation: 'reduce() acumula valores. Suma todos: 0+1+2+3 = 6.' }
-    ],
-    tips: ['Encadena métodos: arr.filter().map()', 'reduce puede hacer lo que map, filter y otros hacen']
-  }, 35, 2, 15);
+      {
+        question: '¿Qué es el "interés compuesto"?',
+        options: [
+          'Un interés que se paga una sola vez',
+          'Interés que se calcula sobre el capital más los intereses acumulados',
+          'Una tasa de interés fija',
+          'Un tipo de préstamo'
+        ],
+        correctIndex: 1,
+        explanation: 'El interés compuesto genera intereses sobre los intereses ya acumulados. Ej: si inviertes $1000 al 10%, al año siguiente tienes $1100, y al año siguiente el 10% se calcula sobre $1100 (no sobre $1000). Crece exponencialmente.'
+      },
+      {
+        question: '¿Cuál es la diferencia entre ingresos brutos y netos?',
+        options: [
+          'No hay diferencia',
+          'Brutos son antes de impuestos, netos son después de impuestos y deducciones',
+          'Netos son antes de impuestos',
+          'Brutos incluyen inversiones'
+        ],
+        correctIndex: 1,
+        explanation: 'Ingresos brutos = lo que ganas antes de deducciones. Ingresos netos = lo que realmente recibes después de impuestos, seguridad social y otras deducciones. Si ganas $3000 brutos, podrías recibir $2400 netos.'
+      },
+      {
+        question: '¿Qué es un "fondo de emergencia"?',
+        options: [
+          'Un préstamo de emergencia del banco',
+          'Ahorros destinados a cubrir gastos inesperados sin recurrir a deudas',
+          'Una inversión de alto riesgo',
+          'Un seguro de vida'
+        ],
+        correctIndex: 1,
+        explanation: 'El fondo de emergencia es dinero líquido (fácil de accesible) que cubre 3-6 meses de gastos. Se usa para emergencias reales: pérdida de empleo, reparación del auto, gasto médico. NUNCA se toca para compras o vacaciones.'
+      },
+      {
+        question: '¿Qué tipo de deuda se considera "buena"?',
+        options: [
+          'Tarjeta de crédito con tasa del 25%',
+          'Préstamo para un auto deportivo de lujo',
+          'Hipoteca con tasa baja que te permite vivir en una zona con buenos trabajos',
+          'Préstamo de payday con tasa del 400%'
+        ],
+        correctIndex: 2,
+        explanation: 'Una hipoteca con tasa baja es "buena deuda" porque el inmueble tiende a apreciarse con el tiempo, la tasa es baja comparada con otras formas de crédito, y te proporciona un activo que genera valor (vivienda, possibly rental income).'
+      }
+    ]
+  }, 25, 2);
 
-  await createLesson('js-l4-3', jsM4.id, '🎮 Ejercicio: Manipulación de Arrays', 'coding', {
-    instructions: 'Practica manipulando arrays con estos desafíos:',
+  // MÓDULO 2: Presupuesto y Ahorro
+  const finM2 = await createModule('fin-mod-2', finanzasCourse.id, 'Presupuesto y Estrategias de Ahorro', 2);
+
+  await createLesson('fin-2-1', finM2.id, 'Cómo Crear un Presupuesto Efectivo', 'reading', {
+    introduction: 'Un presupuesto no es una restricción, es un plan que te da libertad. Saber a dónde va tu dinero te permite tomar decisiones conscientes y alcanzar tus metas.',
+    content: `EL MÉTODO 50/30/20:
+
+Asígnate un porcentaje de tus ingresos netos:
+
+50% NECESIDADES (Needs)
+• Alquiler/hipoteca
+• Servicios (luz, agua, internet)
+• Comida básica
+• Transporte
+• Seguros
+• Pagos mínimos de deudas
+
+30% DESEOS (Wants)
+• Restaurantes y delivery
+• Entretenimiento (Netflix, cine, conciertos)
+• Ropa
+• Viajes
+• Suscripciones
+• Compras personales
+
+20% AHORRO E INVERSIÓN
+• Fondo de emergencia
+• Inversiones (acciones, fondos indexados)
+• Pago extra de deudas
+• Metas de ahorro específicas
+
+EJEMPLO PRÁCTICO:
+Si ganas $2,000 netos al mes:
+• $1,000 → Necesidades
+• $600 → Deseos
+• $400 → Ahorro e inversión
+
+PASOS PARA CREAR TU PRESUPUESTO:
+1. Calcula tus ingresos netos mensuales
+2. Lista TODOS tus gastos fijos
+3. Categoriza tus gastos variables
+4. Asigna montos según 50/30/20
+5. Registra gastos reales vs presupuestados
+6. Ajusta mensualmente
+
+HERRAMIENTAS GRATUITAS:
+• Hoja de cálculo (Google Sheets, Excel)
+• Apps: Mint, YNAB (You Need A Budget), Fintonic
+• Método del sobre: retira efectivo en sobres por categoría`,
+    keyPoints: [
+      'El método 50/30/20 es un excelente punto de partida',
+      'Un presupuesto te da control, no restricciones',
+      'Registra TODOS tus gastos al menos un mes para entender tus patrones',
+      'Ajusta tu presupuesto mensualmente'
+    ]
+  }, 20, 1);
+
+  await createLesson('fin-2-2', finM2.id, 'Estrategias de Ahorro y Fondo de Emergencia', 'quiz', {
+    questions: [
+      {
+        question: '¿Cuánto debería tener en tu fondo de emergencia?',
+        options: [
+          '$1,000 y ya está',
+          '1 mes de gastos',
+          '3-6 meses de gastos fijos',
+          '2 años de ingresos'
+        ],
+        correctIndex: 2,
+        explanation: 'El fondo de emergencia ideal cubre 3-6 meses de gastos fijos (alimentación, alquiler, servicios, transporte). Si eres freelance o tu empleo es inestable, apunta a 6-9 meses. No es para vacaciones, es para emergencias reales.'
+      },
+      {
+        question: '¿Dónde DEBERÍAS guardar tu fondo de emergencia?',
+        options: [
+          'En una cuenta de ahorro normal o money market',
+          'En inversiones de riesgo para que crezca más',
+          'Debajo del colchón en efectivo',
+          'En una tarjeta de crédito'
+        ],
+        correctIndex: 0,
+        explanation: 'El fondo de emergencia debe estar en una cuenta líquida (accesible inmediatamente) y segura. Una cuenta de ahorro o money market con buena tasa funciona. NUNCA en inversiones de riesgo porque podrías necesitar el dinero cuando el mercado esté abajo.'
+      },
+      {
+        question: '¿Qué es la "regla de los 24 horas" para compras impulsivas?',
+        options: [
+          'Esperar 24 horas antes de comprar algo que cuesta más de $50',
+          'Solo comprar los martes',
+          'Hacer todas tus compras en 24 horas',
+          'Un descuento que dura 24 horas'
+        ],
+        correctIndex: 0,
+        explanation: 'La regla de las 24 horas dice que antes de comprar algo no esencial que cuesta más de cierto monto, esperas 24 horas. Si después de esperar todavía lo quieres y lo necesitas, cómpralo. Elimina el 80% de las compras impulsivas.'
+      },
+      {
+        question: '¿Cuál es la "tasa de ahorro" y por qué importa?',
+        options: [
+          'El interés que paga tu banco',
+          'El porcentaje de tus ingresos que ahorras e inviertes',
+          'El costo de vida en tu ciudad',
+          'La inflación anual'
+        ],
+        correctIndex: 1,
+        explanation: 'Tu tasa de ahorro = (ingresos - gastos) / ingresos × 100. Si ganas $2000 y ahorras $400, tu tasa es 20%. Un adulto joven debería aspirar a 20%+, y con la edad idealmente aumentar. Es la métrica más importante de salud financiera.'
+      }
+    ]
+  }, 30, 2);
+
+  await createLesson('fin-2-3', finM2.id, '🎮 Ejercicio: Calcula tu Presupuesto', 'coding', {
+    instructions: 'Practica creando un presupuesto y calculando tu tasa de ahorro:',
     exercise: {
-      task: 'Manipula arrays usando métodos funcionales',
+      task: 'Calcula tu presupuesto mensual y métricas financieras',
       challenges: [
         {
-          id: 'js-arr-1',
-          description: 'Duplica cada número del array [1, 2, 3, 4, 5]',
-          initialCode: 'let numeros = [1, 2, 3, 4, 5];\n// Crea un nuevo array con cada número duplicado\n',
-          expectedOutput: 'resultado debe ser [2, 4, 6, 8, 10]',
-          hint: 'Usa el método map()',
-          solution: 'let resultado = numeros.map(x => x * 2);'
+          id: 'fin-bud-1',
+          description: 'Si ganas $2500 netos al mes, calcula cuánto va a necesidades (50%), deseos (30%) y ahorro (20%)',
+          initialCode: 'const ingresosNetos = 2500;\n// Calcula cada categoría con el método 50/30/20\nconst necesidades = ingresosNetos * ???;\nconst deseos = ingresosNetos * ???;\nconst ahorro = ingresosNetos * ???;\n',
+          expectedOutput: 'necesidades=1250, deseos=750, ahorro=500',
+          hint: '50% = 0.50, 30% = 0.30, 20% = 0.20',
+          solution: 'const necesidades = ingresosNetos * 0.50; // 1250\nconst deseos = ingresosNetos * 0.30; // 750\nconst ahorro = ingresosNetos * 0.20; // 500'
         },
         {
-          id: 'js-arr-2',
-          description: 'Filtra solo los números mayores a 10 del array [5, 12, 8, 20, 3]',
-          initialCode: 'let numeros = [5, 12, 8, 20, 3];\n// Crea un array solo con números > 10\n',
-          expectedOutput: 'filtrados debe ser [12, 20]',
-          hint: 'Usa el método filter()',
-          solution: 'let filtrados = numeros.filter(x => x > 10);'
+          id: 'fin-bud-2',
+          description: 'Calcula tu tasa de ahorro: si ganas $3000 y gastas $2200, ¿cuánto es tu tasa?',
+          initialCode: 'const ingresos = 3000;\nconst gastos = 2200;\n// Calcula la tasa de ahorro como porcentaje\nconst tasaAhorro = ???;\n',
+          expectedOutput: 'tasaAhorro debe ser 26.67 (porcentaje)',
+          hint: 'Tasa = ((ingresos - gastos) / ingresos) * 100',
+          solution: 'const tasaAhorro = ((ingresos - gastos) / ingresos) * 100; // 26.67'
         },
         {
-          id: 'js-arr-3',
-          description: 'Suma todos los elementos del array [10, 20, 30, 40]',
-          initialCode: 'let numeros = [10, 20, 30, 40];\n// Calcula la suma total\n',
-          expectedOutput: 'suma debe ser 100',
-          hint: 'Usa el método reduce()',
-          solution: 'let suma = numeros.reduce((acc, x) => acc + x, 0);'
+          id: 'fin-bud-3',
+          description: 'Si tienes $5000 en ahorros y pierdes tu empleo con gastos fijos de $1200/mes, ¿cuántos meses duras?',
+          initialCode: 'const ahorros = 5000;\nconst gastosMensuales = 1200;\n// Calcula cuántos meses cubre tu fondo\nconst mesesDeEmergencia = ???;\n',
+          expectedOutput: 'mesesDeEmergencia debe ser ~4.17',
+          hint: 'Meses = ahorros / gastos mensuales',
+          solution: 'const mesesDeEmergencia = ahorros / gastosMensuales; // 4.17'
         }
       ]
     }
-  }, 60, 3, 20);
+  }, 40, 3);
 
-  // MODULE 5: Objetos
-  const jsM5 = await createModule('js-m5', jsCourse.id, 'Objetos', 5);
+  // MÓDULO 3: Deudas y Crédito
+  const finM3 = await createModule('fin-mod-3', finanzasCourse.id, 'Manejo de Deudas y Crédito', 3);
 
-  await createLesson('js-l5-1', jsM5.id, 'Crear y usar objetos', 'reading', {
-    introduction: 'Los objetos son colecciones de pares clave-valor que permiten representar entidades complejas.',
-    content: `CREAR OBJETOS:
+  await createLesson('fin-3-1', finM3.id, 'Entendiendo las Deudas y el Crédito', 'reading', {
+    introduction: 'Las deudas no son inherentemente malas — depende del tipo, la tasa de interés y para qué las uses. Aprender a manejarlas es fundamental para tu salud financiera.',
+    content: `TIPOS DE DEUDA:
 
-const usuario = {
-  nombre: "María",
-  edad: 28,
-  email: "maria@ejemplo.com"
-};
+DEUDA "BUENA" (tasa baja, genera valor):
+• Hipoteca: tasa típica 3-7%, el inmueble se aprecia
+• Préstamo estudiantil: tasa 4-8%, aumenta tu capacidad de ingresos
+• Préstamo business: tasa variable, financia un negocio
 
-ACCEDER PROPIEDADES:
-- Notación punto: usuario.nombre → "María"
-- Notación corchetes: usuario["nombre"] → "María"
+DEUDA "MALA" (tasa alta, consume valor):
+• Tarjeta de crédito: tasa 15-30%, se usa para consumo
+• Préstamo de payday: tasa 200-400%, trampa financiera
+• Préstamo de auto de lujo: se devalúa rápidamente
 
-MÉTODOS:
-const persona = {
-  nombre: "Juan",
-  saludar: function() {
-    return "Hola, soy " + this.nombre;
+EL INTERÉS COMPUESTO TRABAJA CONTRA TI:
+Si debes $5,000 en tarjeta de crédito al 22% de tasa anual y solo pagas el mínimo:
+• En 5 años habrás pagado ~$7,000 pero seguirás debiendo ~$3,500
+• Total pagado: ~$10,500 por una deuda original de $5,000
+
+ESTRATEGIAS PARA PAGAR DEUDAS:
+
+1. MÉTODO BOLA DE NIEVE (Dave Ramsey)
+   • Ordena deudas de menor a mayor saldo
+   • Paga el mínimo en todas
+   • El extra va a la deuda más pequeña
+   • Ventaja: motivación al eliminar deudas rápidamente
+
+2. MÉTODO AVALACHA
+   • Ordena deudas de mayor a menor tasa de interés
+   • El extra va a la deuda con mayor tasa
+   • Ventaja: ahorra más dinero en intereses total
+
+¿CUÁL ELEGIR?
+• Si necesitas motivación rápida → Bola de nieve
+• Si quieres optimizar dinero → Avalancha
+
+TU SCORE DE CRÉDITO (300-850):
+• 300-579: Pobre
+• 580-669: Regular
+• 670-739: Bueno
+• 740-799: Muy bueno
+• 800-850: Excelente
+
+Factores del score:
+• 35% historial de pagos (paga a tiempo SIEMPRE)
+• 30% utilización de crédito (mantén bajo 30% del límite)
+• 15% antigüedad de crédito
+• 10% tipos de crédito
+• 10% nuevas solicitudes de crédito`,
+    keyPoints: [
+      'Las deudas de tasa alta son las más peligrosas',
+      'El método avalancha ahorra más dinero, la bola de nieve da más motivación',
+      'Mantén la utilización de tarjeta bajo 30% de tu límite',
+      'Paga SIEMPRE a tiempo para proteger tu score de crédito'
+    ]
+  }, 25, 1);
+
+  await createLesson('fin-3-2', finM3.id, 'Estrategias para Salir de Deudas', 'quiz', {
+    questions: [
+      {
+        question: 'Si debes $3,000 en tarjeta al 22% y $8,000 en préstamo personal al 8%, ¿cuál es la deuda que deberías atacar primero con el método avalancha?',
+        options: [
+          'El préstamo personal de $8,000 porque es la deuda más grande',
+          'La tarjeta de crédito de $3,000 porque tiene la tasa más alta',
+          'Pagan igual para ambas',
+          'Ninguna, paga solo los mínimos'
+        ],
+        correctIndex: 1,
+        explanation: 'Con el método avalancha, atacas primero la deuda con la MAYOR tasa de interés. La tarjeta al 22% cuesta mucho más que el préstamo al 8%. Cada dólar extra va a la tarjeta hasta pagarla, luego al préstamo.'
+      },
+      {
+        question: '¿Qué es la "utilización de crédito" y cuál es el porcentaje ideal?',
+        options: [
+          'El total de deudas que tienes; ideal es $0',
+          'El porcentaje de tu límite de crédito que estás usando; ideal es bajo 30%',
+          'El número de tarjetas que tienes; ideal es 1-2',
+          'Los intereses que pagas; ideal es 0%'
+        ],
+        correctIndex: 1,
+        explanation: 'Utilización de crédito = saldo actual / límite total × 100. Si tienes una tarjeta con límite $10,000 y debes $3,000, tu utilización es 30%. Mantenerla bajo 30% (idealmente bajo 10%) mejora significativamente tu score de crédito.'
+      },
+      {
+        question: '¿Qué es una "consolidación de deudas"?',
+        options: [
+          'Juntar todas las deudas en un solo préstamo con tasa más baja',
+          'Pedir más deudas para pagar las existentes',
+          'Eliminar deudas sin pagarlas',
+          'Un tipo de bankruptcy'
+        ],
+        correctIndex: 0,
+        explanation: 'La consolidación junta múltiples deudas de alta tasa en un solo préstamo de tasa más baja. Ej: pagar tarjetas al 22% con un préstamo personal al 8%. Cuidado: solo funciona si no vuelves a usar las tarjetas.'
+      }
+    ]
+  }, 30, 2);
+
+  // MÓDULO 4: Inversiones y Crecimiento
+  const finM4 = await createModule('fin-mod-4', finanzasCourse.id, 'Inversión y Crecimiento Patrimonial', 4);
+
+  await createLesson('fin-4-1', finM4.id, 'Introducción a las Inversiones', 'reading', {
+    introduction: 'Invertir no es un lujo ni algo solo para ricos. Es la forma de hacer crecer tu dinero por encima de la inflación. Cuanto antes empieces, más beneficios del interés compuesto.',
+    content: `¿POR QUÉ INVERTIR?
+Si guardas dinero debajo del colchón, pierde valor cada año por la inflación (3-5% anual). Invertir permite que tu dinero crezca más rápido que la inflación.
+
+EL ESPECTRO DE RIESGO-RENDIMIENTO:
+
+BAJO RIESGO / BAJO RENDIMIENTO:
+• Cuenta de ahorro de alto rendimiento: 4-5% anual
+• Certificados de depósito (CDs): 4-6%
+• Bonos del gobierno: 3-6%
+
+RIESGO MEDIO / RENDIMIENTO MEDIO:
+• Fondos indexados (ETFs): 7-10% anual promedio histórico
+• Fondos mutuos: 6-12%
+• Bonos corporativos: 4-7%
+
+ALTO RIESGO / ALTO RENDIMIENTO:
+• Acciones individuales: -100% a +50% o más
+• Criptomonedas: extremadamente volátil
+• Startups: alto riesgo de perderlo todo
+
+LA ESTRATEGIA MÁS RECOMENDADA PARA PRINCIPIANTES:
+
+FONDOS INDEXADOS:
+• Diversifican automáticamente (compras "todas" las empresas)
+• Comisiones muy bajas (0.03-0.20%)
+• Rendimiento histórico del ~10% anual (S&P 500)
+• No requieren conocimiento de mercado
+
+EJEMPLO:
+Si inviertes $300/mes en un fondo indexado del S&P 500 al 10% promedio:
+• En 10 años: ~$61,000 (invertiste $36,000)
+• En 20 años: ~$229,000 (invertiste $72,000)
+• En 30 años: ~$678,000 (invertiste $108,000)
+
+EL PODER DEL INTERÉS COMPUESTO:
+Nota cómo los últimos 10 años generan más que los primeros 20. Eso es el interés compuesto trabajando a tu favor.
+
+REGLAS DE INVERSIÓN:
+1. Empieza HOY, no mañana
+2. Invierte consistentemente (DCA: Dollar Cost Averaging)
+3. Diversifica (nunca pongas todo en un solo lugar)
+4. No intentes "ganarle al mercado"
+5. Piensa a largo plazo (5+ años)
+6. No inviertas dinero que necesites en corto plazo`,
+    keyPoints: [
+      'Invertir protege tu dinero de la inflación',
+      'Los fondos indexados son ideales para principiantes',
+      'El interés compuesto premia la paciencia y consistencia',
+      'El S&P 500 ha dado ~10% anual promedio históricamente'
+    ]
+  }, 25, 1);
+
+  await createLesson('fin-4-2', finM4.id, 'Instrumentos de Inversión', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué es un fondo indexado como el S&P 500?',
+        options: [
+          'Una sola empresa que cotiza en bolsa',
+          'Un fondo que replica automáticamente las 500 empresas más grandes de EE.UU.',
+          'Un préstamo al gobierno',
+          'Un tipo de criptomoneda'
+        ],
+        correctIndex: 1,
+        explanation: 'Un fondo indexado del S&P 500 compra automáticamente acciones de las 500 empresas más grandes de EE.UU. (Apple, Microsoft, Amazon, etc.). Con una sola inversión, diversificas en todas ellas. Es la inversión más recomendada para principiantes.'
+      },
+      {
+        question: '¿Cuál es la diferencia entre acciones y bonos?',
+        options: [
+          'No hay diferencia',
+          'Acciones son parte de una empresa (riesgo mayor), bonos son préstamos al gobierno o empresas (riesgo menor)',
+          'Acciones son para ricos, bonos para pobres',
+          'Bonos generan más rendimiento que acciones'
+        ],
+        correctIndex: 1,
+        explanation: 'Acciones = compras una parte de la empresa. Suben y bajan con el mercado. Bonos = prestas dinero (al gobierno o empresa) y te pagan intereses. Son más estables pero con menor rendimiento histórico.'
+      },
+      {
+        question: '¿Qué es Dollar Cost Averaging (DCA)?',
+        options: [
+          'Cambiar dólares a otra moneda',
+          'Invertir una cantidad fija periódicamente sin importar el precio del mercado',
+          'Esperar a que el mercado baje para invertir todo de golpe',
+          'Un tipo de impuesto'
+        ],
+        correctIndex: 1,
+        explanation: 'DCA significa invertir la misma cantidad de dinero regularmente (ej: $300 cada mes) sin importar si el mercado está alto o bajo. Esto promedia tu precio de compra y elimina el riesgo de "mal timing".'
+      },
+      {
+        question: '¿Qué es la "diversificación" en inversiones?',
+        options: [
+          'Poner todo tu dinero en la mejor acción',
+          'Distribuir inversiones en diferentes tipos de activos para reducir el riesgo',
+          'Invertir solo en criptomonedas',
+          'Comprar y vender rápido'
+        ],
+        correctIndex: 1,
+        explanation: 'Diversificar es no poner todos los huevos en la misma canasta. Si inviertes solo en una empresa y quiebra, pierdes todo. Si tienes acciones, bonos, bienes raíces y diferentes sectores, el riesgo se distribuye.'
+      }
+    ]
+  }, 30, 2);
+
+  await createLesson('fin-4-3', finM4.id, '🚀 Mini-Proyecto: Tu Plan de Inversión', 'project', {
+    title: 'Crea tu Primer Plan de Inversión Personal',
+    description: 'Diseña un plan de inversión basado en tus objetivos financieros y tolerancia al riesgo.',
+    objectives: [
+      'Aplicar los conceptos de riesgo y rendimiento',
+      'Crear un plan de inversión personalizado',
+      'Calcular proyecciones de crecimiento a largo plazo'
+    ],
+    requirements: [
+      'Define tu horizonte temporal (5, 10, 20, 30 años)',
+      'Calcula cuánto puedes invertir mensualmente (20% de ingresos)',
+      'Elige tu asignación de activos según tu tolerancia al riesgo',
+      'Calcula proyecciones usando interés compuesto',
+      'Explica por qué elegiste esa estrategia'
+    ],
+    exampleCode: `// Calculadora de interés compuesto
+function calcularCrecimiento(inversionMensual, anios, tasaAnual) {
+  const tasaMensual = tasaAnual / 12 / 100;
+  let total = 0;
+  for (let i = 0; i < anios * 12; i++) {
+    total = (total + inversionMensual) * (1 + tasaMensual);
   }
-};`,
-    examples: [
-      { code: 'const user = { name: "Ana", age: 25 };', explanation: 'Objeto simple' },
-      { code: 'user.name // "Ana" - notación punto', explanation: 'Acceder con punto' },
-      { code: '"name" in user // true', explanation: 'Verificar si existe propiedad' }
-    ]
-  }, 25, 1, 10);
-
-  await createLesson('js-l5-2', jsM5.id, 'Destructuring y spread operator', 'quiz', {
-    questions: [
-      { question: '¿Qué es destructuring en JavaScript?', options: ['Destruir objetos', 'Extraer valores de arrays/objetos en variables', 'Copiar objetos', 'Eliminar propiedades'], correctIndex: 1, explanation: 'Destructuring permite extraer múltiples propiedades de un objeto/array en variables individuales.' },
-      { question: '¿Qué valor tiene "nombre" después de: const { nombre, edad } = { nombre: "Ana", edad: 30 };?', options: ['undefined', '"Ana"', '30', 'Error'], correctIndex: 1, explanation: 'Destructuring extrae "nombre" y le asigna el valor "Ana".' },
-      { question: '¿Cuál es el resultado de: [...[1,2], ...[3,4]]?', options: ['[[1,2],[3,4]]', '[1,2,3,4]', '[1,2,[3,4]]', 'Error'], correctIndex: 1, explanation: 'El spread operator expande ambos arrays y los combina en uno nuevo: [1, 2, 3, 4].' }
-    ],
-    examples: [
-      { code: 'const { name, age } = person; // destructuring', explanation: 'Destructuring de objeto' },
-      { code: 'const [first, ...rest] = [1, 2, 3]; // first=1, rest=[2,3]', explanation: 'Rest en arrays' }
-    ]
-  }, 30, 2, 12);
-
-  await createLesson('js-l5-3', jsM5.id, '🎮 Ejercicio: Objetos y Destructuring', 'coding', {
-    instructions: 'Practica trabajando con objetos:',
-    exercise: {
-      task: 'Manipula objetos usando destructuring y spread',
-      challenges: [
-        {
-          id: 'js-obj-1',
-          description: 'Usa destructuring para extraer nombre y edad del objeto persona',
-          initialCode: 'const persona = { nombre: "Carlos", edad: 28, ciudad: "Madrid" };\n// Extrae solo nombre y edad\n',
-          expectedOutput: 'nombre debe ser "Carlos", edad debe ser 28',
-          hint: 'Usa const { nombre, edad } = persona',
-          solution: 'const { nombre, edad } = persona;'
-        },
-        {
-          id: 'js-obj-2',
-          description: 'Crea una copia del objeto usuario usando spread',
-          initialCode: 'const usuario = { nombre: "Ana", nivel: 5 };\n// Crea una copia llamada usuarioCopia\n',
-          hint: 'Usa el operador spread {...objeto}',
-          solution: 'const usuarioCopia = { ...usuario };'
-        },
-        {
-          id: 'js-obj-3',
-          description: 'Actualiza el nivel del objeto a 10 sin modificar el original',
-          initialCode: 'const stats = { nombre: "Heroe", nivel: 1, xp: 0 };\n// Crea un nuevo objeto con nivel actualizado a 10\n',
-          expectedOutput: 'nuevoStats.nivel debe ser 10, stats.nivel debe ser 1',
-          hint: 'Usa spread y sobrescribe el valor',
-          solution: 'const nuevoStats = { ...stats, nivel: 10 };'
-        }
-      ]
-    }
-  }, 60, 3, 20);
-
-  // MINI PROYECTO: Gestor de Tareas
-  await createLesson('js-l5-4', jsM5.id, '🚀 Mini-Proyecto: Gestor de Tareas', 'project', {
-    title: 'Gestor de Tareas Simple',
-    description: 'Crea un sistema básico para administrar tareas con objetos y arrays.',
-    objectives: [
-      'Practicar el uso de objetos para representar datos',
-      'Manipular arrays de objetos',
-      'Implementar operaciones CRUD básicas'
-    ],
-    requirements: [
-      'Objeto tarea con propiedades: id, titulo, completada, prioridad',
-      'Array de tareas con al menos 3 tareas iniciales',
-      'Función para agregar tarea',
-      'Función para marcar tarea como completada',
-      'Función para filtrar tareas completadas/no completadas'
-    ],
-    exampleCode: `const tareas = [
-  { id: 1, titulo: "Aprender JavaScript", completada: false, prioridad: "alta" },
-  { id: 2, titulo: "Hacer ejercicio", completada: true, prioridad: "media" }
-];
-
-function agregarTarea(titulo, prioridad) {
-  const nuevaTarea = {
-    id: tareas.length + 1,
-    titulo,
-    completada: false,
-    prioridad
-  };
-  tareas.push(nuevaTarea);
-  return nuevaTarea;
-}`,
-    tips: ['Usa Date.now() para generar IDs únicos', 'Filtra con filter() para mostrar tareas activas'],
-    xpReward: 150
-  }, 100, 4, 30);
-
-  // MODULE 6: Funciones
-  const jsM6 = await createModule('js-m6', jsCourse.id, 'Funciones Avanzadas', 6);
-
-  await createLesson('js-l6-1', jsM6.id, 'Funciones: Declaration, Expression y Arrow', 'reading', {
-    introduction: 'Las funciones son bloques de código reutilizables que realizan una tarea específica.',
-    content: `TIPOS DE FUNCIONES:
-
-1. Function Declaration:
-function sumar(a, b) {
-  return a + b;
+  return total;
 }
 
-2. Function Expression:
-const sumar = function(a, b) {
-  return a + b;
+// Ejemplo: $300/mes, 20 años, 10% anual
+console.log(calcularCrecimiento(300, 20, 0.10));
+// Resultado: ~$229,000
+
+// Estrategia sugerida para principiantes:
+// 80% fondos indexados (S&P 500)
+// 20% bonos del gobierno
+// Rebalancear cada 6 meses`,
+    tips: ['Empieza con poco si es necesario, pero empieza', 'No intentes predecir el mercado', 'La consistencia es más importante que la cantidad']
+  }, 60, 3);
+
+  console.log('✅ Finanzas Personales completed (4 modules, 9 lessons)');
+
+  // ===========================================
+  // 🍝 CURSO 3: COCINA ITALIANA TRADICIONAL
+  // ===========================================
+  console.log('\n🍝 Creating Cocina Italiana Tradicional course...');
+
+  const cocinaCourse = await createCourse(
+    'course-cocina-italiana',
+    'Cocina Italiana Tradicional',
+    'Descubre los secretos de la auténtica cocina italiana: desde la pasta fresca hasta los platos emblemáticos de cada región. Cocina como un nonno italiano.',
+    'Cocina',
+    'beginner',
+    8,
+    'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=600&h=400&fit=crop'
+  );
+
+  // MÓDULO 1: Fundamentos de la Cocina Italiana
+  const cocM1 = await createModule('coc-mod-1', cocinaCourse.id, 'Fundamentos de la Tradición Italiana', 1);
+
+  await createLesson('coc-1-1', cocM1.id, 'La Filosofía de la Cocina Italiana', 'reading', {
+    introduction: 'La cocina italiana no se trata de complicación, sino de ingredientes de la más alta calidad preparados con respeto y simplicidad. Cada región tiene sus especialidades.',
+    content: `LOS 4 PILARES DE LA COCINA ITALIANA:
+
+1. INGREDIENTES FRESCOS Y DE TEMPORADA
+   Los italianos compran diariamente en mercados. La calidad del ingrediente es lo más importante.
+   • Tomates San Marzano (Nápoles)
+   • Aceite de oliva extra virgen de buena calidad
+   • Albahaca fresca (nunca se congela)
+   • Quesos recién hechos
+
+2. SIMPLICIDAD
+   Los mejores platos italianos tienen 4-6 ingredientes. La sobrecarga de ingredientes destruye el sabor.
+   Ejemplo: una Carbonara auténtica solo tiene: guanciale, huevo, pecorino, pimienta negra. NADA MÁS.
+
+3. REGIONALIDAD
+   Cada región tiene su identidad culinaria:
+   • Norte: Risotto, polenta, mantequilla, crema (Lombardía, Piamonte)
+   • Centro: Pasta al huevo, cecina, aceite de oliva toscano
+   • Sur: Pasta seca, tomates, mariscos, mozzarella (Nápoles, Sicilia)
+
+4. EL ORDEN DE LOS PLATOS (La Comida Italiana)
+   Aperitivo: aperol spritz, aceitunas
+   Antipasto: bruschetta, caprese, prosciutto
+   Primo: pasta, risotto, sopa (minestrone)
+   Secondo: carne o pescado
+   Contorno: verduras (insalata, verduras al horno)
+   Dolce: tiramisú, panna cotta, gelato
+   Caffè: espresso (nunca cappuccino después de las 11am!)
+   Digestivo: limoncello, grappa
+
+ERRORES COMUNES A EVITAR:
+❌ Usar aceite de oliva para freír a alta temperatura (usa aceite de semillas)
+❌ Cocinar la pasta en agua sin suficiente sal
+❌ Mezclar pasta con queso parmesano en mariscos (nunca queso con pescado)
+❌ Agregar aceite de oliva a la carbonara (no va)
+❌ Usar queso parmesano de lata (usa Parmigiano Reggiano auténtico)`,
+    keyPoints: [
+      'La cocina italiana valora la simplicidad y los ingredientes frescos',
+      'Cada región italiana tiene sus propias tradiciones culinarias',
+      'El orden de los platos es una tradición importante',
+      'Menos ingredientes = más sabor auténtico'
+    ]
+  }, 20, 1);
+
+  await createLesson('coc-1-2', cocM1.id, 'Ingredientes Básicos Italianos', 'quiz', {
+    questions: [
+      {
+        question: '¿Cuál es la base de prácticamente TODA la cocina italiana?',
+        options: [
+          'La mantequilla',
+          'El aceite de oliva extra virgen',
+          'La crema de leche',
+          'El vinagre balsámico'
+        ],
+        correctIndex: 1,
+        explanation: 'El aceite de oliva extra virgen (EVOO) es el pilar fundamental. Se usa para aliñar, cocinar a fuego medio, en salsas y para terminar platos. La calidad varía enormemente: busca "extra virgen" de una sola origen.'
+      },
+      {
+        question: '¿Qué tipo de tomate es el más valorado para salsas en Italia?',
+        options: [
+          'Tomate cherry',
+          'Tomate pera (Roma)',
+          'Tomate San Marzano',
+          'Tomate verde'
+        ],
+        correctIndex: 2,
+        explanation: 'El tomate San Marzano (de la región de Nápoles) es considerado el mejor tomate del mundo para cocinar. Es alargado, menos ácido, con pocas semillas y más dulce. En latas es la mejor opción fuera de temporada.'
+      },
+      {
+        question: '¿Qué queso italiano se usa en una auténtica Carbonara?',
+        options: [
+          'Mozzarella',
+          'Parmesano (Parmigiano Reggiano)',
+          'Pecorino Romano',
+          'Ricotta'
+        ],
+        correctIndex: 2,
+        explanation: 'La Carbonara usa Pecorino Romano (hecho de leche de oveja), no Parmesano. El Pecorino tiene un sabor más fuerte y salado que complementa perfectamente el guanciale y el huevo.'
+      },
+      {
+        question: '¿Qué es el "soffritto" en la cocina italiana?',
+        options: [
+          'Un postre de crema',
+          'La base aromática de cebolla, zanahoria y apio picada finamente',
+          'Un tipo de pasta',
+          'Una bebida alcohólica'
+        ],
+        correctIndex: 1,
+        explanation: 'El soffritto (o "holy trinity" italiana) es cebolla + zanahoria + apio picados muy finamente y sofreídos lentamente en aceite de oliva. Es la base de ragús, sopas, guisos y muchos platos italianos.'
+      }
+    ]
+  }, 25, 2);
+
+  await createLesson('coc-1-3', cocM1.id, 'Técnicas Básicas de Cocina Italiana', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué significa "al dente" cuando se refiere a la pasta?',
+        options: [
+          'Cocida hasta que esté muy suave',
+          'Cocida con un punto firme al centro, ligeramente resistente al morder',
+          'Cocida solo 1 minuto',
+          'Cruda por dentro'
+        ],
+        correctIndex: 1,
+        explanation: 'Al dente significa "al diente" en italiano. La pasta debe tener una ligera resistencia al centro al morderla. Esto garantiza textura y permite que la pasta absorba la salsa mejor. Cocinar 1-2 minutos MENOS de lo que indica el paquete.'
+      },
+      {
+        question: '¿Cuál es la temperatura correcta para el agua al cocinar pasta?',
+        options: [
+          'Tibia (50°C)',
+          'Hirviendo a borbotones (100°C)',
+          'Temperatura ambiente',
+          'Con hielo'
+        ],
+        correctIndex: 1,
+        explanation: 'El agua debe hervir a borbotones (rolling boil, 100°C) ANTES de añadir la pasta. Nunca añadas pasta a agua tibia. El agua debe estar bien salada: "sabe como el mar" — aproximadamente 1 cucharada de sal por litro de agua.'
+      },
+      {
+        question: '¿Cuál es el error más común al hacer risotto?',
+        options: [
+          'Usar demasiado arroz',
+          'Agregar todo el caldo de golpe',
+          'Agregar el caldo caliente poco a poco, revolviendo constantemente',
+          'Usar cualquier tipo de arroz'
+        ],
+        correctIndex: 1,
+        explanation: 'El error #1 es agregar todo el caldo de golpe. El risotto se cocina AGREGANDO el caldo caliente de a poco, cucharón por cucharón, esperando a que se absorba antes de agregar más, y revolviendo constantemente para liberar el almidón.'
+      },
+      {
+        question: '¿Qué arroz se usa tradicionalmente para risotto italiano?',
+        options: [
+          'Arroz basmati',
+          'Arroz jazmín',
+          'Arroz Arborio o Carnaroli',
+          'Arroz integral'
+        ],
+        correctIndex: 2,
+        explanation: 'Arborio y Carnaroli son variedades de arroz italiano de grano corto y alto contenido de almidón. Este almidón es lo que crea la cremosidad característica del risotto. El basmati y jazmín NO funcionan.'
+      }
+    ]
+  }, 25, 3);
+
+  // MÓDULO 2: Pasta y Salsas
+  const cocM2 = await createModule('coc-mod-2', cocinaCourse.id, 'El Arte de la Pasta y las Salsas', 2);
+
+  await createLesson('coc-2-1', cocM2.id, 'Guía Completa de Pastas Italianas', 'reading', {
+    introduction: 'Existen más de 300 formas de pasta en Italia. Cada forma tiene un propósito: ciertas salsas se adhieren mejor a ciertas pastas. Conocer los pares correctos eleva tu cocina.',
+    content: `CLASIFICACIÓN DE PASTAS:
+
+POR TIPO DE COCCIÓN:
+• Pasta seca (seca): Penne, spaghetti, fusilli, rigatoni
+• Pasta fresca (fresca): Tagliatelle, fettuccine, ravioli
+
+POR FORMA Y USO IDEAL:
+
+LARGA (se come con tenedor):
+• Spaghetti: Salsas ligeras (carbonara, aglio e olio, amatriciana)
+• Fettuccine: Salsas cremosas (alfredo, carbonara)
+• Tagliatelle: Ragús de carne (boloñesa)
+• Pappardelle: Ragús de caza, salsas ricas
+
+CORTA (se come con cuchara):
+• Penne: Salsas con trozos (marinara, arrabbiata)
+• Rigatoni: Salsas espesas, al horno
+• Fusilli: Pesto, salsas con verduras
+• Farfalle: Salsas ligeras, ensaladas de pasta
+
+HOJA ANCHA:
+• Lasagna: Para horno, capas con ragús y bechamel
+• Orecchiette: Brócoli, salsas ligeras
+
+RELLANA:
+• Ravioli: Queso, espinaca, carne
+• Tortellini: Caldo, salsas ligeras
+• Cannelloni: Relleno de carne, al horno
+
+REGLA DE ORO:
+• Pasta con surcos/agujeros → salsas espesas (se adhieren)
+• Pasta lisa → salsas ligeras (se deslizan)
+• Pasta larga → salsas que se enrollan (se envuelven en el tenedor)
+• Pasta corta → salsas con trozos (se capturan en la forma)
+
+CUÁNTA PASTA POR PERSONA:
+• Pasta fresca: 100-120g
+• Pasta seca: 80-100g (parece poco, pero dobla de tamaño)`,
+    keyPoints: [
+      'Cada forma de pasta tiene una salsa ideal',
+      'Pasta con surcos/agujeros funciona con salsas espesas',
+      'Pasta seca: 80-100g por persona, pasta fresca: 100-120g',
+      'La pasta al dente se cocina 1-2 minutos menos de lo indicado'
+    ]
+  }, 20, 1);
+
+  await createLesson('coc-2-2', cocM2.id, 'Salsas Italianas Clásicas', 'reading', {
+    introduction: 'Las salsas son el alma de la pasta italiana. Cada una tiene una historia y tradición centenaria. Aprende a hacer las 5 salsas fundamentales.',
+    content: `LAS 5 SALSAS FUNDAMENTALES:
+
+1. MARINARA (Salsa de Tomate Básica)
+   Ingredientes: tomate San Marzano, ajo, albahaca, aceite de oliva, sal
+   Preparación: Sofreír ajo en aceite, agregar tomate aplastado, cocinar 20-30 min, albahaca al final
+   Para: spaghetti, penne, cualquier pasta
+
+2. CARBONARA (La reina de Roma)
+   Ingredientes: guanciale (o panceta), yema de huevo + huevo entero, pecorino romano, pimienta negra
+   PREPARACIÓN:
+   - Cortar guanciale en tiras, cocinar hasta dorar (sin aceite addicional)
+   - Batir yemas con huevo entero y pecorino rallado
+   - Cocinar pasta al dente, reservar 1 taza de agua de cocción
+   - FUERA DEL FUEGO: mezclar pasta con guanciale, luego con la mezcla de huevo
+   - Agregar agua de cocción para cremosidad
+   ⚠️ NUNCA: usar crema de leche (NO es carbonara auténtica)
+   ⚠️ NUNCA: agregar aceite de oliva
+   ⚠️ NUNCA: cocinar la mezcla de huevo (se hace fuera del fuego)
+
+3. BOLOÑESA (Ragù alla Bolognese)
+   Ingredientes: carne molida (mezcla de res y cerdo), cebolla, zanahoria, apio, tomate, vino tinto, leche, nuez moscada
+   Preparación: soffritto → carne → vino → tomate → leche → cocinar 2-3 horas a fuego bajo
+   Para: tagliatelle (NO spaghetti)
+
+4. PESTO ALLA GENOVESE
+   Ingredientes: albahaca fresca, piñones, ajo, pecorino/parmesano, aceite de oliva, sal
+   Preparación: todo en mortar (o licuadora pulsando) hasta形成 pasta homogénea
+   ⚠️ Nunca calentar el pesto — se agrega a la pasta recién salida del agua
+
+5. AGLIO E OLIO (La más simple)
+   Ingredientes: ajo, aceite de oliva, guindilla, perejil, pasta
+   Preparación: dorar ajo laminado en abundante aceite (sin quemar), agregar guindilla, mezclar con pasta
+   Para: spaghetti, es la cena perfecta de medianoche en Italia`,
+    keyPoints: [
+      'La Carbonara NO lleva crema — solo huevo, pecorino, guanciale',
+      'La boloñesa se cocina 2-3 horas a fuego bajo',
+      'El pesto nunca se calienta',
+      'Aglio e olio es la cena italiana por excelencia'
+    ]
+  }, 25, 2);
+
+  await createLesson('coc-2-3', cocM2.id, '🎮 Ejercicio: Combina Pasta y Salsa', 'quiz', {
+    questions: [
+      {
+        question: '¿Con qué salsa tradicional se sirve el Spaghetti alla Carbonara?',
+        options: [
+          'Marinara de tomate',
+          'Alfredo con crema',
+          'Huevo, guanciale, pecorino y pimienta (sin crema)',
+          'Pesto genovés'
+        ],
+        correctIndex: 2,
+        explanation: 'La Carbonara auténtica es: guanciale + yema de huevo + pecorino romano + pimienta negra. NO lleva crema, NO lleva ajo, NO lleva aceite de oliva. Es pura simplicidad italiana.'
+      },
+      {
+        question: '¿Qué pasta acompaña mejor un ragù boloñés espeso?',
+        options: [
+          'Spaghetti',
+          'Tagliatelle',
+          'Farfalle',
+          'Orzo'
+        ],
+        correctIndex: 1,
+        explanation: 'Tagliatelle (pasta fresca plana y ancha) es la pasta tradicional con boloñesa en Bolonia. Los surcos de la pasta atrapan el ragù espeso. Spaghetti es demasiado fino para un ragù pesado.'
+      },
+      {
+        question: '¿Cuál es la regla de oro para el pesto genovés?',
+        options: [
+          'Cocinarlo 30 minutos para desarrollar sabor',
+          'Agregarlo a la pasta caliente pero NUNCA calentar el pesto directamente',
+          'Servirlo con parmesano y albahaca extra',
+          'Congelarlo para mantener la frescura'
+        ],
+        correctIndex: 1,
+        explanation: 'El pesto se prepara crudo (la albahaca se oscurece y pierde sabor al calentarse). Se mezcla con la pasta recién salida del agua, que tiene enough heat para "activar" los aromas sin cocinar el pesto.'
+      },
+      {
+        question: '¿Qué tipo de pasta elegirías para una salsa con trozos de verduras asadas?',
+        options: [
+          'Espaguetis lisos',
+          'Fusilli o penne rigati (con surcos)',
+          'Lasagna',
+          'Cappellini'
+        ],
+        correctIndex: 1,
+        explanation: 'Los fusilli (espiral) y penne rigati (con surcos) son ideales para salsas con trozos: las espirales y surcos atrapan los pedazos de verdura y la salsa. La pasta lisa no retiene bien los trozos.'
+      }
+    ]
+  }, 30, 3);
+
+  await createLesson('coc-2-4', cocM2.id, 'Cómo Hacer Pasta Fresca en Casa', 'reading', {
+    introduction: 'Hacer pasta fresca en casa es una de las experiencias culinarias más gratificantes. Solo necesitas 2 ingredientes: harina y huevos. El resultado es incomparablemente superior a la pasta industrial.',
+    content: `RECETA BÁSICA: PASTA FRESCA (para 4 personas)
+
+INGREDIENTES:
+• 400g de harina de tipo "00" (o harina de trigo común)
+• 4 huevos grandes (uno extra si la masa está seca)
+• 1 pizca de sal
+• 1 cucharadita de aceite de oliva (opcional)
+
+PROCESO PASO A PASO:
+
+1. HACER EL VOLCÁN
+   - En una superficie limpia, hacer un volcán con la harina
+   - Los huevos van en el centro
+   - Agregar sal y aceite
+
+2. MEZCLAR
+   - Con un tenedor, batir los huevos gradualmente incorporando la harina
+   - Cuando esté demasiado espeso para el tenedor, usar las manos
+
+3. AMASAR (10 minutos)
+   - Amasar la masa sobre la superficie
+   - Debe quedar suave, elástica y no pegajosa
+   - Si está muy seca: mojar las manos
+   - Si está muy pegajosa: agregar un poco de harina
+
+4. REPOSAR (30 minutos)
+   - Envolver en film plástico
+   - Dejar reposar a temperatura ambiente 30 minutos
+   - Esto relaja el gluten y facilita el estirado
+
+5. ESTIRAR
+   - Dividir en 4 porciones
+   - Estirar con rodillo o máquina de pasta
+   - Grosor deseado: 1-2mm para tagliatelle, más grueso para ravioli
+
+6. CORTAR
+   - Tagliatelle: enrollar la masa y cortar tiras de 8-10mm
+   - Fettuccine: tiras de 6-7mm
+   - Pappardelle: tiras de 2-3cm
+   - Ravioli: cortar cuadrados, rellenar, sellar
+
+COCCIÓN:
+• Agregar a agua hirviendo con MUCHA sal
+• Cocinar solo 2-3 minutos (la fresca se cocina rápido)
+• Probar antes de escurrir — debe estar al dente
+
+CONSERVACIÓN:
+• Fresca: usar el mismo día (mejor resultado)
+• Secar: colgar 24 horas en ambiente seco
+• Congelar: poner en bandeja con harina, congelar, luego guardar en bolsa (dura 3 meses)`,
+    keyPoints: [
+      'Solo necesitas harina y huevos para pasta fresca',
+      'Amasa 10 minutos para desarrollar el gluten',
+      'La pasta fresca se cocina solo 2-3 minutos',
+      'Reposar la masa 30 minutos es esencial para facilitar el estirado'
+    ]
+  }, 30, 4);
+
+  // MÓDULO 3: Platos Principales y Postres
+  const cocM3 = await createModule('coc-mod-3', cocinaCourse.id, 'Platos Principales Icónicos de Italia', 3);
+
+  await createLesson('coc-3-1', cocM3.id, 'Los 5 Platos Más Famosos de Italia', 'reading', {
+    introduction: 'De norte a sur, Italia tiene platos icónicos que han conquistado el mundo. Cada uno cuenta la historia de su región.',
+    content: `1. RISOTTO ALLA MILANESE (Milán, Norte)
+   El risotto cremoso con azafrán es el plato insignia de Milán.
+   • Arroz Arborio/Carnaroli
+   • Caldo caliente (pollo o verduras)
+   • Azafrán (el ingrediente estrella — da color y sabor único)
+   • Mantequilla y Parmigiano al final (mantecatura)
+   Técnica clave: agregar caldo poco a poco, revolver constantemente
+
+2. PIZZA MARGHERITA (Nápoles, Sur)
+   Creada en 1889 en honor a la Reina Margherita, con los colores de la bandera italiana:
+   • Salsa de tomate San Marzano (rojo)
+   • Mozzarella di Bufala (blanco)
+   • Albahaca fresca (verde)
+   • Aceite de oliva
+   Secreto: horno a máxima temperatura (250-300°C), masa fermentada 24-72 horas
+
+3. LASAGNA ALLA BOLOGNESE (Bolonia, Centro)
+   Capas de:
+   • Lasagna (láminas de pasta)
+   • Ragù boloñese (cocinado 3 horas)
+   • Bechamel (mantequilla + harina + leche)
+   • Parmigiano rallado
+   Secreto: las capas finas y la cocción lenta
+
+4. OSSOBUCO ALLA MILANESE (Milán)
+   • Jarrete de ternera cocinado lentamente en vino blanco
+   • Con gremolata (limón, ajo, perejil)
+   • Servido con risotto
+   El tuétano del hueso es la parte más codiciada
+
+5. TIRAMISÚ (Veneto)
+   El postre italiano más famoso del mundo:
+   • Bizcochos de soletilla empapados en café espresso
+   • Crema de mascarpone + yemas de huevo + azúcar
+   • Cacao amargo en polvo
+   Secreto: reposar mínimo 4 horas (mejor toda la noche) en el refrigerador`,
+    keyPoints: [
+      'Cada plato italiano icónico viene de una región específica',
+      'La paciencia es clave: ragù se cocina 3 horas, tiramisú necesita reposar',
+      'La Margherita es perfecta por su simplicidad: solo 4 ingredientes',
+      'El risotto requiere atención constante y caldo caliente poco a poco'
+    ]
+  }, 25, 1);
+
+  await createLesson('coc-3-2', cocM3.id, 'Recetas Clásicas: Ingredientes y Pasos', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué le da al risotto alla milanese su color dorado característico?',
+        options: [
+          'Azafrán',
+          'Curcuma',
+          'Mantequilla',
+          'Tomate'
+        ],
+        correctIndex: 0,
+        explanation: 'El azafrán (zafferano en italiano) es una especia extremadamente valiosa hecha de los estigmas del azafrán. Solo unas hebras dan al risotto su color dorado intenso y un sabor terroso, ligeramente dulce y floral.'
+      },
+      {
+        question: '¿Cuántas capas tiene típicamente una lasagna boloñesa?',
+        options: [
+          '2-3 capas',
+          '5-7 capas',
+          '10-15 capas',
+          'Solo 1 capa'
+        ],
+        correctIndex: 1,
+        explanation: 'Una lasagna típica tiene 5-7 capas alternando: pasta-ragù-bechamel-queso. Demasiadas capas dificultan el horneado y la proporción no es ideal. Lo importante es que cada capa sea fina y uniforme.'
+      },
+      {
+        question: '¿Por qué se llama "Margherita" a la pizza clásica de Nápoles?',
+        options: [
+          'Por la forma redonda como una margarita',
+          'En honor a la Reina Margherita de Saboya',
+          'Por el ingrediente principal: la margarita de jardín',
+          'Porque se come en primavera'
+        ],
+        correctIndex: 1,
+        explanation: 'La pizza fue creada en 1889 por el pizzero Raffaele Esposito en Nápoles en honor a la Reina Margherita de Saboya. Los colores de la pizza (rojo, blanco, verde) representan la bandera italiana.'
+      },
+      {
+        question: '¿Qué es la "mantecatura" en un risotto?',
+        options: [
+          'Agregar mantequilla y queso al final para cremosidad',
+          'Cocinar el arroz en mantequilla desde el inicio',
+          'Agregar leche al risotto',
+          'Servir el risotto con pan'
+        ],
+        correctIndex: 0,
+        explanation: 'La mantecatura es la técnica final: fuera del fuego, se agregan mantequilla fría y Parmigiano rallado, y se agita vigorosamente. Esto crea la cremosidad sedosa característica del risotto. Es el paso que diferencia un buen risotto de uno excepcional.'
+      }
+    ]
+  }, 30, 2);
+
+  await createLesson('coc-3-3', cocM3.id, 'Postres Italianos: Tiramisú y Panna Cotta', 'reading', {
+    introduction: 'Los postres italianos son elegantemente simples. No necesitan decorationes elaboradas — su sabor habla por sí solo.',
+    content: `TIRAMISÚ — EL REY DE LOS POSTRES ITALIANOS
+
+Nombre literal: "levántame" o "empújame hacia arriba" — por el efecto energizante del café
+
+INGREDIENTES (6-8 porciones):
+• 6 yemas de huevo
+• 150g de azúcar
+• 500g de mascarpone
+• 300ml de nata (crema para montar)
+• 300ml de café espresso frío
+• 200g de bizcochos de soletilla (savoiardi)
+• Cacao amargo en polvo
+
+PREPARACIÓN:
+1. Montar las yemas con el azúcar hasta obtener una crema pálida y espumosa
+2. Agregar el mascarpone y mezclar suavemente hasta integrar
+3. Montar la nata aparte y incorporar a la mezcla con movimientos envolventes
+4. Preparar el café espresso y dejar enfriar
+5. Mojar rápidamente cada bizcocho en el café (no empapar — solo 1 segundo por lado)
+6. Formar capas: bizcochos → crema → bizcochos → crema
+7. Espolvorear cacao amargo por encima
+8. REFRIGERAR MÍNIMO 4 HORAS (ideal: toda la noche)
+
+ERRORES COMUNES:
+❌ Empapar demasiado los bizcochos (se deshacen)
+❌ Usar café frío sin sabor (usa espresso de calidad)
+❌ No refrigerar suficiente tiempo
+❌ Usar queso crema en lugar de mascarpone (son diferentes)
+
+PANNA COTTA — "CREMA COCIDA"
+
+INGREDIENTES:
+• 500ml de nata (crema de leche)
+• 100g de azúcar
+• 1 sobre de gelatina en hojas (o 7g en polvo)
+• 1 vaina de vainilla
+• Frutas frescas para servir
+
+PREPARACIÓN:
+1. Hidratar la gelatina en agua fría 5 minutos
+2. Calentar la nata con azúcar y vainilla (sin hervir)
+3. Escurrir la gelatina y agregar a la nata caliente, mezclar hasta disolver
+4. Verter en moldes
+5. Refrigerar mínimo 6 horas
+6. Desmoldar pasando el molde por agua caliente 3 segundos
+7. Servir con frutas frescas, coulis de frambuesa o chocolate`,
+    keyPoints: [
+      'El tiramisú necesita refrigerarse mínimo 4 horas para que los sabores se fusionen',
+      'El mascarpone NO es lo mismo que queso crema',
+      'La panna cotta es extremadamente simple: nata + azúcar + gelatina',
+      'Ambos postres son perfectos para preparar con antelación'
+    ]
+  }, 25, 3);
+
+  await createLesson('coc-3-4', cocM3.id, '🚀 Mini-Proyecto: Diseña tu Menú Italiano', 'project', {
+    title: 'Crea tu Menú Italiano Completo',
+    description: 'Diseña y planifica un menú italiano tradicional completo para 4 personas, desde el aperitivo hasta el postre.',
+    objectives: [
+      'Aplicar el conocimiento de platos italianos por regiones',
+      'Planificar tiempos de cocción y preparación',
+      'Combinar sabores y texturas armoniosamente'
+    ],
+    requirements: [
+      'Incluir al menos: 1 aperitivo, 1 primo (pasta), 1 secondo (carne/pescado), 1 dolce (postre)',
+      'Especificar ingredientes exactos y cantidades',
+      'Incluir tiempos de preparación y cocción',
+      'Asegurar que los tiempos sean compatibles (¿qué se puede preparar con antelación?)',
+      'Incluir al menos 1 plato que uses técnica de pasta fresca o salsa casera'
+    ],
+    exampleCode: `// Ejemplo de planificación de menú
+const menuItaliano = {
+  aperitivo: {
+    plato: "Bruschetta al Pomodoro",
+    tiempo: "10 min",
+    preparar_con_antelacion: true,
+    ingredientes: ["pan ciabatta", "tomates cherry", "albahaca", "aceite de oliva", "ajo"]
+  },
+  primo: {
+    plato: "Penne all'Arrabbiata",
+    tiempo: "25 min",
+    notas: "Salsa picante con tomate. Cocinar pasta al dente."
+  },
+  secondo: {
+    plato: "Pollo al Limone",
+    tiempo: "35 min",
+    notas: "Pollo con salsa de limón, alcaparras y mantequilla"
+  },
+  contorno: {
+    plato: "Insalata Mista",
+    tiempo: "5 min",
+    notas: "Lechuga, tomate, pepino, vinagreta de limón"
+  },
+  dolce: {
+    plato: "Panna Cotta con Frutos Rojos",
+    tiempo: "15 min + 6h refrigeración",
+    preparar_con_antelacion: "SÍ — hacer la noche anterior"
+  }
 };
 
-3. Arrow Function:
-const sumar = (a, b) => a + b;
+// Tip: empezar por el postre (necesita más tiempo de reposo)
+// y terminar con el aperitivo (se prepara rápido)`,
+    tips: ['El tiramisú y panna cotta se preparan el día anterior', 'Empieza la pasta cuando el secondo esté casi listo', 'El aperitivo se prepara en los últimos 10 minutos']
+  }, 60, 4);
 
-PARÁMETROS:
-- Default parameters:
-  function saludar(nombre = "mundo") { }
-- Rest parameters:
-  function sumar(...numeros) { }`,
-    examples: [
-      { code: 'function greet(name) { return "Hola, " + name; }', explanation: 'Función tradicional' },
-      { code: 'const greet = (name) => "Hola, " + name;', explanation: 'Arrow function' },
-      { code: 'const add = (a, b = 0) => a + b; add(5); // 5', explanation: 'Parámetro default' }
-    ]
-  }, 25, 1, 10);
-
-  await createLesson('js-l6-2', jsM6.id, 'Closures y Scope', 'quiz', {
-    questions: [
-      { question: '¿Qué es un closure en JavaScript?', options: ['Cerrar el navegador', 'Una función que recuerda su scope externo', 'Terminar una variable', 'Importar módulos'], correctIndex: 1, explanation: 'Un closure es una función que tiene acceso a variables de su scope externo incluso después de que la función externa haya terminado.' },
-      { question: '¿Qué imprimirá: function counter() { let count = 0; return () => ++count; } const c = counter(); c(); c(); console.log(c());?', options: ['1', '2', '3', '0'], correctIndex: 2, explanation: 'counter() retorna una función que usa count. Cada llamada incrementa count: 1, 2, 3.' }
-    ],
-    tips: ['Las closures son útiles para crear funciones factory', 'Evita variables globales excesivas']
-  }, 30, 2, 12);
-
-  await createLesson('js-l6-3', jsM6.id, '🎮 Ejercicio: Funciones y Closures', 'coding', {
-    instructions: 'Practica creando funciones y closures:',
-    exercise: {
-      task: 'Implementa funciones avanzadas',
-      challenges: [
-        {
-          id: 'js-func-1',
-          description: 'Crea una función flecha llamada duplicar que tome un número y lo multiplique por 2',
-          initialCode: '// Crea la función flecha duplicar\n',
-          expectedOutput: 'duplicar(5) → 10',
-          hint: 'Usa la sintaxis: const nombre = (parametros) => expresión',
-          solution: 'const duplicar = (num) => num * 2;'
-        },
-        {
-          id: 'js-func-2',
-          description: 'Crea una función crearContador que retorne una función que incremente un contador interno',
-          initialCode: 'function crearContador() {\n  // Debe retornar una función que incremente y retorne el contador\n}\n',
-          expectedOutput: 'crearContador()() → 1, crearContador()() → 1 (cada contador es independiente)',
-          hint: 'Usa closure: declara una variable dentro de crearContador y retorne una función que la use',
-          solution: 'function crearContador() {\n  let count = 0;\n  return () => ++count;\n}'
-        },
-        {
-          id: 'js-func-3',
-          description: 'Crea una función saludarFormal(nombre) que use un parámetro default para el saludo',
-          initialCode: '// Crea la función con saludo por defecto "Buenos días"\n',
-          expectedOutput: 'saludarFormal("Ana") → "Buenos días, Ana"',
-          hint: 'Usa parametro = valorDefault en la definición',
-          solution: 'const saludarFormal = (nombre, saludo = "Buenos días") => `${saludo}, ${nombre}`;'
-        }
-      ]
-    }
-  }, 60, 3, 20);
-
-  // PROYECTO FINAL: Generador de Estadísticas
-  await createLesson('js-l6-4', jsM6.id, '🚀 Proyecto Final: Generador de Estadísticas', 'project', {
-    title: 'Generador de Estadísticas de Clase',
-    description: 'Crea un sistema que procese un array de estudiantes y genere estadísticas.',
-    objectives: [
-      'Combinar todos los conceptos aprendidos',
-      'Trabajar con arrays de objetos',
-      'Implementar lógica de negocio compleja'
-    ],
-    requirements: [
-      'Array de estudiantes con: nombre, edad, calificaciones (array de números)',
-      'Función para calcular promedio de un estudiante',
-      'Función para encontrar el estudiante con mejor promedio',
-      'Función para filtrar estudiantes aprovados (promedio >= 7)',
-      'Función para obtener la calificación más alta de todos los estudiantes',
-      'Bonus: ordenar estudiantes por promedio'
-    ],
-    exampleCode: `const estudiantes = [
-  { nombre: "Ana", calificaciones: [8, 9, 7] },
-  { nombre: "Carlos", calificaciones: [6, 7, 8] },
-  { nombre: "María", calificaciones: [9, 10, 9] }
-];
-
-function calcularPromedio(estudiante) {
-  const sum = estudiante.calificaciones.reduce((a, b) => a + b, 0);
-  return sum / estudiante.calificaciones.length;
-}`,
-    tips: ['Usa map() para transformar el array', 'Usa sort() con una función comparadora para ordenar'],
-    xpReward: 200
-  }, 120, 4, 40);
-
-  console.log('✅ JavaScript Fundamentals completed (6 modules, 18 lessons, 4 coding exercises, 2 mini-projects)');
+  console.log('✅ Cocina Italiana Tradicional completed (3 modules, 11 lessons)');
 
   // ===========================================
-  // PYTHON COURSE - ENHANCED
-  // ===========================================
-  console.log('\n🐍 Creating ENHANCED Python para Principiantes course...');
-
-  const pyCourse = await createCourse(
-    'course-python-beginner',
-    'Python para Principiantes',
-    'Aprende Python, el lenguaje más versátil y fácil de leer. Ideal para automatización, análisis de datos, inteligencia artificial y desarrollo web.',
-    'Programación',
-    'beginner',
-    30,
-    'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&h=400&fit=crop'
-  );
-
-  // MODULE 1: Primeros Pasos
-  const pyM1 = await createModule('py-m1', pyCourse.id, 'Introducción a Python', 1);
-
-  await createLesson('py-l1-1', pyM1.id, '¿Qué es Python y por qué aprenderlo?', 'reading', {
-    introduction: 'Python es un lenguaje de programación creado por Guido van Rossum en 1991. Se ha convertido en uno de los lenguajes más populares del mundo.',
-    content: `¿POR QUÉ PYTHON?
-
-1. Fácil de aprender y leer
-   - Sintaxis clara y simple
-   - Usa indentación en lugar de llaves
-   - Código que parece pseudocódigo
-
-2. Versátil
-   - Desarrollo web (Django, Flask)
-   - Análisis de datos (Pandas, NumPy)
-   - Inteligencia artificial (TensorFlow, PyTorch)
-   - Automatización (scripts, bots)
-
-3. Gran comunidad
-   - Miles de librerías disponibles
-   - Documentación extensiva
-
-PHILOSOPHY (The Zen of Python):
-- Simple es mejor que complejo
-- Legible es mejor que escribible
-- Explícito es mejor que implícito`,
-    keyPoints: ['Python fue creado por Guido van Rossum', 'Su filosofía es simplicidad y legibilidad', 'Tiene miles de librerías']
-  }, 20, 1, 8);
-
-  await createLesson('py-l1-2', pyM1.id, 'Tu primer programa en Python', 'quiz', {
-    questions: [
-      { question: '¿Cuál es la salida de: print("Hola" + " " + "Mundo")?', options: ['HolaMundo', 'Hola Mundo', 'Error', '"Hola Mundo"'], correctIndex: 1, explanation: 'El operador + concatena strings.' },
-      { question: '¿Cómo se escribe un comentario de una línea en Python?', options: ['// esto es un comentario', '# esto es un comentario', '/* comentario */', '-- comentario'], correctIndex: 1, explanation: 'En Python, el símbolo # indica el inicio de un comentario.' },
-      { question: '¿Python necesita punto y coma al final de las líneas?', options: ['Sí, siempre', 'No, es opcional', 'Depende del IDE', 'Solo en funciones'], correctIndex: 1, explanation: 'Python no requiere punto y coma. La indentación define los bloques.' }
-    ],
-    examples: [
-      { code: 'print("Hola Mundo")', explanation: 'Primer programa' },
-      { code: '# Esto es un comentario', explanation: 'Comentario' },
-      { code: 'nombre = input("¿Cómo te llamas? ")', explanation: 'input() para recibir datos' }
-    ]
-  }, 25, 2, 10);
-
-  await createLesson('py-l1-3', pyM1.id, 'Variables y tipos de datos', 'quiz', {
-    questions: [
-      { question: '¿Cómo se declara una variable en Python?', options: ['int x = 5', 'var x = 5', 'x = 5', 'let x = 5'], correctIndex: 2, explanation: 'Python infiere el tipo automáticamente.' },
-      { question: '¿Qué tipo de dato es: x = "Hola"?', options: ['int', 'float', 'str', 'char'], correctIndex: 2, explanation: 'En Python, las cadenas de texto son de tipo str.' },
-      { question: '¿Cómo se llama la función para saber el tipo de una variable?', options: ['typeof()', 'getType()', 'type()', 'whatType()'], correctIndex: 2, explanation: 'type() retorna el tipo de una variable.' }
-    ],
-    examples: [
-      { code: 'edad = 25  # int', explanation: 'Entero' },
-      { code: 'precio = 19.99  # float', explanation: 'Decimal' },
-      { code: 'es_estudiante = True  # bool', explanation: 'Booleano' }
-    ]
-  }, 30, 3, 12);
-
-  await createLesson('py-l1-4', pyM1.id, '🎮 Ejercicio: Variables y Tipos en Python', 'coding', {
-    instructions: 'Practica declarando variables y trabajando con tipos en Python:',
-    exercise: {
-      task: 'Manipula variables y verifica tipos en Python',
-      challenges: [
-        {
-          id: 'py-var-1',
-          description: 'Crea una variable llamada nombre con tu nombre',
-          initialCode: '# Crea la variable nombre\n',
-          hint: 'Simplemente usa nombre = "tu_nombre"',
-          solution: 'nombre = "María"'
-        },
-        {
-          id: 'py-var-2',
-          description: 'Crea una variable edad de tipo entero con valor 25',
-          initialCode: '# Crea la variable edad\n',
-          hint: 'En Python no necesitas declarar el tipo',
-          solution: 'edad = 25'
-        },
-        {
-          id: 'py-var-3',
-          description: 'Usa f-string para crear: "Hola, {nombre}! Tienes {edad} años."',
-          initialCode: 'nombre = "Carlos"\nedad = 28\n# Crea la variable mensaje usando f-string\n',
-          expectedOutput: 'mensaje debe ser "Hola, Carlos! Tienes 28 años."',
-          hint: 'Usa f"Hola, {nombre}..."',
-          solution: 'mensaje = f"Hola, {nombre}! Tienes {edad} años."'
-        }
-      ]
-    }
-  }, 50, 4, 15);
-
-  // MODULE 2: Estructuras de Datos
-  const pyM2 = await createModule('py-m2', pyCourse.id, 'Estructuras de Datos', 2);
-
-  await createLesson('py-l2-1', pyM2.id, 'Listas y operaciones básicas', 'reading', {
-    introduction: 'Las listas son colecciones ordenadas y mutables de elementos en Python.',
-    content: `CREAR LISTAS:
-
-frutas = ["manzana", "pera", "uva"]
-numeros = [1, 2, 3, 4, 5]
-
-ACCEDER POR ÍNDICE:
-- Primera posición: frutas[0] → "manzana"
-- Última posición: frutas[-1] → "uva"
-- Rango: frutas[0:2] → ["manzana", "pera"]
-
-MÉTODOS PRINCIPALES:
-- append(item) → añade al final
-- insert(pos, item) → inserta en posición
-- remove(item) → elimina primera ocurrencia
-- pop() → elimina y retorna el último`,
-    examples: [
-      { code: 'frutas = ["manzana", "pera"]; frutas.append("uva")', explanation: 'Añadir elemento' },
-      { code: 'frutas[0]  # "manzana"', explanation: 'Acceder por índice' },
-      { code: 'frutas[-1]  # "uva" (último)', explanation: 'Índice negativo' }
-    ]
-  }, 25, 1, 10);
-
-  await createLesson('py-l2-2', pyM2.id, 'Diccionarios', 'quiz', {
-    questions: [
-      { question: '¿Cómo se crea un diccionario en Python?', options: ['dict = (1, 2, 3)', 'dict = [1, 2, 3]', 'dict = {"clave": "valor"}', 'dict = <1, 2, 3>'], correctIndex: 2, explanation: 'Los diccionarios usan llaves con pares clave:valor.' },
-      { question: '¿Cómo se accede al valor de "nombre" en: persona = {"nombre": "Ana", "edad": 30}?', options: ['persona[0]', 'persona["nombre"]', 'persona.nombre', 'persona.get(0)'], correctIndex: 1, explanation: 'Se accede con corchetes y la clave como string.' },
-      { question: '¿Qué hace dict.get("clave", "default")?', options: ['Elimina la clave', 'Retorna el valor o default si no existe', 'Actualiza el valor', 'Crea la clave'], correctIndex: 1, explanation: 'get() retorna el valor de la clave si existe, o el valor default.' }
-    ],
-    examples: [
-      { code: 'usuario = {"nombre": "Juan", "edad": 28}', explanation: 'Diccionario simple' },
-      { code: 'for clave, valor in usuario.items(): print(clave, valor)', explanation: 'Iterar diccionario' }
-    ]
-  }, 30, 2, 12);
-
-  await createLesson('py-l2-3', pyM2.id, '🎮 Ejercicio: Listas y Diccionarios', 'coding', {
-    instructions: 'Practica manipulando listas y diccionarios:',
-    exercise: {
-      task: 'Trabaja con estructuras de datos en Python',
-      challenges: [
-        {
-          id: 'py-list-1',
-          description: 'Crea una lista llamada colores con ["rojo", "verde", "azul"]',
-          initialCode: '# Crea la lista colores\n',
-          expectedOutput: 'colores debe ser ["rojo", "verde", "azul"]',
-          hint: 'Usa corchetes y comas',
-          solution: 'colores = ["rojo", "verde", "azul"]'
-        },
-        {
-          id: 'py-list-2',
-          description: 'Agrega "amarillo" a la lista colores',
-          initialCode: 'colores = ["rojo", "verde", "azul"]\n# Agrega "amarillo"\n',
-          expectedOutput: 'colores debe incluir "amarillo"',
-          hint: 'Usa el método append()',
-          solution: 'colores.append("amarillo")'
-        },
-        {
-          id: 'py-list-3',
-          description: 'Crea un diccionario estudiante con claves "nombre" y "edad"',
-          initialCode: '# Crea el diccionario estudiante\n',
-          expectedOutput: 'estudiante["nombre"] debe existir',
-          hint: 'Usa llaves con clave:valor',
-          solution: 'estudiante = {"nombre": "Ana", "edad": 22}'
-        }
-      ]
-    }
-  }, 50, 3, 15);
-
-  await createLesson('py-l2-4', pyM2.id, '🚀 Mini-Proyecto: Lista de Tareas', 'project', {
-    title: 'Gestor de Tareas en Python',
-    description: 'Crea un sistema de gestión de tareas usando listas y diccionarios.',
-    objectives: [
-      'Practicar estructuras de datos complejas',
-      'Implementar operaciones CRUD',
-      'Usar loops y condicionales'
-    ],
-    requirements: [
-      'Lista de diccionarios representando tareas',
-      'Cada tarea tiene: id, titulo, completada (bool)',
-      'Función para agregar tarea',
-      'Función para marcar como completada',
-      'Función para mostrar tareas pendientes'
-    ],
-    exampleCode: `tareas = [
-    {"id": 1, "titulo": "Comprar comida", "completada": False},
-    {"id": 2, "titulo": "Estudiar Python", "completada": True}
-]
-
-def agregar_tarea(titulo):
-    nuevo_id = len(tareas) + 1
-    tareas.append({"id": nuevo_id, "titulo": titulo, "completada": False})`,
-    tips: ['Usa append() para agregar elementos', 'Filtra con una list comprehension'],
-    xpReward: 120
-  }, 90, 4, 25);
-
-  // MODULE 3: Control de Flujo
-  const pyM3 = await createModule('py-m3', pyCourse.id, 'Control de Flujo', 3);
-
-  await createLesson('py-l3-1', pyM3.id, 'Condicionales if/elif/else', 'quiz', {
-    questions: [
-      { question: '¿Cuál es la salida: if 5 > 3: print("A") else: print("B")?', options: ['A', 'B', 'AB', 'Error'], correctIndex: 0, explanation: '5 > 3 es True, por lo tanto se ejecuta el bloque del if.' },
-      { question: '¿Qué palabra clave se usa para múltiples condiciones en Python?', options: ['else if', 'elif', 'elsif', 'when'], correctIndex: 1, explanation: 'Python usa "elif" para múltiples condiciones.' },
-      { question: '¿Python usa llaves {} para definir bloques?', options: ['Sí', 'No, usa indentación', 'Depende del IDE', 'Para funciones sí'], correctIndex: 1, explanation: 'Python usa indentación, no llaves.' }
-    ]
-  }, 25, 1, 10);
-
-  await createLesson('py-l3-2', pyM3.id, 'Bucles for y while', 'quiz', {
-    questions: [
-      { question: '¿Cuántas veces se ejecuta: for i in range(5): print(i)?', options: ['4', '5', '6', 'Infinito'], correctIndex: 1, explanation: 'range(5) genera 0, 1, 2, 3, 4. El bucle se ejecuta 5 veces.' },
-      { question: '¿Qué hace: for char in "python": print(char)?', options: ['Imprime "python" 5 veces', 'Imprime cada letra en una línea', 'Error', 'Solo imprime "p"'], correctIndex: 1, explanation: 'Iterar sobre un string recorre cada carácter.' },
-      { question: '¿Cómo se sale de un bucle prematuramente en Python?', options: ['break', 'exit', 'stop', 'return'], correctIndex: 0, explanation: 'break termina el bucle inmediatamente.' }
-    ],
-    examples: [
-      { code: 'for i in range(5): print(i)  # 0, 1, 2, 3, 4', explanation: 'Bucle for con range' },
-      { code: 'for item in lista: print(item)', explanation: 'Iterar lista' }
-    ]
-  }, 30, 2, 12);
-
-  await createLesson('py-l3-3', pyM3.id, 'List Comprehensions', 'quiz', {
-    questions: [
-      { question: '¿Qué es una list comprehension?', options: ['Un tipo de función', 'Una forma concisa de crear listas', 'Un método de ordenamiento', 'Un error de sintaxis'], correctIndex: 1, explanation: 'List comprehension es una sintaxis compacta para generar listas.' },
-      { question: '¿Qué resulta de: [x**2 for x in range(5)]?', options: ['[0, 1, 2, 3, 4]', '[0, 1, 4, 9, 16]', '[1, 4, 9, 16, 25]', 'Error'], correctIndex: 1, explanation: 'x**2 para cada x en range(5): 0², 1², 2², 3², 4².' }
-    ],
-    examples: [
-      { code: '[x**2 for x in range(5)]  # [0, 1, 4, 9, 16]', explanation: 'Cuadrados de 0-4' },
-      { code: '[x for x in range(10) if x % 2 == 0]  # [0, 2, 4, 6, 8]', explanation: 'Solo pares' }
-    ]
-  }, 25, 3, 10);
-
-  await createLesson('py-l3-4', pyM3.id, '🎮 Ejercicio: Control de Flujo', 'coding', {
-    instructions: 'Practica condicionales y bucles:',
-    exercise: {
-      task: 'Implementa lógica de control en Python',
-      challenges: [
-        {
-          id: 'py-flow-1',
-          description: 'Crea una función es_par(numero) que retorne True si es par',
-          initialCode: 'def es_par(numero):\n    # Retorna True si es par, False si es impar\n',
-          expectedOutput: 'es_par(4) → True, es_par(7) → False',
-          hint: 'Usa el operador % (módulo)',
-          solution: 'def es_par(numero):\n    return numero % 2 == 0'
-        },
-        {
-          id: 'py-flow-2',
-          description: 'Usa list comprehension para obtener los cuadrados de los números 1-5',
-          initialCode: '# Crea una lista con los cuadrados de 1 a 5\n',
-          expectedOutput: 'cuadrados debe ser [1, 4, 9, 16, 25]',
-          hint: 'Usa [x**2 for x in range(1, 6)]',
-          solution: 'cuadrados = [x**2 for x in range(1, 6)]'
-        },
-        {
-          id: 'py-flow-3',
-          description: 'Filtra los números negativos de la lista [-1, 2, -3, 4, -5]',
-          initialCode: 'numeros = [-1, 2, -3, 4, -5]\n# Crea positivos solo con números > 0\n',
-          expectedOutput: 'positivos debe ser [2, 4]',
-          hint: 'Usa list comprehension con condición if',
-          solution: 'positivos = [x for x in numeros if x > 0]'
-        }
-      ]
-    }
-  }, 50, 4, 15);
-
-  // MODULE 4: Funciones
-  const pyM4 = await createModule('py-m4', pyCourse.id, 'Funciones', 4);
-
-  await createLesson('py-l4-1', pyM4.id, 'Definir y llamar funciones', 'reading', {
-    introduction: 'Las funciones son bloques de código reutilizables que realizan una tarea específica.',
-    content: `SINTÁXIS BÁSICA:
-
-def nombre_funcion(parametros):
-    """Docstring - descripción de la función"""
-    # código
-    return resultado
-
-PARAMETROS DEFAULT:
-def greet(nombre, saludo="Hola"):
-    return f"{saludo}, {nombre}!"
-
-RETURN:
-- return termina la función
-- Sin return, retorna None
-- Puede retornar múltiples valores como tupla`,
-    examples: [
-      { code: 'def sumar(a, b): return a + b', explanation: 'Función simple' },
-      { code: 'def saludar(nombre="Mundo"): return f"Hola {nombre}"', explanation: 'Con valor default' }
-    ]
-  }, 25, 1, 10);
-
-  await createLesson('py-l4-2', pyM4.id, 'Args, kwargs y funciones lambda', 'quiz', {
-    questions: [
-      { question: '¿Qué hace *args en una función?', options: ['Multiplica argumentos', 'Captura argumentos variables en una tupla', 'Convierte a enteros', 'Elimina argumentos'], correctIndex: 1, explanation: '*args permite pasar un número variable de argumentos.' },
-      { question: '¿Qué es una función lambda?', options: ['Una función muy grande', 'Una función anónima de una línea', 'Un tipo de error', 'Una función matemática'], correctIndex: 1, explanation: 'Lambda crea funciones anónimas de una línea.' },
-      { question: '¿Cuál es el resultado de: (lambda x, y: x + y)(2, 3)?', options: ['5', '23', '6', 'Error'], correctIndex: 0, explanation: 'La lambda recibe 2 y 3 y retorna 2 + 3 = 5.' }
-    ],
-    examples: [
-      { code: 'def suma(*args): return sum(args)', explanation: '*args variable arguments' },
-      { code: 'doble = lambda x: x * 2; doble(5)  # 10', explanation: 'Función lambda' }
-    ]
-  }, 30, 2, 12);
-
-  await createLesson('py-l4-3', pyM4.id, '🎮 Ejercicio: Funciones', 'coding', {
-    instructions: 'Practica creando funciones:',
-    exercise: {
-      task: 'Implementa funciones en Python',
-      challenges: [
-        {
-          id: 'py-func-1',
-          description: 'Crea una función saludar(nombre) que retorne "Hola, {nombre}!"',
-          initialCode: '# Define la función saludar\n',
-          expectedOutput: 'saludar("Ana") → "Hola, Ana!"',
-          hint: 'Usa def y return',
-          solution: 'def saludar(nombre):\n    return f"Hola, {nombre}!"'
-        },
-        {
-          id: 'py-func-2',
-          description: 'Crea una función lambda llamada cuadrado que elevé al cuadrado',
-          initialCode: '# Crea la función lambda cuadrado\n',
-          expectedOutput: 'cuadrado(4) → 16',
-          hint: 'Usa lambda x: expresion',
-          solution: 'cuadrado = lambda x: x ** 2'
-        },
-        {
-          id: 'py-func-3',
-          description: 'Crea una función promedio(*numeros) que calcule el promedio',
-          initialCode: '# Define la función promedio\n',
-          expectedOutput: 'promedio(10, 20, 30) → 20.0',
-          hint: 'Usa *args y sum()/len()',
-          solution: 'def promedio(*numeros):\n    return sum(numeros) / len(numeros)'
-        }
-      ]
-    }
-  }, 50, 3, 15);
-
-  // PROYECTO FINAL PYTHON
-  await createLesson('py-l4-4', pyM4.id, '🚀 Proyecto Final: Analizador de Calificaciones', 'project', {
-    title: 'Analizador de Calificaciones',
-    description: 'Crea un sistema para analizar calificaciones de estudiantes.',
-    objectives: [
-      'Combinar funciones y estructuras de datos',
-      'Implementar lógica de análisis estadístico',
-      'Usar funciones lambda y comprehensions'
-    ],
-    requirements: [
-      'Diccionario con estudiantes y sus calificaciones (lista de números)',
-      'Función para calcular promedio de un estudiante',
-      'Función para encontrar el mejor promedio',
-      'Función para obtener todos los estudiantes aprobados (promedio >= 7)',
-      'Función para calcular el promedio general de la clase'
-    ],
-    exampleCode: `calificaciones = {
-    "Ana": [8, 9, 7, 10],
-    "Carlos": [6, 7, 8, 7],
-    "María": [9, 10, 9, 10]
-}
-
-def promedio_estudiante(califs):
-    return sum(califs) / len(califs)
-
-def mejor_promedio():
-    promedios = {nombre: promedio_estudiante(califs) for nombre, califs in calificaciones.items()}
-    return max(promedios, key=promedios.get)`,
-    tips: ['Usa comprehensions para crear diccionarios de promedios', 'max() con key parameter para encontrar el mejor'],
-    xpReward: 200
-  }, 120, 4, 40);
-
-  console.log('✅ Python para Principiantes completed (4 modules, 14 lessons, 3 coding exercises, 2 mini-projects)');
-
-  // ===========================================
-  // MATH COURSE - ENHANCED WITH REAL PROBLEMS
-  // ===========================================
-  console.log('\n📐 Creating ENHANCED Mathematics Applied course...');
-
-  const mathCourse = await createCourse(
-    'course-math-basics',
-    'Matemáticas Aplicadas',
-    'Refresca y profundiza tus habilidades matemáticas con problemas del mundo real. Desde aritmética básica hasta álgebra y estadística.',
-    'Matemáticas',
-    'beginner',
-    20,
-    'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&h=400&fit=crop'
-  );
-
-  const mathM1 = await createModule('math-m1', mathCourse.id, 'Aritmética y Porcentajes', 1);
-
-  await createLesson('math-l1-1', mathM1.id, 'Orden de operaciones (PEMDAS)', 'quiz', {
-    questions: [
-      { question: '¿Cuál es el resultado de 2 + 3 × 4?', options: ['20', '14', '24', '11'], correctIndex: 1, explanation: 'PEMDAS: Multiplicación antes que suma. 3×4=12, luego 2+12=14.' },
-      { question: '¿Qué significa PEMDAS?', options: ['Parentheses, Exponents, Multiplication, Division, Addition, Subtraction', 'Prime Numbers, Exponents, Math, Division, Addition, Subtraction', 'Parenthesis, Equations, Multiplication, Division, Addition, Subtraction', 'Problems, Examples, Math, Division, Addition, Subtraction'], correctIndex: 0, explanation: 'PEMDAS indica el orden: Paréntesis → Exponentes → Multiplicación/División → Suma/Resta.' },
-      { question: '¿Cuál es el resultado de (2 + 3) × 4?', options: ['14', '20', '24', '11'], correctIndex: 1, explanation: 'Los paréntesis se evalúan primero. (2+3)=5, luego 5×4=20.' }
-    ]
-  }, 25, 1, 10);
-
-  await createLesson('math-l1-2', mathM1.id, 'Porcentajes en la vida real', 'quiz', {
-    questions: [
-      { question: '¿Cuánto es el 25% de 80?', options: ['20', '25', '200', '8'], correctIndex: 0, explanation: '25% = 0.25. 80 × 0.25 = 20.' },
-      { question: 'Si un producto cuesta $150 y tiene 20% de descuento, ¿cuánto pagas?', options: ['$130', '$120', '$135', '$145'], correctIndex: 1, explanation: 'Descuento = 150 × 0.20 = $30. Precio final = 150 - 30 = $120.' },
-      { question: '¿De qué número es 45 el 15%?', options: ['300', '450', '200', '600'], correctIndex: 0, explanation: 'Si 45 = 15% × X, entonces X = 45 / 0.15 = 300.' },
-      { question: '¿Qué significa "aumentar un valor en 30%"?', options: ['Multiplicar por 0.30', 'Multiplicar por 1.30', 'Sumar 30', 'Dividir entre 1.30'], correctIndex: 1, explanation: 'Aumentar 30% significa tener el 100% + 30% = 130%, multiplicar por 1.30.' }
-    ],
-    realWorldExample: 'En una tienda, ves un jacket de $80 con 25% de descuento. ¿Cuánto pagas? El descuento es $20, entonces pagas $60.'
-  }, 30, 2, 12);
-
-  await createLesson('math-l1-3', mathM1.id, '🎮 Ejercicio: Calcula tu Ahorro', 'coding', {
-    instructions: 'Resuelve problemas matemáticos prácticos:',
-    exercise: {
-      task: 'Calcula porcentajes y descuentos',
-      challenges: [
-        {
-          id: 'math-1',
-          description: 'Calcula el 15% de 200',
-          initialCode: '# Calcula el 15% de 200\n',
-          expectedOutput: 'resultado debe ser 30',
-          hint: 'Multiplica por 0.15 o divide por 100 y multiplica por 15',
-          solution: 'resultado = 200 * 0.15'
-        },
-        {
-          id: 'math-2',
-          description: 'Un producto de $90 tiene 30% de descuento. ¿Cuánto es el descuento?',
-          initialCode: 'precio_original = 90\ndescuento_porcentaje = 30\n# Calcula el monto del descuento\n',
-          expectedOutput: 'descuento debe ser 27',
-          hint: 'precio_original × (descuento_porcentaje / 100)',
-          solution: 'descuento = precio_original * (descuento_porcentaje / 100)'
-        },
-        {
-          id: 'math-3',
-          description: '¿Qué porcentaje es 45 de 180? (Respuesta en número, no %)',
-          initialCode: 'parte = 45\ntodo = 180\n# Calcula qué porcentaje es la parte del todo\n',
-          expectedOutput: 'porcentaje debe ser 25 (porque 45 es el 25% de 180)',
-          hint: '(parte / todo) × 100',
-          solution: 'porcentaje = (parte / todo) * 100'
-        }
-      ]
-    }
-  }, 40, 3, 12);
-
-  // MODULE 2: Álgebra Básica
-  const mathM2 = await createModule('math-m2', mathCourse.id, 'Álgebra Básica', 2);
-
-  await createLesson('math-l2-1', mathM2.id, 'Ecuaciones de primer grado', 'quiz', {
-    questions: [
-      { question: 'Si 2x + 5 = 15, ¿cuánto vale x?', options: ['5', '10', '7.5', '4'], correctIndex: 0, explanation: '2x + 5 = 15 → 2x = 15 - 5 → 2x = 10 → x = 10/2 = 5.' },
-      { question: '¿Cuál es el primer paso para resolver 3(x - 2) = 12?', options: ['Dividir entre 3', 'Restar 2', 'Aplicar propiedad distributiva: 3x - 6 = 12', 'Sumar 2'], correctIndex: 2, explanation: 'Primero aplica distributiva: 3×x - 3×2 = 3x - 6 = 12.' },
-      { question: '¿Qué significa "despejar x"?', options: ['Eliminar x', 'Aislar x en un lado de la ecuación', 'Multiplicar x', 'Dividir entre x'], correctIndex: 1, explanation: 'Despejar significa dejar la variable sola en un lado.' }
-    ],
-    tips: ['Lo que hagas a un lado, hazlo al otro', 'Mantén la ecuación balanceada']
-  }, 30, 1, 12);
-
-  await createLesson('math-l2-2', mathM2.id, '🎮 Ejercicio: Resuelve Ecuaciones', 'coding', {
-    instructions: 'Practica resolviendo ecuaciones algebraicas:',
-    exercise: {
-      task: 'Implementa la resolución de ecuaciones simples',
-      challenges: [
-        {
-          id: 'math-eq-1',
-          description: 'Si 3x = 27, ¿cuánto vale x?',
-          initialCode: '# Calcula el valor de x\n',
-          expectedOutput: 'x debe ser 9',
-          hint: 'x = 27 / 3',
-          solution: 'x = 27 / 3'
-        },
-        {
-          id: 'math-eq-2',
-          description: 'Resuelve: 2x + 4 = 14. ¿Cuánto vale x?',
-          initialCode: '# Calcula x: 2x + 4 = 14\n',
-          expectedOutput: 'x debe ser 5 (porque 2*5 + 4 = 14)',
-          hint: '2x = 14 - 4, luego x = 10/2',
-          solution: 'x = (14 - 4) / 2'
-        },
-        {
-          id: 'math-eq-3',
-          description: 'Si y/4 = 7, ¿cuánto vale y?',
-          initialCode: '# Calcula y: y/4 = 7\n',
-          expectedOutput: 'y debe ser 28',
-          hint: 'Multiplica ambos lados por 4',
-          solution: 'y = 7 * 4'
-        }
-      ]
-    }
-  }, 40, 2, 12);
-
-  // ===========================================
-  // ENGLISH COURSE - ENHANCED
-  // ===========================================
-  console.log('\n🌍 Creating ENHANCED English course...');
-
-  const engCourse = await createCourse(
-    'course-english-beginner',
-    'Inglés para Principiantes',
-    'Tu guía completa para aprender inglés desde cero. Vocabulario esencial, gramática básica y frases prácticas para comunicarte desde el primer día.',
-    'Idiomas',
-    'beginner',
-    25,
-    'https://images.unsplash.com/photo-1551179613-3ada17f87b8b?w=600&h=400&fit=crop'
-  );
-
-  const engM1 = await createModule('eng-m1', engCourse.id, 'Saludos y Conversaciones', 1);
-
-  await createLesson('eng-l1-1', engM1.id, 'Saludos formales e informales', 'quiz', {
-    questions: [
-      { question: '¿Cómo saludas a un amigo en inglés informalmente?', options: ['Good morning', 'Hey, what up?', 'How do you do?', 'Good evening'], correctIndex: 1, explanation: '"Hey, what up?" es un saludo muy informal entre amigos.' },
-      { question: '¿Qué respondes a "How are you?"?', options: ['I am fine, thank you', 'Yes, I am', 'I am 25 years old', 'Good morning'], correctIndex: 0, explanation: 'La respuesta estándar a "How are you?" es "I am fine, thank you".' },
-      { question: '¿Cuál es la traducción correcta de "Mucho gusto"?', options: ['Good morning', 'Nice to meet you', 'How are you', 'See you later'], correctIndex: 1, explanation: '"Nice to meet you" se usa cuando conoces a alguien por primera vez.' }
-    ],
-    phrases: [
-      { english: 'Hello!', spanish: '¡Hola!' },
-      { english: 'How are you?', spanish: '¿Cómo estás?' },
-      { english: 'Nice to meet you', spanish: 'Mucho gusto' },
-      { english: 'See you later!', spanish: '¡Hasta luego!' }
-    ]
-  }, 25, 1, 10);
-
-  await createLesson('eng-l1-2', engM1.id, 'Presentarte formalmente', 'multiple_choice', {
-    preamble: 'En contextos profesionales o formales, hay formas específicas de presentarse:',
-    questions: [
-      { question: '¿Cuál es la forma correcta de darte a conocer?', options: ['My name is John', 'I am John', 'Both are correct', 'My is John'], correctIndex: 2, explanation: 'Both "My name is John" y "I am John" son correctos.' },
-      { question: '¿Cómo preguntarías el nombre de alguien formalmente?', options: ['What is your name?', 'Who are you?', 'Your name is what?', 'Tell me your name'], correctIndex: 0, explanation: '"What is your name?" es la forma estándar.' },
-      { question: '¿Qué significa "I am from..."?', options: ['Vivo en...', 'Soy de... (país/ciudad)', 'Trabajo en...', 'Voy a...'], correctIndex: 1, explanation: '"I am from Mexico" significa "Soy de México".' }
-    ],
-    examples: [
-      { code: '"Nice to meet you. My name is Sarah."', explanation: 'Presentación formal' },
-      { code: '"I am from Spain. Where are you from?"', explanation: 'Decir de dónde eres' }
-    ]
-  }, 20, 2, 8);
-
-  await createLesson('eng-l1-3', engM1.id, '🎮 Speaking Practice: Tu Primera Conversación', 'speaking', {
-    instructions: 'Practica las frases más comunes para presentarte:',
-    exercise: {
-      scenario: 'Estás en una fiesta y conoces a alguien nuevo. Practica la conversación:',
-      dialogue: [
-        { speaker: 'You', prompt: 'Saluda a la persona de manera informal', expectedPhrase: 'Hi! How are you?' },
-        { speaker: 'Them', response: 'I am good, thanks! And you?' },
-        { speaker: 'You', prompt: 'Preséntate diciendo tu nombre', expectedPhrase: 'I am [tu nombre]. Nice to meet you!' },
-        { speaker: 'Them', response: 'Nice to meet you too! Where are you from?' },
-        { speaker: 'You', prompt: 'Dide dónde eres', expectedPhrase: 'I am from [tu país/ciudad]' }
-      ],
-      tips: ['La práctica de conversación es clave para aprender un idioma', 'No tengas miedo de cometer errores', 'Escuchar es tan importante como hablar']
-    }
-  }, 40, 3, 12);
-
-  const engM2 = await createModule('eng-m2', engCourse.id, 'Vocabulario Cotidiano', 2);
-
-  await createLesson('eng-l2-1', engM2.id, 'Números, días y meses', 'quiz', {
-    questions: [
-      { question: '¿Cómo se dice "once" (11) en inglés?', options: ['Ten', 'Eleven', 'One', 'Twelve'], correctIndex: 1, explanation: 'Eleven = 11.' },
-      { question: '¿Cuál es el día que viene después del Thursday?', options: ['Wednesday', 'Friday', 'Saturday', 'Tuesday'], correctIndex: 1, explanation: 'Los días: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.' },
-      { question: '¿Cómo dices "el año que viene" en inglés?', options: ['Last year', 'This year', 'Next year', 'Every year'], correctIndex: 2, explanation: '"Next year" = año que viene.' }
-    ],
-    vocabulary: [
-      { category: 'Days', words: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
-      { category: 'Months', words: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] },
-      { category: 'Numbers 1-12', words: ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'] }
-    ]
-  }, 25, 1, 10);
-
-  await createLesson('eng-l2-2', engM2.id, 'Colores y adjetivos básicos', 'multiple_choice', {
-    preamble: 'El vocabulario de colores y adjetivos básicos es fundamental:',
-    questions: [
-      { question: '¿Qué color es "purple"?', options: ['Azul', 'Verde', 'Morado/Púrpura', 'Rojo'], correctIndex: 2, explanation: 'Purple = morado.' },
-      { question: '¿Cómo describes algo que es muy grande?', options: ['Tiny', 'Huge', 'Small', 'Short'], correctIndex: 1, explanation: '"Huge" = muy grande.' },
-      { question: '¿Qué significa "a little"?', options: ['Mucho', 'Poco', 'Nada', 'Todo'], correctIndex: 1, explanation: '"A little" = un poco.' }
-    ],
-    examples: [
-      { code: 'The sky is blue. / The grass is green.', explanation: 'Colores básicos' },
-      { code: 'That house is huge! / This is a tiny insect.', explanation: 'Tamaño' },
-      { code: 'I am a little tired. / I have a few friends.', explanation: 'A little vs A few' }
-    ]
-  }, 20, 2, 8);
-
-  await createLesson('eng-l2-3', engM2.id, 'Verbos comunes y presente simple', 'quiz', {
-    questions: [
-      { question: '¿Cuál es la tercera persona singular de "to work"?', options: ['Work', 'Works', 'Working', 'Worked'], correctIndex: 1, explanation: 'She works, He works, It works (se añade -s o -es).' },
-      { question: '¿Cómo se dice "Yo como manzanas" en presente simple?', options: ['I eats apples', 'I eat apples', 'I am eating apples', 'I eat apple'], correctIndex: 1, explanation: 'Primera persona sin -s: I eat, you eat, we eat, they eat.' },
-      { question: '¿Qué verbo completa: "She ___ to school every day" (ir)?', options: ['go', 'goes', 'going', 'goed'], correctIndex: 1, explanation: 'She goes (tercera persona singular necesita -s).' }
-    ],
-    commonVerbs: [
-      { base: 'to be', past: 'was/were', meaning: 'ser/estar' },
-      { base: 'to have', past: 'had', meaning: 'tener' },
-      { base: 'to do', past: 'did', meaning: 'hacer' },
-      { base: 'to go', past: 'went', meaning: 'ir' },
-      { base: 'to eat', past: 'ate', meaning: 'comer' },
-      { base: 'to drink', past: 'drank', meaning: 'beber' }
-    ]
-  }, 25, 3, 10);
-
-  await createLesson('eng-l2-4', engM2.id, '🎮 Ejercicio: Construye Oraciones', 'coding', {
-    instructions: 'Practica formando oraciones correctas en presente simple:',
-    exercise: {
-      task: 'Completa las oraciones con la forma correcta del verbo',
-      challenges: [
-        {
-          id: 'eng-1',
-          description: 'Completa: She ___ (to work) at a hospital.',
-          initialCode: '# Escribe el verbo en la forma correcta\noracion = "She ___ at a hospital."\n',
-          expectedOutput: 'La oración completa debe ser "She works at a hospital."',
-          hint: 'Usa "works" para tercera persona singular',
-          solution: 'oracion = "She works at a hospital."'
-        },
-        {
-          id: 'eng-2',
-          description: 'Haz negativa: They ___ (to like) pizza.',
-          initialCode: "# Completa con forma negativa: They don't like pizza.\n",
-          expectedOutput: "They don't like pizza.",
-          hint: "Usa doesn't para tercera persona singular",
-          solution: 'oracion = "They don\'t like pizza."'
-        },
-        {
-          id: 'eng-3',
-          description: 'Haz pregunta: ___ you ___ (to want) coffee? (yes/no)',
-          initialCode: '# Completa la pregunta en presente simple\n',
-          expectedOutput: 'Do you want coffee?',
-          hint: 'Usa Do al inicio para preguntas',
-          solution: 'pregunta = "Do you want coffee?"'
-        }
-      ]
-    }
-  }, 40, 4, 12);
-
-  // ===========================================
-  // PRO COURSES
-  // ===========================================
-  console.log('\n👑 Creating PRO courses...');
-
-  // JavaScript Avanzado PRO
-  const jsProCourse = await createCourse(
-    'course-js-advanced',
-    'JavaScript Avanzado PRO',
-    'Domina los aspectos más avanzados de JavaScript: async/await, promises, closures, patrones de diseño y más.',
-    'Programación',
-    'intermediate',
-    35,
-    'https://images.unsplash.com/photo-1581089778245-3ce67677f718?w=600&h=400&fit=crop',
-    { isPro: true, price: 29.99, requiredLevel: 5 }
-  );
-
-  const jsProM1 = await createModule('js-pro-m1', jsProCourse.id, 'JavaScript Asíncrono', 1);
-  
-  await createLesson('js-pro-l1-1', jsProM1.id, 'Callbacks y Promises', 'reading', {
-    introduction: 'La programación asíncrona es fundamental en JavaScript para manejar operaciones que toman tiempo.',
-    content: `CALLBACKS:
-Un callback es una función que se pasa como argumento a otra función para ejecutarse cuando algo sucede.
-
-PROMISES:
-Un Promise representa un valor que puede estar disponible ahora, en el futuro, o nunca.
-
-Estados de un Promise:
-- Pending (pendiente): estado inicial
-- Fulfilled (cumplido): operación exitosa
-- Rejected (rechazado): operación fallida
-
-CREAR UN PROMISE:
-const miPromesa = new Promise((resolve, reject) => {
-  // operación asíncrona
-  if (exitoso) resolve(resultado);
-  else reject(error);
-});`,
-    examples: [
-      { code: 'fetch(url).then(res => res.json()).then(data => console.log(data))', explanation: 'Encadenar promises' },
-      { code: 'async function getData() { const data = await fetch(url); return data; }', explanation: 'Async/await' }
-    ]
-  }, 30, 1, 12);
-
-  await createLesson('js-pro-l1-2', jsProM1.id, 'Async/Await', 'quiz', {
-    questions: [
-      { question: '¿Qué es async/await?', options: ['Una forma de definir variables', 'Una forma de escribir código asíncrono que parece síncrono', 'Un tipo de función', 'Un operador lógico'], correctIndex: 1, explanation: 'async/await permite escribir código asíncrono de manera secuencial y más legible.' },
-      { question: '¿Qué retorna una función async?', options: ['undefined', 'Un valor normal', 'Un Promise', 'Una función', 'Error'], correctIndex: 2, explanation: 'Una función async siempre retorna un Promise, incluso si retornas un valor simple.' },
-      { question: '¿Qué hace await?', options: ['Declara una variable', 'Pausa la ejecución hasta que el Promise se resuelva', 'Crea un Promise', 'Maneja errores'], correctIndex: 1, explanation: 'await pausa la ejecución hasta que el Promise se resuelva y retorna su valor.' }
-    ],
-    examples: [
-      { code: 'async function fetchData() { const res = await fetch(url); return res.json(); }', explanation: 'Función async completa' },
-      { code: 'try { const data = await promise; } catch(e) { console.error(e); }', explanation: 'Manejo de errores con async/await' }
-    ]
-  }, 35, 2, 15);
-
-  await createLesson('js-pro-l1-3', jsProM1.id, '🎮 Ejercicio: Promesas y Async/Await', 'coding', {
-    instructions: 'Practica con promesas y async/await:',
-    exercise: {
-      task: 'Implementa funciones asíncronas',
-      challenges: [
-        {
-          id: 'js-async-1',
-          description: 'Crea una función async llamada esperar que retorne el número 42 después de 1 segundo',
-          initialCode: '// Crea la función async esperar\n',
-          expectedOutput: 'Debería retornar un Promise que resuelve a 42',
-          hint: 'Usa async function y await new Promise(resolve => setTimeout(...))',
-          solution: 'const esperar = async () => {\n  await new Promise(resolve => setTimeout(resolve, 1000));\n  return 42;\n};'
-        },
-        {
-          id: 'js-async-2',
-          description: 'Crea una función fetchUser(id) que simule obtener un usuario con Promise',
-          initialCode: '// Simula una API que retorna usuario después de 500ms\n',
-          expectedOutput: 'Debe retornar un Promise que resuelve a {id, name}',
-          hint: 'Usa new Promise con setTimeout',
-          solution: 'const fetchUser = (id) => new Promise(resolve => {\n  setTimeout(() => resolve({ id, name: "Usuario " + id }), 500);\n});'
-        },
-        {
-          id: 'js-async-3',
-          description: 'Usa async/await para obtener 2 usuarios secuencialmente',
-          initialCode: 'const fetchUser = (id) => new Promise(resolve => {\n  setTimeout(() => resolve({ id, name: "Usuario " + id }), 500);\n});\n// Crea getTwoUsers() que obtenga user1 e user2\n',
-          expectedOutput: 'getTwoUsers() debe retornar [{id:1, name:"Usuario 1"}, {id:2, name:"Usuario 2"}]',
-          hint: 'Usa await dos veces secuencialmente',
-          solution: 'const getTwoUsers = async () => {\n  const user1 = await fetchUser(1);\n  const user2 = await fetchUser(2);\n  return [user1, user2];\n};'
-        }
-      ]
-    }
-  }, 60, 3, 20);
-
-  console.log('✅ JavaScript Avanzado PRO completed');
-
-  // React Mastery PRO
-  const reactProCourse = await createCourse(
-    'course-react-mastery',
-    'React Mastery PRO',
-    'Domina React desde fundamentos hasta patrones avanzados, hooks personalizados, context API, y desarrollo de aplicaciones escalables.',
-    'Programación',
-    'intermediate',
-    40,
-    'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600&h=400&fit=crop',
-    { isPro: true, price: 49.99, requiredLevel: 8 }
-  );
-
-  const reactProM1 = await createModule('react-pro-m1', reactProCourse.id, 'React hooks avanzados', 1);
-
-  await createLesson('react-pro-l1-1', reactProM1.id, 'useState y useEffect', 'reading', {
-    introduction: 'Los hooks son funciones que permiten usar estado y otras características de React en componentes funcionales.',
-    content: `useState:
-Permite agregar estado a componentes funcionales.
-
-const [count, setCount] = useState(0);
-
-useEffect:
-Ejecuta efectos secundarios después del renderizado.
-
-useEffect(() => {
-  // código
-  return () => { /* cleanup */ };
-}, [dependencias]);
-
-PATRONES COMUNES:
-- Inicialización lazy: useState(() => expensiveComputation())
-- Estado derivado: const [items, setItems] = useState([])
-- Efectos de limpieza: retornar función en useEffect`,
-    examples: [
-      { code: 'const [count, setCount] = useState(0);', explanation: 'useState básico' },
-      { code: 'useEffect(() => { document.title = count; }, [count]);', explanation: 'useEffect con dependencias' },
-      { code: 'useEffect(() => { const id = setInterval(...); return () => clearInterval(id); }, []);', explanation: 'Cleanup en useEffect' }
-    ]
-  }, 30, 1, 12);
-
-  await createLesson('react-pro-l1-2', reactProM1.id, 'useCallback y useMemo', 'quiz', {
-    questions: [
-      { question: '¿Qué hace useCallback?', options: ['Memoiza un valor', 'Memoiza una función', 'Memoiza un componente', 'Nada'], correctIndex: 1, explanation: 'useCallback memoiza una función para evitar recrearla en cada render.' },
-      { question: '¿Qué hace useMemo?', options: ['Memoiza una función', 'Memoiza un valor calculado', 'Memoiza un componente', 'Memoiza un estado'], correctIndex: 1, explanation: 'useMemo memoiza el resultado de una computación costosa.' },
-      { question: '¿Cuándo usar useMemo?', options: ['Siempre', 'Cuando la computación es costosa y las dependencias cambian poco', 'Nunca', 'Solo en componentes de clase'], correctIndex: 1, explanation: 'useMemo es útil para optimizaciones cuando hay cálculos costosos.' }
-    ],
-    examples: [
-      { code: 'const memoizedValue = useMemo(() => expensiveCompute(a, b), [a, b]);', explanation: 'useMemo para valor costoso' },
-      { code: 'const onClick = useCallback(() => doSomething(a), [a]);', explanation: 'useCallback para función' }
-    ]
-  }, 35, 2, 15);
-
-  console.log('✅ React Mastery PRO completed');
-
-  // ===========================================
-  // ENROLLMENTS FOR DEMO USER
+  // ENROLLMENTS AND PROGRESS FOR DEMO USER
   // ===========================================
   const demo = await prisma.user.findUnique({ where: { email: 'demo@duobijac.com' } });
-  const jsCourseRecord = await prisma.course.findUnique({ where: { id: 'course-js-fundamentals' } });
-  const pyCourseRecord = await prisma.course.findUnique({ where: { id: 'course-python-beginner' } });
-  
-  if (jsCourseRecord && demo) {
-    await prisma.enrollment.upsert({
-      where: { userId_courseId: { userId: demo.id, courseId: jsCourseRecord.id } },
-      update: {},
-      create: { userId: demo.id, courseId: jsCourseRecord.id },
-    });
+
+  const enrollments = [
+    { courseId: 'course-ai-fundamentals' },
+    { courseId: 'course-finanzas-personales' },
+    { courseId: 'course-cocina-italiana' },
+  ];
+
+  for (const enrollment of enrollments) {
+    const course = await prisma.course.findUnique({ where: { id: enrollment.courseId } });
+    if (course && demo) {
+      await prisma.enrollment.upsert({
+        where: { userId_courseId: { userId: demo.id, courseId: course.id } },
+        update: {},
+        create: { userId: demo.id, courseId: course.id },
+      });
+    }
   }
 
-  if (pyCourseRecord && demo) {
-    await prisma.enrollment.upsert({
-      where: { userId_courseId: { userId: demo.id, courseId: pyCourseRecord.id } },
-      update: {},
-      create: { userId: demo.id, courseId: pyCourseRecord.id },
-    });
+  // Add some progress for the demo user
+  if (demo) {
+    const firstLessons = ['ai-1-1', 'fin-1-1', 'coc-1-1'];
+    for (const lessonId of firstLessons) {
+      const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
+      if (lesson) {
+        await prisma.lessonProgress.upsert({
+          where: { userId_lessonId: { userId: demo.id, lessonId } },
+          update: {},
+          create: {
+            userId: demo.id,
+            lessonId,
+            completed: true,
+            score: Math.floor(Math.random() * 20) + 80, // 80-100
+            xpEarned: lesson.xpReward,
+            timeSpent: Math.floor(Math.random() * 120) + 60, // 60-180 seconds
+            attempts: 1,
+            completedAt: new Date(),
+          },
+        });
+      }
+    }
   }
 
-  console.log('✅ Demo enrollments created');
+  console.log('✅ Demo enrollments and progress created');
 
-  console.log('\n🎉 ENHANCED Seed completed successfully!');
+  console.log('\n🎉 Seed completed successfully!');
   console.log('\n📚 Courses Summary:');
-  console.log('   - JavaScript Fundamentals: 6 modules, 18 lessons, 4 coding exercises, 2 mini-projects');
-  console.log('   - Python para Principiantes: 4 modules, 14 lessons, 3 coding exercises, 2 mini-projects');
-  console.log('   - Matemáticas Aplicadas: 2 modules, 6 lessons, 1 coding exercise');
-  console.log('   - Inglés para Principiantes: 2 modules, 7 lessons, 1 speaking exercise');
-  console.log('   - JavaScript Avanzado PRO: 1 module, 3 lessons, 1 coding exercise');
-  console.log('   - React Mastery PRO: 1 module, 2 lessons');
+  console.log('   🤖 Fundamentos de IA: 5 modules, 13 lessons (reading, quiz, coding, project)');
+  console.log('   💰 Finanzas Personales: 4 modules, 9 lessons (reading, quiz, coding, project)');
+  console.log('   🍝 Cocina Italiana: 3 modules, 11 lessons (reading, quiz, project)');
   console.log('\n📝 Test accounts:');
   console.log('   Admin: admin@duobijac.com / admin123');
   console.log('   Demo: demo@duobijac.com / demo123');
@@ -1532,7 +1865,7 @@ PATRONES COMUNES:
 main()
   .catch((e) => {
     console.error('❌ Seed error:', e);
-    throw e; // Don't exit - let the caller handle the error
+    throw e;
   })
   .finally(async () => {
     await prisma.$disconnect();
