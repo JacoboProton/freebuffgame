@@ -1273,7 +1273,7 @@ const proyectoFinal = {
     'Aprende a tomar el control de tu dinero. Desde crear tu primer presupuesto hasta invertir con confianza. Herramientas prácticas para construir tu libertad financiera.',
     'Finanzas',
     'beginner',
-    10,
+    16,
     'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&h=400&fit=crop'
   );
 
@@ -1745,7 +1745,393 @@ console.log(calcularCrecimiento(300, 20, 0.10));
     tips: ['Empieza con poco si es necesario, pero empieza', 'No intentes predecir el mercado', 'La consistencia es más importante que la cantidad']
   }, 60, 3);
 
-  console.log('✅ Finanzas Personales completed (4 modules, 9 lessons)');
+  // MÓDULO 5: Impuestos y Planificación Fiscal
+  const finM5 = await createModule('fin-mod-5', finanzasCourse.id, 'Impuestos y Planificación Fiscal', 5);
+
+  await createLesson('fin-5-1', finM5.id, 'Entendiendo los Impuestos Personales', 'reading', {
+    introduction: 'Los impuestos son la mayor salida de dinero para la mayoría de personas. Entender cómo funcionan te permite legalmente pagar menos y optimizar tu situación fiscal.',
+    content: `TIPOS DE IMPUESTOS PERSONALES:
+
+1. IMPUESTO SOBRE LA RENTA (ISR)
+   • Se paga sobre los ingresos ganados (salario, freelance, inversiones)
+   • En la mayoría de países es PROGRESIVO: a mayor ingreso, mayor porcentaje
+   • Ejemplo España: tramos del 19% al 47%
+   • Ejemplo México: tramos del 1.92% al 35%
+   • Ejemplo Colombia: tramos del 0% al 39%
+
+2. IVA / IPTU (Impuesto al Consumo)
+   • Se paga al comprar bienes y servicios
+   • España: 21% general, 10% reducido, 4% superreducido
+   • México: 16%
+   • No lo "ves" directamente, pero está en todo lo que compras
+
+3. IMPUESTOS SOBRE INVERSIONES
+   • Ganancias de capital: vender acciones por encima del precio de compra
+   • Dividendos: beneficios que pagan las empresas
+   • Intereses: rendimientos de cuentas de ahorro
+   • Varía enormemente por país y tipo de inversión
+
+ESTRATEGIAS DE AHORRO FISCAL LEGAL:
+
+1. APORTACIONES A PLANES DE JUBILACIÓN
+   • En España: planes de pensiones (deducción de hasta 1,500€/año)
+   • En México: AFORE con aportaciones voluntarias
+   • En EE.UU.: 401(k), IRA (deducción fiscal inmediata)
+
+2. DEDUCCIONES PERMITIDAS
+   • Gastos médicos
+   • Intereses hipotecarios
+   • Donaciones a organizaciones sin fines de lucro
+   • Gastos educativos
+   • Gastos de trabajo (herramientas, capacitación)
+
+3. CUENTAS DE INVERSIÓN CON VENTAJA FISCAL
+   • ISA (UK): hasta £20,000/año libres de impuestos
+   • Planes de pensiones: tributación diferida
+   • Cuentas de ahorro con beneficios fiscales
+
+4. ESTRUCTURACIÓN DE INGRESOS
+   • Distinguir entre ingresos activos y pasivos
+   • Aprovechar tasas impositivas diferentes
+   • Timing de ventas de inversiones (esperar el plazo mínimo)
+
+EL ERROR MÁS GRANDE: NO DECLARAR
+• Las multas por no declarar son mucho mayores que el impuesto
+• La evasión fiscal es ILEGAL; la elusión fiscal (usar la ley a tu favor) es inteligente
+• Consulta a un contador profesional para optimización fiscal`,
+    keyPoints: [
+      'El ISR es progresivo: a más ingreso, más porcentaje pagas',
+      'Las aportaciones a planes de jubilación reducen tu base imponible',
+      'Las deducciones legales pueden ahorrarte cientos o miles al año',
+      'Consulta a un contador para optimizar tu situación fiscal'
+    ]
+  }, 25, 1);
+
+  await createLesson('fin-5-2', finM5.id, 'Optimización Fiscal para Principiantes', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué es una "deducción fiscal"?',
+        options: [
+          'Un gasto extra que debes pagar al gobierno',
+          'Un gasto que puedes restar de tu ingreso gravable para pagar menos impuestos',
+          'Un tipo de multa fiscal',
+          'Un reembolso del gobierno'
+        ],
+        correctIndex: 1,
+        explanation: 'Las deducciones fiscales son gastos permitidos por la ley que se restan de tus ingresos gravables. Ejemplo: si ganas $50,000 y tienes $3,000 en deducciones, solo pagas impuestos sobre $47,000. Esto reduce legalmente tu carga fiscal.'
+      },
+      {
+        question: '¿Por qué es importante empezar a invertir en planes de jubilación desde joven?',
+        options: [
+          'Porque el gobierno lo exige',
+          'Porque las deducciones fiscales son mayores cuando estás joven',
+          'Porque el interés compuesto tiene más tiempo para crecer y la tributación se difiere',
+          'Porque los bancos lo requieren'
+        ],
+        correctIndex: 2,
+        explanation: 'Invertir joven tiene dos beneficios: 1) El interés compuesto tiene décadas para crecer exponencialmente, y 2) Las ganancias no se gravan hasta que retires el dinero (tributación diferida), permitiendo que crezcan sin impuestos intermedios.'
+      },
+      {
+        question: '¿Cuál es la diferencia entre elusión y evasión fiscal?',
+        options: [
+          'No hay diferencia, ambas son ilegales',
+          'Evasión es ilegal (ocultar ingresos); elusión es legal (usar la ley a tu favor)',
+          'Elusión es ilegal, evasión es legal',
+          'Ambas son completamente legales'
+        ],
+        correctIndex: 1,
+        explanation: 'Evasión fiscal = ocultar ingresos o mentir → ILEGAL con multas y cárcel. Elusión fiscal = usar deducciones, planeación y estructura legal → PERFECTAMENTE LEGAL. Un buen contador te ayuda a elusar fiscalmente (pagar lo mínimo legal).'
+      }
+    ]
+  }, 30, 2);
+
+  // MÓDULO 6: Inversión Avanzada
+  const finM6 = await createModule('fin-mod-6', finanzasCourse.id, 'Inversión Avanzada y Diversificación', 6);
+
+  await createLesson('fin-6-1', finM6.id, 'Más Allá de los Fondos Indexados', 'reading', {
+    introduction: 'Una vez que dominas lo básico de la inversión, es hora de explorar estrategias más avanzadas que pueden optimizar tu portafolio y maximizar rendimientos a largo plazo.',
+    content: `CLASES DE ACTIVOS (ASSET CLASSES):
+
+1. ACCIONES (STOCKS)
+   • Small-cap: empresas pequeñas (<$2B), alto riesgo, alto potencial
+   • Mid-cap: empresas medianas ($2B-$10B)
+   • Large-cap: empresas grandes (>$$10B), más estables
+   • Growth vs Value: empresas en crecimiento vs empresas "baratas"
+
+2. BONOS (BONDS)
+   • Gobierno: los más seguros (treasuries)
+   • Corporativos: mayor rendimiento, algo más de riesgo
+   • High-yield (basura): alto rendimiento, alto riesgo de default
+   • Bonos internacionales: diversificación geográfica
+
+3. BIENES RAÍCES (REAL ESTATE)
+   • REITs (Real Estate Investment Trusts): invertir en bienes raíces sin comprar propiedad
+   • Crowdfunding inmobiliario
+   • Propiedades físicas (requiere más capital)
+   • Rendimiento histórico: 8-12% anual
+
+4. MATERIAS PRIMAS (COMMODITIES)
+   • Oro: refugio seguro en tiempos de incertidumbre
+   • Plata, petróleo, agricultura
+   • ETFs de commodities para diversificar
+
+5. CRIPTOMONEDAS
+   • Bitcoin, Ethereum: alto riesgo, alta volatilidad
+   • Máximo 5-10% del portafolio para principiantes
+   • Nunca inviertas dinero que no puedas perder
+
+ASIGNACIÓN DE ACTIVOS (ALLOCATION):
+La distribución de tu dinero entre diferentes clases de activos es la decisión MÁS importante de tu portafolio.
+
+EJEMPLOS POR EDAD:
+• 25 años: 80% acciones, 10% bonos, 10% otros
+• 35 años: 70% acciones, 20% bonos, 10% otros
+• 45 años: 60% acciones, 30% bonos, 10% otros
+• 55 años: 50% acciones, 40% bonos, 10% otros
+• 65+ años: 40% acciones, 50% bonos, 10% efectivo
+
+REBALANCEO:
+Cada 6-12 meses, ajusta tu portafolio a la distribución objetivo.
+Ejemplo: Si las acciones subieron mucho y ahora son 85% de tu portafolio, vende parte y compra bonos para volver al 70/20/10. Esto sistemáticamente vende caro y compra barato.
+
+DIVIDENDOS:
+Algunas acciones pagan dividendos (parte de las ganancias).
+• Dividend aristocrats: empresas que han aumentado dividendos 25+ años consecutivos
+• Reinvertir dividendos acelera el crecimiento significativamente
+• Pueden generar ingresos pasivos en jubilación`,
+    keyPoints: [
+      'Diversificar entre clases de activos reduce el riesgo del portafolio',
+      'La asignación por edad es una guía: más acciones jóvenes, más bonos con la edad',
+      'El rebalanceo vende sistemáticamente caro y compra barato',
+      'Los dividendos reinvertidos aceleran el crecimiento exponencialmente'
+    ]
+  }, 25, 1);
+
+  await createLesson('fin-6-2', finM6.id, 'Estrategias de Inversión', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué es "rebalanceo" de un portafolio?',
+        options: [
+          'Vender todo y empezar de cero cada año',
+          'Ajustar la distribución de activos de vuelta a los porcentajes objetivo',
+          'Solo comprar acciones que estén subiendo',
+          'Cerrar la cuenta de inversión'
+        ],
+        correctIndex: 1,
+        explanation: 'El rebalanceo es vender activos que crecieron más de lo planeado (vender caro) y comprar los que quedaron atrás (comprar barato). Ej: si tu objetivo es 70% acciones y ahora son 80%, vendes 10% y compras bonos. Esto se hace cada 6-12 meses.'
+      },
+      {
+        question: '¿Por qué el oro se considera un "refugio seguro"?',
+        options: [
+          'Porque siempre da el mayor rendimiento',
+          'Porque tiende a mantener su valor o subir en tiempos de crisis económica e incertidumbre',
+          'Porque no paga impuestos',
+          'Porque todos los bancos lo recomiendan'
+        ],
+        correctIndex: 1,
+        explanation: 'El oro históricamente mantiene su valor cuando las acciones caen, hay inflación alta o crisis geopolíticas. Los inversores compran oro como protección, lo que aumenta su precio en tiempos turbulentos. No genera dividendos ni intereses.'
+      },
+      {
+        question: 'Si tienes 30 años, ¿cuál sería una asignación de activos razonable?',
+        options: [
+          '100% en efectivo para seguridad',
+          '70% acciones, 20% bonos, 10% otros (REITs, commodities)',
+          '100% en criptomonedas para máximo rendimiento',
+          '50% acciones, 50% bonos'
+        ],
+        correctIndex: 1,
+        explanation: 'A los 30 años tienes 30+ años hasta la jubilación, así que puedes tolerar más volatilidad a cambio de mayor rendimiento. 70% acciones (crecimiento), 20% bonos (estabilidad), 10% otros (diversificación adicional). Con la edad, gradually reduces acciones.'
+      }
+    ]
+  }, 30, 2);
+
+  await createLesson('fin-6-3', finM6.id, '🎮 Ejercicio: Diseña tu Portafolio', 'coding', {
+    instructions: 'Crea una función que calcule la distribución ideal de un portafolio según la edad y tolerancia al riesgo:',
+    exercise: {
+      task: 'Diseña un portafolio de inversión personalizado',
+      challenges: [
+        {
+          id: 'fin-alloc-1',
+          description: 'Crea una función que retorne la asignación de activos basada en la edad (20-65+)',
+          initialCode: 'function asignacionPorEdad(edad) {\n  // Retorna: { acciones: %, bonos: %, otros: % }\n  // Regla: a menor edad, más acciones\n}',
+          hint: 'Usa un switch o if-else. Jóvenes (20-30): 80/10/10, Medios (31-50): 65/25/10, Mayores (51+): 50/40/10',
+          solution: 'function asignacionPorEdad(edad) {\n  if (edad <= 30) return { acciones: 80, bonos: 10, otros: 10 };\n  if (edad <= 40) return { acciones: 70, bonos: 20, otros: 10 };\n  if (edad <= 50) return { acciones: 60, bonos: 30, otros: 10 };\n  return { acciones: 50, bonos: 40, otros: 10 };\n}'
+        },
+        {
+          id: 'fin-alloc-2',
+          description: 'Calcula cuánto dinero va a cada clase de activo con un portafolio de $50,000 para alguien de 35 años',
+          initialCode: 'const portafolio = 50000;\nconst edad = 35;\n// Usa la función anterior para calcular montos\n',
+          expectedOutput: 'acciones=$35000, bonos=$10000, otros=$5000',
+          hint: 'Multiplica el porcentaje (como decimal) por el total del portafolio',
+          solution: 'const asignacion = asignacionPorEdad(edad);\nconst acciones = portafolio * (asignacion.acciones / 100);\nconst bonos = portafolio * (asignacion.bonos / 100);\nconst otros = portafolio * (asignacion.otros / 100);'
+        }
+      ]
+    }
+  }, 40, 3);
+
+  // MÓDULO 7: Planificación de Retiro y Libertad Financiera
+  const finM7 = await createModule('fin-mod-7', finanzasCourse.id, 'Planificación de Retiro y Libertad Financiera', 7);
+
+  await createLesson('fin-7-1', finM7.id, 'Planificando tu Retiro', 'reading', {
+    introduction: 'La planificación de retiro no es solo para personas mayores. Cuanto antes empieces a planificar, más opciones tendrás y menos tendrás que sacrificar. La libertad financiera es alcanzable con disciplina y conocimiento.',
+    content: `¿CUÁNTO NECESITAS PARA RETIRARTE?
+
+LA REGLA DEL 4%:
+Si retiras el 4% de tu portafolio cada año, con alta probabilidad durará 30+ años.
+
+Ejemplo:
+• Gastos anuales de $40,000 → necesitas $1,000,000 invertidos
+• Gastos anuales de $60,000 → necesitas $1,500,000 invertidos
+• Gastos anuales de $80,000 → necesitas $2,000,000 invertidos
+
+La regla funciona porque el portafolio sigue generando rendimientos (7-10% promedio) mientras retiras el 4%.
+
+¿CUÁNDO EMPEZAR?
+
+Si inviertes $500/mes al 8% promedio anual:
+• Empiezas a los 25: tendrás ~$1,745,000 a los 65
+• Empiezas a los 30: tendrás ~$1,173,000 a los 65 (pierdes $572K)
+• Empiezas a los 35: tendrás ~$745,000 a los 65 (pierdes $1M)
+• Empiezas a los 40: tendrás ~$436,000 a los 65 (pierdes $1.3M)
+
+Cada década que esperas CORTAS tus posibilidades a la mitad.
+
+LA PIRÁMIDE FINANCIERA DEL RETIRO:
+
+1. FONDO DE EMERGENCIA (6 meses) → Seguridad base
+2. DEUDA DE TASA ALTA (tarjetas) → Eliminar primero
+3. PLAN DE JUBILACIÓN EMPLEADOR → Aprovechar match del empleador (dinero gratis)
+4. PLAN JUBILACIÓN PROPIO → IRA, planes de pensiones
+5. INVERSIÓN GENERAL → Fondos indexados, acciones, bonos
+
+LIBERTAD FINANCIERA (FIRE):
+FIRE = Financial Independence, Retire Early
+
+Para alcanzar FIRE necesitas:
+1. Ahorrar e invertir 50-70% de tus ingresos
+2. Vivir con el 30-50% de tus ingresos
+3. Alcanzar 25x tus gastos anuales invertidos
+
+Ejemplo:
+• Gastos: $30,000/año → necesitas $750,000 para FIRE
+• Gastos: $50,000/año → necesitas $1,250,000 para FIRE
+
+ESTRATEGIAS PARA ACELERAR FIRE:
+• Aumentar ingresos (side hustles, promociones, skills)
+• Reducir gastos fijos (vivienda, transporte, seguro)
+• Optimizar impuestos (aprovechar deducciones)
+• Invertir consistentemente en fondos indexados
+• Evitar lifestyle inflation (cuando ganes más, ahorra más)`,
+    keyPoints: [
+      'La regla del 4% dice que necesitas 25x tus gastos anuales para jubilarte',
+      'Cada década de espera reduce aproximadamente a la mitad tu patrimonio a los 65',
+      'FIRE requiere ahorrar 50-70% de tus ingresos e invertir consistentemente',
+      'Empiezar a planificar HOY es la mejor decisión financiera que puedes tomar'
+    ]
+  }, 25, 1);
+
+  await createLesson('fin-7-2', finM7.id, 'Estrategias de Retiro y FIRE', 'quiz', {
+    questions: [
+      {
+        question: 'Según la regla del 4%, ¿cuánto necesitas invertir para retirarte con gastos de $50,000/año?',
+        options: [
+          '$500,000',
+          '$1,000,000',
+          '$1,250,000',
+          '$2,000,000'
+        ],
+        correctIndex: 2,
+        explanation: 'La regla del 4% dice que necesitas 25x tus gastos anuales: $50,000 × 25 = $1,250,000. Con ese portafolio, retiras 4% ($50,000) cada año y el resto sigue creciendo, durando 30+ años.'
+      },
+      {
+        question: '¿Qué es FIRE y qué lo hace diferente del retiro tradicional?',
+        options: [
+          'Un tipo de inversión en bienes raíces',
+          'Financial Independence, Retire Early — jubilarse décadas antes de la edad tradicional',
+          'Un plan de pensiones del gobierno',
+          'Una aseguradora de retiro'
+        ],
+        correctIndex: 1,
+        explanation: 'FIRE significa independencia financiera y retiro temprano. En lugar de esperar a los 65, los practicantes de FIRE buscan jubilarse a los 30-50 años ahorrando e invirtiendo agresivamente (50-70% de sus ingresos).'
+      },
+      {
+        question: '¿Por qué es tan importante empezar a invertir para el retiro desde joven?',
+        options: [
+          'Porque los jóvenes pagan menos impuestos',
+          'Porque el interés compuesto necesita décadas para crecer exponencialmente',
+          'Porque los bancos ofrecen mejores tasas a jóvenes',
+          'Porque no hay otra opción'
+        ],
+        correctIndex: 1,
+        explanation: 'El interés compuesto es una función del TIEMPO. $500/mes desde los 25 = $1.7M a los 65. Desde los 35 = solo $745K. Esa década de diferencia cuesta más de $1 millón porque el interés compuesto necesita tiempo para "despegar".'
+      }
+    ]
+  }, 30, 2);
+
+  await createLesson('fin-7-3', finM7.id, '🚀 Proyecto Final: Tu Plan Financiero Integral', 'project', {
+    title: 'Crea tu Plan Financiero Personal Completo',
+    description: 'Diseña un plan financiero integral que incluya presupuesto, ahorro, inversión y metas de retiro.',
+    objectives: [
+      'Integrar todos los conceptos del curso en un plan personal',
+      'Establecer metas financieras claras a corto, mediano y largo plazo',
+      'Crear un sistema sostenible de administración del dinero'
+    ],
+    requirements: [
+      'Calcula tu patrimonio neto actual (activos - pasivos)',
+      'Establece metas para: 1 año, 5 años, 10 años, jubilación',
+      'Crea tu presupuesto mensual con el método 50/30/20',
+      'Define tu estrategia de inversión según tu edad y tolerancia al riesgo',
+      'Calcula cuánto necesitas para jubilarte con la regla del 4%',
+      'Crea un plan de acción con pasos concretos para los próximos 6 meses'
+    ],
+    exampleCode: `// Template: Mi Plan Financiero
+
+const miPlan = {
+  patrimonioNeto: {
+    activos: { ahorros: 5000, inversiones: 12000, otros: 0 },
+    pasivos: { tarjetas: 2000, prestamo_auto: 8000 },
+    neto: 7000
+  },
+  
+  metas: {
+    corto: ['Pagar tarjetas de crédito en 6 meses', 'Fondo emergencia $5,000'],
+    mediano: ['Invertir $20,000 en fondos indexados', 'Comprar casa en 5 años'],
+    largo: ['Retiro a los 60 con $1,500,000', 'Viajar 3 meses al año']
+  },
+  
+  presupuesto: {
+    ingresos: 3000,
+    necesidades: 1500, // 50%
+    deseos: 900,       // 30%
+    ahorro: 600        // 20%
+  },
+  
+  estrategiaInversion: {
+    asignacion: { acciones: 70, bonos: 20, otros: 10 },
+    instruments: ['Fondo S&P 500 ETF', 'Bonos globales ETF', 'REITs'],
+    rebalanceo: 'Cada 6 meses'
+  },
+  
+  metaRetiro: {
+    gastosAnuales: 40000,
+    metaPatrimonio: 1000000, // 25x
+    mesesParaRetiro: 300,
+    ahorroMensualNecesario: 800
+  },
+  
+  accionInmediata: [
+    'Abrir cuenta de ahorro de alto rendimiento',
+    'Configurar transferencia automática de $600/mes a inversión',
+    'Pagar tarjeta de crédito con método avalancha',
+    'Revisar plan de jubilación del empleador'
+  ]
+};
+
+// Ejecuta un paso cada semana durante 6 meses`,
+    tips: ['Empieza con lo que tienes, no esperes a tener más', 'La consistencia es más importante que la cantidad', 'Revisa tu plan cada 3 meses y ajusta']
+  }, 80, 3);
+
+  console.log('✅ Finanzas Personales completed (7 modules, 17 lessons)');
 
   // ===========================================
   // 🍝 CURSO 3: COCINA ITALIANA TRADICIONAL
@@ -1758,7 +2144,7 @@ console.log(calcularCrecimiento(300, 20, 0.10));
     'Descubre los secretos de la auténtica cocina italiana: desde la pasta fresca hasta los platos emblemáticos de cada región. Cocina como un nonno italiano.',
     'Cocina',
     'beginner',
-    8,
+    14,
     'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=600&h=400&fit=crop'
   );
 
@@ -2315,7 +2701,132 @@ const menuItaliano = {
     tips: ['El tiramisú y panna cotta se preparan el día anterior', 'Empieza la pasta cuando el secondo esté casi listo', 'El aperitivo se prepara en los últimos 10 minutos']
   }, 60, 4);
 
-  console.log('✅ Cocina Italiana Tradicional completed (3 modules, 11 lessons)');
+  // MÓDULO 4: Pan Italiano y Repostería
+  const cocM4 = await createModule('coc-mod-4', cocinaCourse.id, 'Pan Italiano y Repostería Clásica', 4);
+
+  await createLesson('coc-4-1', cocM4.id, 'El Arte del Pan Italiano', 'reading', {
+    introduction: 'El pan en Italia no es solo un accompañamiento — es un elemento sagrado de la mesa. Cada región tiene su pan característico.',
+    content: `LOS PANES MÁS FAMOSOS DE ITALIA:
+
+1. CIABATTA (Liguria)
+   Masa muy hidratada (75-80% agua), corteza crujiente, miga alveolada.
+
+2. FOCACCIA (Liguria)
+   Plana, suave, con aceite de oliva abundante.
+
+3. GRISSINI (Piamonte)
+   Palitos de pan crujientes.
+
+MASA MADRE:
+Colonia viva de levaduras. Tarda 7-10 días en crear pero dura indefinidamente.
+
+RECETAS: Ciabatta (500g harina + 375g agua + 10g sal + 5g levadura) y Focaccia al Romero. Hornear 220-230°C con vapor.`,
+    keyPoints: ['La ciabatta se hace con masa muy hidratada', 'La focaccia lleva abundante aceite de oliva', 'La masa madre dura indefinidamente', 'El pan se hornea a alta temperatura']
+  }, 25, 1);
+
+  await createLesson('coc-4-2', cocM4.id, 'Repostería Italiana Clásica', 'reading', {
+    introduction: 'La repostería italiana es elegante en su simplicidad.',
+    content: `LOS POSTRES MÁS FAMOSOS:
+
+1. CANNOLI SICILIANI - Tubos de masa frita rellenos de ricotta. SE RELLENA AL MOMENTO.
+
+2. SFGLIATELLE - Hojaldre relleno de pasta de almendras.
+
+3. PANETTONE - Pan dulce navideño milanés.
+
+CREMA PASTELERA: 500ml leche + 100g azúcar + 4 yemas + 40g maicena. Cubrir con film.`,
+    keyPoints: ['Los cannoli se rellenan AL MOMENTO', 'La crema pastelera se cubre con film', 'El panettone se enfría boca abajo', 'La simplicidad es clave']
+  }, 25, 2);
+
+  await createLesson('coc-4-3', cocM4.id, 'Mini-Proyecto: Pan y Postre Italiano', 'project', {
+    title: 'Hornea Focaccia Casera y Cannoli',
+    description: 'Prepara dos clasicos de la reposteria italiana desde cero.',
+    objectives: ['Dominar tecnicas de masa italiana', 'Comprender la fermentacion', 'Combinar texturas autenticas'],
+    requirements: ['Prepara focaccia con 2 toppings', 'Documenta la fermentacion', 'Prepara crema de ricotta', 'Monta los cannoli al momento'],
+    exampleCode: 'Focaccia: 500g harina + 375ml agua + 10g sal + 5g levadura + 60ml aceite',
+    tips: ['No tengas prisa con la fermentacion', 'El vapor en el horno es clave']
+  }, 60, 3);
+
+  // MODULO 5: Vinos y Maridaje Italiano
+  const cocM5 = await createModule('coc-mod-5', cocinaCourse.id, 'Vinos Italianos y Maridaje Perfecto', 5);
+
+  await createLesson('coc-5-1', cocM5.id, 'Guia de Vinos Italianos', 'reading', {
+    introduction: 'Italia es uno de los mayores productores de vino del mundo, con mas de 500 variedades de uva nativas.',
+    content: `REGIONES VINICOLAS:
+
+1. Piamonte: Barolo, Barbaresco, Barbera
+2. Toscana: Chianti, Brunello
+3. Veneto: Prosecco, Amarone
+4. Sicilia: Nero d'Avola
+
+REGLAS DE MARIDAJE:
+1. Lo local con lo local
+2. Tinto con carne, blanco con pescado
+3. El vino debe ser mas suave que la comida
+
+MARIDAJES CLASICOS:
+Carbonara -> Frascati o Chianti
+Pizza -> Chianti
+Risotto -> Soave
+Tiramisu -> Vin Santo
+
+CANTIDAD: 1 botella por 4 personas.`,
+    keyPoints: ['Chianti es el vino de mesa italiano', 'Prosecco es ideal para aperitivo', 'Lo local con lo local siempre funciona', 'El vino debe ser mas suave que la comida']
+  }, 25, 1);
+
+  await createLesson('coc-5-2', cocM5.id, 'Maridaje de Vinos y Comida', 'quiz', {
+    questions: [
+      {
+        question: 'Que vino se marida con Carbonara?',
+        options: ['Prosecco espumoso', 'Barolo tinto potente', 'Frascati o Chianti', 'Moscato dulce'],
+        correctIndex: 2,
+        explanation: 'Frascati o Chianti complementan sin dominar la Carbonara.'
+      },
+      {
+        question: 'Que dice la regla lo local con lo local?',
+        options: ['Vino importado siempre', 'Vinos de la region con platos de la misma region', 'Solo vino de la misma botella', 'Nunca mezclar vinos'],
+        correctIndex: 1,
+        explanation: 'Vinos y platos de la misma region se complementan naturalmente.'
+      },
+      {
+        question: 'Cual es el error mas comun en maridaje?',
+        options: ['Beber demasiado vino', 'Elegir un vino mas pesado que la comida', 'No enfriar el vino blanco', 'Servir vino tinto frio'],
+        correctIndex: 1,
+        explanation: 'El vino debe ser mas suave que la comida para complementar, no competir.'
+      },
+      {
+        question: 'Vino para aperitivo?',
+        options: ['Barolo tinto', 'Prosecco o Moscato', 'Amarone', 'Vin Santo'],
+        correctIndex: 1,
+        explanation: 'Prosecco y Moscato son ligeros y festivos, perfectos para el aperitivo.'
+      }
+    ]
+  }, 30, 2);
+
+  await createLesson('coc-5-3', cocM5.id, 'Ejercicio: Menu con Maridaje', 'quiz', {
+    questions: [
+      {
+        question: 'Vino para risotto ai funghi?',
+        options: ['Prosecco espumoso', 'Barolo tinto', 'Soave o Gavi (blanco mineral)', 'Moscato dulce'],
+        correctIndex: 2,
+        explanation: 'Un blanco mineral como Soave complementa los hongos sin dominar.'
+      },
+      {
+        question: 'Vino para pizza margherita?',
+        options: ['Brunello caro', 'Chianti o Montepulciano', 'Prosecco', 'Vin Santo'],
+        correctIndex: 1,
+        explanation: 'Chianti es la combinacion italiana clasica con pizza.'
+      },
+      {
+        question: 'Alternativa sin alcohol en Italia?',
+        options: ['Solo agua del grifo', 'Agua con gas (San Pellegrino) o limonata siciliana', 'Cafe espresso', 'No hay alternativas'],
+        correctIndex: 1,
+        explanation: 'Agua con gas y limonata siciliana son alternativas italianas perfectas.'
+      }
+    ]
+  }, 30, 3);
+
+  console.log('Cocina Italiana Tradicional completed (5 modules, 17 lessons)');
 
   // ===========================================
   // ENROLLMENTS AND PROGRESS FOR DEMO USER
@@ -2352,9 +2863,9 @@ const menuItaliano = {
             userId: demo.id,
             lessonId,
             completed: true,
-            score: Math.floor(Math.random() * 20) + 80, // 80-100
+            score: Math.floor(Math.random() * 20) + 80,
             xpEarned: lesson.xpReward,
-            timeSpent: Math.floor(Math.random() * 120) + 60, // 60-180 seconds
+            timeSpent: Math.floor(Math.random() * 120) + 60,
             attempts: 1,
             completedAt: new Date(),
           },
@@ -2363,21 +2874,21 @@ const menuItaliano = {
     }
   }
 
-  console.log('✅ Demo enrollments and progress created');
+  console.log('Demo enrollments and progress created');
 
-  console.log('\n🎉 Seed completed successfully!');
-  console.log('\n📚 Courses Summary:');
-  console.log('   🤖 Fundamentos de IA: 8 modules, 23 lessons (reading, quiz, coding, project)');
-  console.log('   💰 Finanzas Personales: 4 modules, 9 lessons (reading, quiz, coding, project)');
-  console.log('   🍝 Cocina Italiana: 3 modules, 11 lessons (reading, quiz, project)');
-  console.log('\n📝 Test accounts:');
-  console.log('   Admin: admin@duobijac.com / admin123');
-  console.log('   Demo: demo@duobijac.com / demo123');
+  console.log('Seed completed successfully!');
+  console.log('Courses Summary:');
+  console.log('  Fundamentos de IA: 8 modules, 23 lessons (reading, quiz, coding, project)');
+  console.log('  Finanzas Personales: 7 modules, 17 lessons (reading, quiz, coding, project)');
+  console.log('  Cocina Italiana: 5 modules, 17 lessons (reading, quiz, project)');
+  console.log('Test accounts:');
+  console.log('  Admin: admin@duobijac.com / admin123');
+  console.log('  Demo: demo@duobijac.com / demo123');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seed error:', e);
+    console.error('Seed error:', e);
     throw e;
   })
   .finally(async () => {
