@@ -54,3 +54,6 @@ insforge.toml
 .roo
 .trae
 .windsurf
+
+# Build info
+*.tsbuildinfo
