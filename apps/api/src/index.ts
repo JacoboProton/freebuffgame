@@ -10,7 +10,7 @@ import { leaderboardRouter } from './routes/leaderboard.js';
 import { achievementsRouter } from './routes/achievements.js';
 import { gamesRouter } from './routes/games.js';
 import { shopRouter } from './routes/shop.js';
-import { adminRouter, seedRouter } from './routes/admin.js';
+import { adminRouter } from './routes/admin.js';
 import { dailyGoalsRouter } from './routes/daily-goals.js';
 import { paymentsRouter } from './routes/payments.js';
 import { notificationsRouter } from './routes/notifications.js';
@@ -92,7 +92,7 @@ app.use('/api/achievements', achievementsRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/shop', shopRouter);
 app.use('/api/admin', adminRouter);
-app.use('/api/seed', seedRouter); // No auth required - uses secret header
+
 app.use('/api/daily-goals', dailyGoalsRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/notifications', notificationsRouter);
