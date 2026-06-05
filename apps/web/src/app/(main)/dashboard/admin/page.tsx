@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { 
   Users, BookOpen, ChevronRight, ChevronDown, Plus, Edit2, Trash2,
   BarChart3, Crown, TrendingUp, GraduationCap, Trophy, DollarSign,
-  Shield, Settings, Bell, CreditCard, LogOut
+  Shield, Settings, Bell, CreditCard, LogOut, Database
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import { ContentModeration } from '@/components/admin/content-moderation';
 import { SystemSettings } from '@/components/admin/system-settings';
 import { NotificationManagement } from '@/components/admin/notification-management';
 import { WebhookTest } from '@/components/admin/webhook-test';
+import { SeedButton } from '@/components/admin/seed-button';
 
 interface DashboardStats {
   totalUsers: number;
@@ -566,7 +567,26 @@ export default function AdminPage() {
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <SystemSettings />
+            <div className="space-y-6">
+              <SystemSettings />
+              
+              {/* Seed Database Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Database className="w-5 h-5 text-primary" />
+                    Base de Datos — Seed Demo
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Re-ejecuta el seed para crear/actualizar cursos demo, logros, juegos y datos de prueba. 
+                    Este proceso usa upsert, así que es seguro ejecutar múltiples veces.
+                  </p>
+                  <SeedButton fetchAPI={fetchAPI} />
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Notifications Tab */}

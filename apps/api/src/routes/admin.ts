@@ -1192,6 +1192,64 @@ adminRouter.post('/inngest/trigger', async (req: AuthRequest, res, next) => {
   }
 });
 
+// SEED DATABASE (admin only)
+adminRouter.post('/seed', async (req: AuthRequest, res, next) => {
+  try {
+    console.log(`🚀 Admin ${req.user!.id} triggering seed...`);
+    console.log('📁 Working directory:', __dirname + '/../..');
+
+    // Increase timeout for seed process (can take 30-60s)
+    req.setTimeout(120000);
+    res.setTimeout(120000);
+
+    let stdoutData = '';
+    let stderrData = '';
+
+    await new Promise<void>((resolve, reject) => {
+      const seed = spawn('npx', ['tsx', 'prisma/seed.ts'], {
+        cwd: __dirname + '/../..',
+        shell: true,
+      });
+
+      seed.stdout?.on('data', (data) => {
+        stdoutData += data.toString();
+        console.log('[seed stdout]', data.toString().trim());
+      });
+
+      seed.stderr?.on('data', (data) => {
+        stderrData += data.toString();
+        console.error('[seed stderr]', data.toString().trim());
+      });
+
+      seed.on('close', (code) => {
+        console.log(`[seed] Process exited with code ${code}`);
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Seed process exited with code ${code}. Stderr: ${stderrData}`));
+        }
+      });
+
+      seed.on('error', (err) => {
+        console.error('[seed] Spawn error:', err);
+        reject(err);
+      });
+    });
+
+    console.log('✅ Seed completed successfully via admin panel');
+    res.json({
+      status: 'success',
+      message: 'Seed ejecutado exitosamente. Cursos, logros, juegos y datos demo creados.',
+    });
+  } catch (error: any) {
+    console.error('❌ Seed endpoint error:', error.message);
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'Error al ejecutar seed.',
+    });
+  }
+});
+
 // Admin password verification (separate from Clerk auth for emergency access)
 adminRouter.post('/verify-password', async (req: AuthRequest, res, next) => {
   try {
