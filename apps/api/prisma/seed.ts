@@ -3149,6 +3149,11 @@ CANTIDAD: 1 botella por 4 personas.`,
   console.log('  Fundamentos de IA: 8 modules, 23 lessons (reading, quiz, coding, project)');
   console.log('  Finanzas Personales: 7 modules, 17 lessons (reading, quiz, coding, project)');
   console.log('  Cocina Italiana: 5 modules, 17 lessons (reading, quiz, project)');
+    console.log('  Desarrollo Web: 3 modules, 6 lessons (reading, quiz, project)');
+    console.log('  Marketing Digital: 3 modules, 5 lessons (reading, quiz, project)');
+    console.log('  Fotografia Digital: 2 modules, 4 lessons (reading, quiz, project)');
+    console.log('  Productividad Personal: 2 modules, 4 lessons (reading, quiz, project)');
+    console.log('  Emprendimiento: 2 modules, 4 lessons (reading, quiz, project)');
   console.log('Test accounts:');
   console.log('  Admin: admin@duobijac.com / admin123');
   console.log('  Demo: demo@duobijac.com / demo123');
