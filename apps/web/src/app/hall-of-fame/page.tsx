@@ -42,7 +42,6 @@ export default function PublicHallOfFamePage() {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = 'Hall of Fame | Duobi-Jac';
     fetchHallOfFame();
   }, []);
 
