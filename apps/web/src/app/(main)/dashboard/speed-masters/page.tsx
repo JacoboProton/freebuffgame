@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Trophy, Sparkles, Star, Calendar, Clock, Zap, Award, Timer, TrendingDown } from 'lucide-react';
+import { ArrowLeft, Trophy, Sparkles, Star, Calendar, Clock, Zap, Award, Timer, TrendingDown, Filter } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -35,6 +35,7 @@ interface SpeedMastersData {
     xpReward: number;
   } | null;
   thresholdMinutes: number;
+  period: string;
 }
 
 function formatTime(seconds: number): string {
@@ -49,17 +50,28 @@ function formatTimePrecise(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+type Period = 'all' | 'week' | 'month';
+
+const PERIOD_OPTIONS: { value: Period; label: string; icon: string }[] = [
+  { value: 'all', label: 'Todo el tiempo', icon: '🏆' },
+  { value: 'week', label: 'Esta semana', icon: '📅' },
+  { value: 'month', label: 'Este mes', icon: '📆' },
+];
+
 export default function SpeedMastersPage() {
   const [data, setData] = useState<SpeedMastersData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState<Period>('all');
 
   useEffect(() => {
-    fetchSpeedMasters();
-  }, []);
+    fetchSpeedMasters(period);
+  }, [period]);
 
-  const fetchSpeedMasters = async () => {
+  const fetchSpeedMasters = async (p: Period) => {
+    setData(null);
+    setLoading(true);
     try {
-      const res = await fetch('/api/leaderboard/speed-masters');
+      const res = await fetch(`/api/leaderboard/speed-masters?period=${p}`);
       const result = await res.json();
       if (result.status === 'success') {
         setData(result.data);
@@ -177,6 +189,30 @@ export default function SpeedMastersPage() {
           <p className="text-gray-500 text-lg">
             Los maestros más rápidos — completaron todos los exámenes finales en menos de 60 minutos
           </p>
+        </motion.div>
+
+        {/* Time Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="flex items-center justify-center gap-2 mb-6"
+        >
+          <Filter className="w-4 h-4 text-gray-400" />
+          {PERIOD_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setPeriod(opt.value)}
+              className={cn(
+                "px-4 py-2 rounded-full text-sm font-medium transition-all",
+                period === opt.value
+                  ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              )}
+            >
+              {opt.icon} {opt.label}
+            </button>
+          ))}
         </motion.div>
 
         {/* Stats Cards */}

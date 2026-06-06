@@ -234,6 +234,8 @@ leaderboardRouter.get('/hall-of-fame', authenticate, async (req: AuthRequest, re
 // Speed Masters leaderboard: users who unlocked speed_master, ranked by fastest time
 leaderboardRouter.get('/speed-masters', authenticate, async (req: AuthRequest, res, next) => {
   try {
+    const { period = 'all' } = req.query;
+
     // Find the speed_master achievement
     const speedAchievement = await prisma.achievement.findUnique({
       where: { key: 'speed_master' },
@@ -243,9 +245,21 @@ leaderboardRouter.get('/speed-masters', authenticate, async (req: AuthRequest, r
       return res.json({ status: 'success', data: { leaderboard: [], totalSpeedMasters: 0, achievement: null } });
     }
 
-    // Get all users who unlocked speed_master
+    // Build date filter based on period
+    let dateFilter = {};
+    if (period === 'week') {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      dateFilter = { unlockedAt: { gte: weekAgo } };
+    } else if (period === 'month') {
+      const monthAgo = new Date();
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      dateFilter = { unlockedAt: { gte: monthAgo } };
+    }
+
+    // Get users who unlocked speed_master, optionally filtered by period
     const userAchievements = await prisma.userAchievement.findMany({
-      where: { achievementId: speedAchievement.id },
+      where: { achievementId: speedAchievement.id, ...dateFilter },
       include: {
         user: {
           select: { id: true, name: true, avatar: true, xp: true, level: true },
@@ -298,6 +312,7 @@ leaderboardRouter.get('/speed-masters', authenticate, async (req: AuthRequest, r
           xpReward: speedAchievement.xpReward,
         },
         thresholdMinutes: 60,
+        period,
       },
     });
   } catch (err) {
