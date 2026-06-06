@@ -1,5 +1,6 @@
-const SHARE_URL = 'https://rxktk3y4.insforge.site/hall-of-fame';
-const OG_API = 'https://rxktk3y4.insforge.site/api/og';
+const BASE_URL = 'https://rxktk3y4.insforge.site';
+const SHARE_URL = `${BASE_URL}/hall-of-fame`;
+const OG_API = `${BASE_URL}/api/og`;
 
 interface ShareEntry {
   rank: number;
@@ -19,10 +20,10 @@ export function getUserOgImageUrl(entry: ShareEntry): string {
   return `${OG_API}?${params.toString()}`;
 }
 
-/** Build a per-user share URL with OG params in the hash so crawlers see them via meta tags */
+/** Build a per-user share URL that renders a personalized OG card server-side */
 function getUserShareUrl(entry: ShareEntry): string {
-  if (entry.name && entry.userId) {
-    return `${SHARE_URL}?shareUser=${encodeURIComponent(entry.name)}&rank=${entry.rank}&legendaryCount=${entry.totalLegendaryCount}&level=${entry.level || 1}&userId=${entry.userId}`;
+  if (entry.userId) {
+    return `${BASE_URL}/share/${entry.userId}`;
   }
   return SHARE_URL;
 }
