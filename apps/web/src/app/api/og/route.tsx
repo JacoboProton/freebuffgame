@@ -280,6 +280,13 @@ export async function GET(request: Request) {
     {
       width: 1200,
       height: 630,
+      headers: {
+        // Per-user images: 5 min cache (user data can change)
+        // Generic images: 1 day cache (static content)
+        'Cache-Control': isPerUser
+          ? 'public, s-maxage=300, max-age=300, stale-while-revalidate=600'
+          : 'public, s-maxage=86400, max-age=86400, stale-while-revalidate=172800',
+      },
     },
   );
 }
