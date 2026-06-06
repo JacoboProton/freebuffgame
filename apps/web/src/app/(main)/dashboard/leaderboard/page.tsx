@@ -1,12 +1,12 @@
-import type { Metadata } from 'next';
+'use client';
+
 import Link from 'next/link';
-import { Trophy, Medal, Crown, ArrowLeft, Filter } from 'lucide-react';
+import { Trophy, Medal, Crown, ArrowLeft, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MastersLeaderboard } from '@/components/masters-leaderboard';
 
-export const metadata: Metadata = { title: 'Leaderboard' };
 
 // Demo leaderboard data
 const leaderboardData = [
@@ -112,10 +112,14 @@ export default function LeaderboardPage() {
 
         {/* Tabs */}
         <Tabs defaultValue='global' className='mb-6'>
-          <TabsList className='grid w-full grid-cols-3'>
+          <TabsList className='grid w-full grid-cols-4'>
             <TabsTrigger value='global'>Global</TabsTrigger>
             <TabsTrigger value='weekly'>Semanal</TabsTrigger>
             <TabsTrigger value='friends'>Amigos</TabsTrigger>
+            <TabsTrigger value='masters' className='gap-1'>
+              <Sparkles className='w-3.5 h-3.5' />
+              Maestros
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value='global' className='mt-4'>
@@ -205,6 +209,10 @@ export default function LeaderboardPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value='masters' className='mt-4'>
+            <MastersLeaderboard />
           </TabsContent>
         </Tabs>
 

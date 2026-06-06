@@ -77,6 +77,65 @@ leaderboardRouter.get('/', authenticate, async (req: AuthRequest, res, next) => 
   }
 });
 
+// Get Masters leaderboard (users who unlocked 'all_final_exams' achievement)
+leaderboardRouter.get('/masters', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    // Find the all_final_exams achievement
+    const allFinalExamsAchievement = await prisma.achievement.findUnique({
+      where: { key: 'all_final_exams' },
+    });
+
+    if (!allFinalExamsAchievement) {
+      return res.json({ status: 'success', data: { leaderboard: [], totalMasters: 0 } });
+    }
+
+    // Get all users who unlocked this achievement, sorted by unlock date (earliest = best)
+    const userAchievements = await prisma.userAchievement.findMany({
+      where: { achievementId: allFinalExamsAchievement.id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            xp: true,
+            level: true,
+          },
+        },
+      },
+      orderBy: { unlockedAt: 'asc' },
+    });
+
+    const leaderboard = userAchievements.map((ua, index) => ({
+      rank: index + 1,
+      userId: ua.user.id,
+      name: ua.user.name,
+      avatar: ua.user.avatar,
+      xp: ua.user.xp,
+      level: ua.user.level,
+      unlockedAt: ua.unlockedAt,
+      isCurrentUser: ua.user.id === req.user!.id,
+    }));
+
+    res.json({
+      status: 'success',
+      data: {
+        leaderboard,
+        totalMasters: leaderboard.length,
+        achievement: {
+          key: allFinalExamsAchievement.key,
+          title: allFinalExamsAchievement.title,
+          description: allFinalExamsAchievement.description,
+          icon: allFinalExamsAchievement.icon,
+          xpReward: allFinalExamsAchievement.xpReward,
+        },
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Get friends leaderboard
 leaderboardRouter.get('/friends', authenticate, async (req: AuthRequest, res, next) => {
   try {
