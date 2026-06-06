@@ -137,7 +137,7 @@ leaderboardRouter.get('/masters', authenticate, async (req: AuthRequest, res, ne
 });
 
 // Hall of Fame: all users with at least one legendary achievement
-import { LEGENDARY_KEYS } from '../lib/legendary.js';
+import { LEGENDARY_KEYS, FINAL_EXAM_LESSON_IDS } from '../lib/legendary.js';
 
 leaderboardRouter.get('/hall-of-fame', authenticate, async (req: AuthRequest, res, next) => {
   try {
@@ -224,6 +224,80 @@ leaderboardRouter.get('/hall-of-fame', authenticate, async (req: AuthRequest, re
         totalLegendaryUsers: hallOfFame.length,
         totalLegendaryAchievements: userAchievements.length,
         legendaryAchievements,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Speed Masters leaderboard: users who unlocked speed_master, ranked by fastest time
+leaderboardRouter.get('/speed-masters', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    // Find the speed_master achievement
+    const speedAchievement = await prisma.achievement.findUnique({
+      where: { key: 'speed_master' },
+    });
+
+    if (!speedAchievement) {
+      return res.json({ status: 'success', data: { leaderboard: [], totalSpeedMasters: 0, achievement: null } });
+    }
+
+    // Get all users who unlocked speed_master
+    const userAchievements = await prisma.userAchievement.findMany({
+      where: { achievementId: speedAchievement.id },
+      include: {
+        user: {
+          select: { id: true, name: true, avatar: true, xp: true, level: true },
+        },
+      },
+      orderBy: { unlockedAt: 'asc' },
+    });
+
+    // For each user, calculate their total time on final exams
+    const leaderboard = await Promise.all(
+      userAchievements.map(async (ua, index) => {
+        const timeAgg = await prisma.lessonProgress.aggregate({
+          where: { userId: ua.userId, lessonId: { in: FINAL_EXAM_LESSON_IDS } },
+          _sum: { timeSpent: true },
+        });
+        const totalTimeSeconds = timeAgg._sum.timeSpent || 0;
+        const avgTimePerExam = Math.round(totalTimeSeconds / FINAL_EXAM_LESSON_IDS.length);
+
+        return {
+          rank: 0, // will be set after sorting
+          userId: ua.user.id,
+          name: ua.user.name,
+          avatar: ua.user.avatar,
+          xp: ua.user.xp,
+          level: ua.user.level,
+          totalTimeSeconds,
+          totalTimeMinutes: Math.round(totalTimeSeconds / 60),
+          avgTimePerExamSeconds: avgTimePerExam,
+          avgTimePerExamFormatted: `${Math.floor(avgTimePerExam / 60)}m ${avgTimePerExam % 60}s`,
+          unlockedAt: ua.unlockedAt,
+          isCurrentUser: ua.userId === req.user!.id,
+        };
+      })
+    );
+
+    // Sort by fastest total time (ascending)
+    leaderboard.sort((a, b) => a.totalTimeSeconds - b.totalTimeSeconds);
+    leaderboard.forEach((entry, i) => { entry.rank = i + 1; });
+
+    res.json({
+      status: 'success',
+      data: {
+        leaderboard,
+        totalSpeedMasters: leaderboard.length,
+        achievement: {
+          key: speedAchievement.key,
+          title: speedAchievement.title,
+          description: speedAchievement.description,
+          icon: speedAchievement.icon,
+          xpReward: speedAchievement.xpReward,
+        },
+        thresholdMinutes: 60,
       },
     });
   } catch (err) {

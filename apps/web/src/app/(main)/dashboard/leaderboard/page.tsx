@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { Trophy, Medal, Crown, ArrowLeft, Sparkles, Flame } from 'lucide-react';
+import { Trophy, Medal, Crown, ArrowLeft, Sparkles, Flame, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -117,8 +117,7 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue='global' className='mb-6'>
-          <TabsList className='grid w-full grid-cols-4'>
+        <Tabs defaultValue='global' className='mb-6'>            <TabsList className='grid w-full grid-cols-6'>
             <TabsTrigger value='global'>Global</TabsTrigger>
             <TabsTrigger value='weekly'>Semanal</TabsTrigger>
             <TabsTrigger value='friends'>Amigos</TabsTrigger>
@@ -129,6 +128,10 @@ export default function LeaderboardPage() {
             <TabsTrigger value='halloffame' className='gap-1'>
               <Flame className='w-3.5 h-3.5' />
               Hall of Fame
+            </TabsTrigger>
+            <TabsTrigger value='speed' className='gap-1'>
+              <Zap className='w-3.5 h-3.5' />
+              Velocistas
             </TabsTrigger>
           </TabsList>
 
@@ -230,6 +233,27 @@ export default function LeaderboardPage() {
                 Ver leaderboard completo de Maestros
               </a>
             </div>
+          </TabsContent>
+
+          <TabsContent value='speed' className='mt-4'>
+            <Card className='p-6 text-center'>
+              <motion.div
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className='text-5xl mb-4'
+              >
+                ⚡
+              </motion.div>
+              <h3 className='text-xl font-bold text-gray-800 mb-2'>Velocistas Absolutos</h3>
+              <p className='text-gray-500 mb-4 text-sm'>Los maestros más rápidos — completaron todos los exámenes finales en menos de 60 minutos</p>
+              <a
+                href='/dashboard/speed-masters'
+                className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg text-sm'
+              >
+                <Zap className='w-4 h-4' />
+                Ver Ranking de Velocistas
+              </a>
+            </Card>
           </TabsContent>
 
           <TabsContent value='halloffame' className='mt-4'>
