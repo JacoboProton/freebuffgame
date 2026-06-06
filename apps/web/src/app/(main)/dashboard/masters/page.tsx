@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ConfettiCelebration } from '@/components/jac-mascot';
 import { cn } from '@/lib/utils';
-import { useUser } from '@clerk/nextjs';
 
 interface MastersEntry {
   rank: number;
@@ -37,7 +36,6 @@ interface MastersData {
 }
 
 export default function MastersPage() {
-  const { user: clerkUser } = useUser();
   const [data, setData] = useState<MastersData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -322,7 +320,7 @@ export default function MastersPage() {
                     key={entry.userId}
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 + index * 0.1 }}
+                    transition={{ delay: Math.min(0.5 + index * 0.05, 1.5) }}
                     className={cn(
                       "px-6 py-4 flex items-center gap-4 transition-all",
                       getRankBg(entry.rank),
