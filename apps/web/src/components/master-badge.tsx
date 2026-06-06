@@ -13,7 +13,7 @@ export function MasterBadge({ unlocked, className }: MasterBadgeProps) {
   if (!unlocked) {
     return (
       <div className={cn(
-        "relative rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-6 text-center",
+        "relative rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-6 text-center min-h-[220px] flex flex-col items-center justify-center",
         className
       )}>
         <div className="text-6xl mb-3 grayscale opacity-40">🎓</div>
