@@ -8,6 +8,7 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/games(.*)',
   '/courses(.*)',
+  '/hall-of-fame',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

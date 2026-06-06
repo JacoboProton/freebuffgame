@@ -163,6 +163,50 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
+export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
+    if (!token) { return next(); }
+
+    // Try JWT first
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+      const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+      if (user) {
+        (req as AuthRequest).user = { id: user.id, email: user.email, role: user.role };
+        return next();
+      }
+    } catch { /* continue */ }
+
+    // Try Clerk
+    if (CLERK_SECRET_KEY && token.includes('_') && token.split('.').length === 3) {
+      try {
+        const sessionClaims = await verifyToken(token, { secretKey: CLERK_SECRET_KEY });
+        if (sessionClaims && typeof sessionClaims === 'object') {
+          const claims = sessionClaims as Record<string, unknown>;
+          const email = claims.email as string | undefined;
+          const clerkUserId = claims.sub as string;
+          let finalEmail = email;
+          if (!finalEmail && clerkUserId) {
+            try {
+              const clerk = createClerkClient({ secretKey: CLERK_SECRET_KEY });
+              const clerkUser = await clerk.users.getUser(clerkUserId);
+              finalEmail = clerkUser.emailAddresses[0]?.emailAddress;
+            } catch { /* continue */ }
+          }
+          if (finalEmail) {
+            const user = await prisma.user.findUnique({ where: { email: finalEmail } });
+            if (user) {
+              (req as AuthRequest).user = { id: user.id, email: user.email, role: user.role };
+            }
+          }
+        }
+      } catch { /* continue */ }
+    }
+    return next();
+  } catch { return next(); }
+};
+
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
   // First check if user has admin role from regular authentication
   if ((req as AuthRequest).user?.role === 'admin') {

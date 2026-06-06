@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
-import { authenticate, AuthRequest } from '../middlewares/auth.js';
+import { authenticate, optionalAuth, AuthRequest } from '../middlewares/auth.js';
 import { XP_PER_LEVEL } from '@duobijac/shared';
 
 export const leaderboardRouter = Router();
@@ -139,7 +139,7 @@ leaderboardRouter.get('/masters', authenticate, async (req: AuthRequest, res, ne
 // Hall of Fame: all users with at least one legendary achievement
 import { LEGENDARY_KEYS, FINAL_EXAM_LESSON_IDS } from '../lib/legendary.js';
 
-leaderboardRouter.get('/hall-of-fame', authenticate, async (req: AuthRequest, res, next) => {
+leaderboardRouter.get('/hall-of-fame', optionalAuth, async (req: AuthRequest, res, next) => {
   try {
     // Find all legendary achievements
     const legendaryAchievements = await prisma.achievement.findMany({
@@ -211,10 +211,11 @@ leaderboardRouter.get('/hall-of-fame', authenticate, async (req: AuthRequest, re
       return a.firstLegendaryAt.getTime() - b.firstLegendaryAt.getTime();
     });
 
+    const currentUserId = req.user?.id;
     const hallOfFame = users.map((user, index) => ({
       rank: index + 1,
       ...user,
-      isCurrentUser: user.userId === req.user!.id,
+      isCurrentUser: currentUserId ? user.userId === currentUserId : false,
     }));
 
     res.json({
@@ -412,6 +413,8 @@ leaderboardRouter.get('/code-masters', authenticate, async (req: AuthRequest, re
     next(err);
   }
 });
+
+
 
 // Get friends leaderboard
 leaderboardRouter.get('/friends', authenticate, async (req: AuthRequest, res, next) => {
