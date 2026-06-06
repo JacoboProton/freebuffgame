@@ -41,16 +41,16 @@ export function MasterBadge({ unlocked, className }: MasterBadgeProps) {
 
       {/* Main card */}
       <div className="relative rounded-2xl bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-2 border-yellow-400 p-6 text-center overflow-hidden">
-        {/* Animated sparkle particles */}
-        {[...Array(8)].map((_, i) => (
+        {/* Animated sparkle particles (pre-computed positions to avoid hydration mismatch) */}
+        {[[-35, -45], [42, -38], [-28, -52], [50, -30], [-40, -35], [38, -48], [-22, -55], [45, -42]].map(([dx, dy], i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, scale: 0 }}
             animate={{
               opacity: [0, 1, 0],
               scale: [0, 1, 0],
-              x: [0, (i % 2 === 0 ? 1 : -1) * (20 + Math.random() * 40)],
-              y: [0, -20 - Math.random() * 30],
+              x: [0, dx],
+              y: [0, dy],
             }}
             transition={{
               duration: 2,
