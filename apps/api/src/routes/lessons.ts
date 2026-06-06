@@ -486,6 +486,55 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
       }
     }
 
+    // Check if ALL final exams have 100% score (perfect_final_exams achievement)
+    if (!unlockedKeys.has('perfect_final_exams')) {
+      const perfectExams = await prisma.lessonProgress.count({
+        where: {
+          userId,
+          completed: true,
+          score: 100,
+          lessonId: { in: FINAL_EXAM_LESSON_IDS },
+        },
+      });
+
+      if (perfectExams >= FINAL_EXAM_LESSON_IDS.length) {
+        const perfectAchievement = await prisma.achievement.findUnique({ where: { key: 'perfect_final_exams' } });
+        if (perfectAchievement) {
+          await prisma.userAchievement.create({ data: { userId, achievementId: perfectAchievement.id } });
+          await prisma.user.update({ where: { id: userId }, data: { xp: { increment: perfectAchievement.xpReward } } });
+
+          sendNotification(
+            userId,
+            'achievement',
+            `🌟 ¡Logro Legendario: ${perfectAchievement.title}!`,
+            `Has obtenido 100% en TODOS los exámenes finales. Ganas ${perfectAchievement.xpReward} XP extra. ¡Perfección absoluta!`,
+            { achievementKey: perfectAchievement.key, achievementTitle: perfectAchievement.title, xpReward: perfectAchievement.xpReward, icon: perfectAchievement.icon }
+          );
+        }
+      }
+    }
+
+    // Check if ALL courses are completed (all_courses_complete achievement)
+    if (!unlockedKeys.has('all_courses_complete')) {
+      const totalCourses = await prisma.course.count({ where: { isPublished: true } });
+
+      if (completedCourses >= totalCourses && totalCourses > 0) {
+        const allCoursesAchievement = await prisma.achievement.findUnique({ where: { key: 'all_courses_complete' } });
+        if (allCoursesAchievement) {
+          await prisma.userAchievement.create({ data: { userId, achievementId: allCoursesAchievement.id } });
+          await prisma.user.update({ where: { id: userId }, data: { xp: { increment: allCoursesAchievement.xpReward } } });
+
+          sendNotification(
+            userId,
+            'achievement',
+            `🌍 ¡Logro Legendario: ${allCoursesAchievement.title}!`,
+            `Has completado TODOS los cursos de la plataforma. Ganas ${allCoursesAchievement.xpReward} XP extra. ¡Eres un Explorador Total!`,
+            { achievementKey: allCoursesAchievement.key, achievementTitle: allCoursesAchievement.title, xpReward: allCoursesAchievement.xpReward, icon: allCoursesAchievement.icon, completedCourses, totalCourses }
+          );
+        }
+      }
+    }
+
     // Send course completion notification
     sendNotification(
       userId,
