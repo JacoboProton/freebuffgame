@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { ShareButtons } from '@/components/share-buttons';
 
 const BASE_URL = 'https://rxktk3y4.insforge.site';
 const API_URL = 'https://rxktk3y4.us-east.insforge.app';
@@ -361,6 +362,17 @@ export default async function SharePage({
             ))}
           </div>
         )}
+
+        {/* Share buttons */}
+        <div style={{ marginBottom: '24px' }}>
+          <ShareButtons
+            name={user.name}
+            rank={user.rank}
+            legendaryCount={user.totalLegendaryCount}
+            level={user.level}
+            shareUrl={`${BASE_URL}/share/${user.userId}`}
+          />
+        </div>
 
         {/* CTA */}
         <a
