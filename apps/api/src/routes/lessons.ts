@@ -6,7 +6,6 @@ import { SubmitProgressSchema } from '@duobijac/shared';
 import { AppError } from '../middlewares/error.js';
 import { sendCourseCompletionEmail, isEmailConfigured } from '../services/email.js';
 import { notifyUser, broadcastToAll } from '../services/notifications.js';
-import { sendBroadcastNotification } from '../services/push-notifications.js';
 
 export const lessonsRouter = Router();
 
