@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { getShareText } from '@/lib/share-utils';
 
 interface ShareButtonsProps {
@@ -11,6 +12,7 @@ interface ShareButtonsProps {
 }
 
 export function ShareButtons({ name, rank, legendaryCount, level, shareUrl }: ShareButtonsProps) {
+  const [copied, setCopied] = useState(false);
   const shareText = getShareText({ rank, totalLegendaryCount: legendaryCount, name, level });
 
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
@@ -84,6 +86,33 @@ export function ShareButtons({ name, rank, legendaryCount, level, shareUrl }: Sh
         </svg>
         Facebook
       </a>
+
+      <button
+        type="button"
+        onClick={async () => {
+          await navigator.clipboard.writeText(shareUrl);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }}
+        style={{
+          ...buttonStyle(),
+          background: copied ? '#22C55E' : 'rgba(255,255,255,0.12)',
+          border: '1px solid rgba(255,255,255,0.15)',
+        }}
+        onMouseEnter={(e) => { if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+        onMouseLeave={(e) => { if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.transform = 'none'; }}
+      >
+        {copied ? (
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        ) : (
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+        )}
+        {copied ? 'Copiado' : 'Copiar enlace'}
+      </button>
     </div>
   );
 }
