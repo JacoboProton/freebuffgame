@@ -352,41 +352,25 @@ async function checkReferralCompletion(userId: string) {
   }
 }
 
-// Helper function to broadcast a legendary achievement unlock to all users (SSE + push)
+// Helper function to broadcast a legendary achievement unlock to all users (SSE only, no duplicate DB entry)
 async function broadcastLegendaryAchievement(userId: string, achievement: { key: string; title: string; description: string; icon: string; xpReward: number }) {
   try {
-    // Get user name for the broadcast message
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
     const userName = user?.name || 'Un usuario';
 
-    // Create a notification in DB for the broadcasting user
-    const notification = await prisma.notification.create({
-      data: {
-        user: { connect: { id: userId } },
-        type: 'achievement',
-        title: `${achievement.icon} ¡Alguien desbloqueó un logro legendario!`,
-        message: `${userName} ha desbloqueado "${achievement.title}". ¡Felicidades!`,
-        data: { achievementKey: achievement.key, achievementTitle: achievement.title, icon: achievement.icon, xpReward: achievement.xpReward, userName } as any,
-      },
-    });
-
-    // Broadcast via SSE to all connected users
+    // Broadcast via SSE to all connected users (no DB entry - sendNotification already handles that)
     broadcastToAll({
-      id: notification.id,
       type: 'legendary_achievement',
       title: `${achievement.icon} ¡Logro Legendario Desbloqueado!`,
       message: `${userName} ha desbloqueado "${achievement.title}"`,
-      data: { achievementKey: achievement.key, achievementTitle: achievement.title, icon: achievement.icon, xpReward: achievement.xpReward, userName },
-      createdAt: notification.createdAt,
+      data: { achievementKey: achievement.key, achievementTitle: achievement.title, icon: achievement.icon, xpReward: achievement.xpReward, userName, triggerUserId: userId },
+      createdAt: new Date(),
     });
 
-    // Send push notification to all subscribed users (fire-and-forget)
-    sendBroadcastNotification({
-      title: `${achievement.icon} ¡Logro Legendario!`,
-      body: `${userName} ha desbloqueado "${achievement.title}"`,
-      tag: `legendary-${achievement.key}`,
-      data: { achievementKey: achievement.key, url: '/dashboard/masters' },
-    }).catch(() => {});
+    // Push for trigger user is handled by sendNotification above; SSE broadcast handles connected users
+        data: { achievementKey: achievement.key, url: '/dashboard/masters' },
+      }).catch(() => {});
+    }
   } catch (err) {
     console.error('Failed to broadcast legendary achievement:', err);
   }
