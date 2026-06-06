@@ -6,11 +6,9 @@ import { SubmitProgressSchema } from '@duobijac/shared';
 import { AppError } from '../middlewares/error.js';
 import { sendCourseCompletionEmail, isEmailConfigured } from '../services/email.js';
 import { notifyUser, broadcastToAll } from '../services/notifications.js';
+import { FINAL_EXAM_LESSON_IDS, SPEED_MASTER_MAX_SECONDS } from '../lib/legendary.js';
 
 export const lessonsRouter = Router();
-
-// IDs of the final exam lessons for all courses
-const FINAL_EXAM_LESSON_IDS = ['ai-9-1', 'fin-8-1', 'coc-6-1', 'web-4-1'];
 
 // Get lesson content
 lessonsRouter.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
@@ -575,7 +573,7 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
         });
         const totalTime = totalTimeOnExams._sum.timeSpent || 0;
         // 60 minutes = 3600 seconds
-        if (totalTime > 0 && totalTime < 3600) {
+        if (totalTime > 0 && totalTime < SPEED_MASTER_MAX_SECONDS) {
           const speedAchievement = await prisma.achievement.findUnique({ where: { key: 'speed_master' } });
           if (speedAchievement) {
             await prisma.userAchievement.create({ data: { userId, achievementId: speedAchievement.id } });

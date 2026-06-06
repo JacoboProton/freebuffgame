@@ -137,7 +137,7 @@ leaderboardRouter.get('/masters', authenticate, async (req: AuthRequest, res, ne
 });
 
 // Hall of Fame: all users with at least one legendary achievement
-const LEGENDARY_KEYS = ['all_final_exams', 'perfect_final_exams', 'all_courses_complete', 'speed_master', 'code_master'];
+import { LEGENDARY_KEYS } from '../lib/legendary.js';
 
 leaderboardRouter.get('/hall-of-fame', authenticate, async (req: AuthRequest, res, next) => {
   try {

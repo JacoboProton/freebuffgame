@@ -17,6 +17,7 @@ import { useClerkAPIs } from '@/lib/clerk-api';
 import { useUserStore, calculateLevel, xpToNextLevel, progressToNextLevel } from '@/stores/user-store';
 import { ConfettiCelebration } from '@/components/jac-mascot';
 import { MasterBadge } from '@/components/master-badge';
+import { LegendaryProgressCard } from '@/components/legendary-progress';
 
 interface UserProfile {
   id: string;
@@ -381,6 +382,16 @@ export default function ProfilePage() {
               <MasterBadge
                 unlocked={achievements.some(a => a.key === 'all_final_exams' && !!a.unlockedAt)}
               />
+            </motion.div>
+
+            {/* Legendary Achievement Progress */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.28 }}
+              className="mb-6"
+            >
+              <LegendaryProgressCard />
             </motion.div>
 
             {/* Tabs */}
