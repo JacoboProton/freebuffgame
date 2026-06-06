@@ -36,12 +36,44 @@ export function ShareButtons({ name, rank, legendaryCount, level, shareUrl }: Sh
   });
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
-      style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}
-    >
+    <div style={{ position: 'relative' }}>
+      {/* Toast notification */}
+      <motion.div
+        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+        animate={copied ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 8, scale: 0.95 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        style={{
+          position: 'absolute',
+          top: '-44px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          background: 'rgba(34,197,94,0.95)',
+          color: 'white',
+          padding: '8px 16px',
+          borderRadius: '12px',
+          fontSize: '13px',
+          fontWeight: '600',
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none' as const,
+          boxShadow: '0 4px 16px rgba(34,197,94,0.3)',
+          zIndex: 10,
+        }}
+      >
+        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        ¡Enlace copiado!
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}
+      >
       <motion.a
         href={twitterUrl}
         target="_blank"
@@ -123,6 +155,7 @@ export function ShareButtons({ name, rank, legendaryCount, level, shareUrl }: Sh
         )}
         {copied ? 'Copiado' : 'Copiar enlace'}
       </motion.button>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
