@@ -2944,7 +2944,125 @@ CANTIDAD: 1 botella por 4 personas.`,
     ]
   }, 30, 3);
 
-  console.log('Cocina Italiana Tradicional completed (5 modules, 17 lessons)');
+  // MÓDULO 6: Examen Final del Curso de Cocina Italiana
+  const cocM6 = await createModule('coc-mod-6', cocinaCourse.id, 'Examen Final: Demuestra tu Dominio de la Cocina Italiana', 6);
+
+  await createLesson('coc-6-1', cocM6.id, 'Quiz Final: Cocina Italiana Tradicional', 'quiz', {
+    questions: [
+      {
+        question: '\u00bfCu\u00e1l es la filosof\u00eda fundamental de la cocina italiana?',
+        options: [
+          'Usar los ingredientes m\u00e1s caros disponibles',
+          'Resaltar la calidad de los ingredientes frescos y de temporada con preparaci\u00f3n sencilla',
+          'Crear platos con la mayor cantidad de ingredientes posible',
+          'Copiar las t\u00e9cnicas francesas cl\u00e1sicas'
+        ],
+        correctIndex: 1,
+        explanation: 'La cocina italiana se basa en la simplicidad y la calidad de los ingredientes. Menos ingredientes de alta calidad siempre superan a muchos ingredientes mediocres. La temporada y la frescura son clave.'
+      },
+      {
+        question: '\u00bfQu\u00e9 tipo de pasta se recomienda para salsas ligeras como la aglio e olio?',
+        options: [
+          'Pasta rellena como ravioli',
+          'Pasta larga y delgada como espagueti o linguine',
+          'Pasta corta y tubular como rigatoni',
+          'Cualquier tipo de pasta funciona igual'
+        ],
+        correctIndex: 1,
+        explanation: 'Las salsas ligeras como aglio e olio (aceite de oliva y ajo) se adhieren mejor a pastas largas y delgadas. La pasta corta y tubular es ideal para salsas espesas que se alojan dentro del tubo.'
+      },
+      {
+        question: '\u00bfCu\u00e1l es la regla de oro del maridaje italiano?',
+        options: [
+          'Siempre elegir el vino m\u00e1s caro',
+          'Lo local con lo local: combinar vinos y platos de la misma regi\u00f3n',
+          'Los vinos tintos siempre van mejor que los blancos',
+          'Nunca combinar vino con pasta'
+        ],
+        correctIndex: 1,
+        explanation: 'La regla "lo local con lo local" es fundamental: un Chianti de Toscana con un plato toscano, un Frascati de Lacio con una pasta romana. Los vinos y platos de la misma regi\u00f3n evolucionaron juntos.'
+      },
+      {
+        question: '\u00bfCu\u00e1l es la diferencia principal entre la salsa bolo\u00f1esa aut\u00e9ntica y la versi\u00f3n internacional?',
+        options: [
+          'La bolo\u00f1esa lleva m\u00e1s tomate',
+          'La aut\u00e9ntica lleva carne molida (ternera y cerdo), vino tinto y se cocina a fuego lento por horas',
+          'No hay diferencia, son iguales',
+          'La italiana lleva crema de leche'
+        ],
+        correctIndex: 1,
+        explanation: 'La rag\u00f9 alla bolo\u00f1ense aut\u00e9ntica (de Bolonia) lleva mezcla de carne molida de res y cerdo, vino tinto, y se cocina a fuego lento 2-4 horas. La versi\u00f3n internacional a menudo exagera el tomate y es mucho m\u00e1s r\u00e1pida.'
+      },
+      {
+        question: '\u00bfQu\u00e9 pan italiano es el m\u00e1s ic\u00f3nico y qu\u00e9 lo hace especial?',
+        options: [
+          'Pan de molde suave',
+          'Focaccia: pan plano con aceite de oliva, sal gruesa y hierbas frescas',
+          'Baguette franc\u00e9s',
+          'Pan integral americano'
+        ],
+        correctIndex: 1,
+        explanation: 'La focaccia es uno de los pans m\u00e1s ic\u00f3nicos de Italia. Su caracter\u00edstica es la textura suave y esponjosa con una superficie aceitosa y salada. Se hornea con romero, tomates cherry o aceitunas.'
+      },
+      {
+        question: '\u00bfQu\u00e9 vino italiano se recomienda cl\u00e1sicamente con una pizza margherita?',
+        options: [
+          'Prosecco espumoso',
+          'Chianti de la regi\u00f3n de Toscana',
+          'Amarone de Venecia',
+          'Vino dulce de Moscato'
+        ],
+        correctIndex: 1,
+        explanation: 'El Chianti, elaborado con la uva Sangiovese en Toscana, es el maridaje cl\u00e1sico con pizza margherita. Su acidez media y notas de cereza equilibran perfectamente la salsa de tomate y la mozzarella.'
+      },
+      {
+        question: '\u00bfQu\u00e9 es el "al dente" y por qu\u00e9 es importante?',
+        options: [
+          'Una marca de pasta italiana premium',
+          'El punto de cocci\u00f3n donde la pasta tiene una textura firme al centro, ni cruda ni sobrecocida',
+          'Un tipo de salsa para pasta',
+          'Una t\u00e9cnica para cortar verduras'
+        ],
+        correctIndex: 1,
+        explanation: '"Al dente" significa "al diente" en italiano: la pasta debe ofrecer ligera resistencia al morder. Este punto es crucial porque la pasta sigue absorbiendo salsa despu\u00e9s del plato, y una pasta sobrecocida se vuelve pastosa.'
+      },
+      {
+        question: '\u00bfCu\u00e1les son los ingredientes esenciales de una aut\u00e9ntica carbonara romana?',
+        options: [
+          'Pasta, huevo, queso, panceta, pimienta negra y ajo',
+          'Pasta, guanciale (o panceta), yemas de huevo, pecorino romano y pimienta negra',
+          'Pasta, crema de leche, tocino, parmesano y perejil',
+          'Pasta, salsa de tomate, albahaca y mozzarella'
+        ],
+        correctIndex: 1,
+        explanation: 'La carbonara aut\u00e9ntica romana es sorprendentemente simple: guanciale (o panceta), yemas de huevo, pecorino romano y pimienta negra. NUNCA lleva crema de leche (eso es una corrupci\u00f3n internacional) ni ajo.'
+      },
+      {
+        question: '\u00bfQu\u00e9 t\u00e9cnica italiana consiste en pasar la pasta directamente de la olla a la sart\u00e9n con la salsa?',
+        options: [
+          'Mantecare: mezclar la pasta con la salsa a fuego vivo, usando el agua de cocci\u00f3n para crear una emulsi\u00f3n cremosa',
+          'Saltare: saltar la pasta en el aire',
+          'Ripassare: recocer la pasta dos veces',
+          'Affogare: ahogar la pasta en aceite'
+        ],
+        correctIndex: 0,
+        explanation: 'La "mantecatura" es la t\u00e9cnica de terminar la pasta en la sart\u00e9n con la salsa, usando un poco del agua de cocci\u00f3n (rica en almidón) para crear una emulsi\u00f3n sedosa y cremosa que une todo el plato.'
+      },
+      {
+        question: '\u00bfQu\u00e9 diferencia al tiramis\u00fa aut\u00e9ntico de las versiones comerciales?',
+        options: [
+          'El aut\u00e9ntico lleva chocolate fundido',
+          'El aut\u00e9ntico usa bizcochos de Soletta empapados en caf\u00e9 espresso, crema de mascarpone y cacao en polvo, sin hornear',
+          'El aut\u00e9ntico siempre se hornea a 180\u00b0C',
+          'El aut\u00e9ntico lleva frutas frescas'
+        ],
+        correctIndex: 1,
+        explanation: 'El tiramis\u00fa aut\u00e9ntico es un postre fr\u00edo: bizcochos de Soletta (Savoiardi) empapados en caf\u00e9 espresso, capas de crema de mascarpone con yemas de huevo y az\u00facar, espolvoreado con cacao en polvo amargo. Nunca se hornea.'
+      }
+    ]
+  }, 100, 1);
+
+  console.log('Cocina Italiana Tradicional completed (6 modules, 18 lessons)');
 
   // ===========================================
   // ===========================================
@@ -3266,7 +3384,7 @@ CANTIDAD: 1 botella por 4 personas.`,
   console.log('Courses Summary:');
   console.log('  Fundamentos de IA: 9 modules, 24 lessons (reading, quiz, coding, project, final exam)');
   console.log('  Finanzas Personales: 7 modules, 17 lessons (reading, quiz, coding, project)');
-  console.log('  Cocina Italiana: 5 modules, 17 lessons (reading, quiz, project)');
+  console.log('  Cocina Italiana: 6 modules, 18 lessons (reading, quiz, project, final exam)');
     console.log('  Desarrollo Web: 3 modules, 6 lessons (reading, quiz, project)');
     console.log('  Marketing Digital: 3 modules, 5 lessons (reading, quiz, project)');
     console.log('  Fotografia Digital: 2 modules, 4 lessons (reading, quiz, project)');
