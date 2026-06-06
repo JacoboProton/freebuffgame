@@ -136,6 +136,101 @@ leaderboardRouter.get('/masters', authenticate, async (req: AuthRequest, res, ne
   }
 });
 
+// Hall of Fame: all users with at least one legendary achievement
+const LEGENDARY_KEYS = ['all_final_exams', 'perfect_final_exams', 'all_courses_complete', 'speed_master', 'code_master'];
+
+leaderboardRouter.get('/hall-of-fame', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    // Find all legendary achievements
+    const legendaryAchievements = await prisma.achievement.findMany({
+      where: { key: { in: LEGENDARY_KEYS } },
+    });
+
+    const legendaryIds = legendaryAchievements.map(a => a.id);
+
+    // Find all users who unlocked at least one legendary achievement
+    const userAchievements = await prisma.userAchievement.findMany({
+      where: { achievementId: { in: legendaryIds } },
+      include: {
+        user: {
+          select: { id: true, name: true, avatar: true, xp: true, level: true },
+        },
+        achievement: {
+          select: { key: true, title: true, description: true, icon: true, xpReward: true },
+        },
+      },
+      orderBy: { unlockedAt: 'asc' },
+    });
+
+    // Group by user
+    const userMap = new Map<string, {
+      userId: string;
+      name: string;
+      avatar: string | null;
+      xp: number;
+      level: number;
+      totalLegendaryCount: number;
+      firstLegendaryAt: Date;
+      achievements: { key: string; title: string; description: string; icon: string; xpReward: number; unlockedAt: Date }[];
+    }>();
+
+    for (const ua of userAchievements) {
+      const existing = userMap.get(ua.userId);
+      const achievementEntry = {
+        key: ua.achievement.key,
+        title: ua.achievement.title,
+        description: ua.achievement.description,
+        icon: ua.achievement.icon,
+        xpReward: ua.achievement.xpReward,
+        unlockedAt: ua.unlockedAt,
+      };
+
+      if (existing) {
+        existing.achievements.push(achievementEntry);
+        existing.totalLegendaryCount = existing.achievements.length;
+        if (ua.unlockedAt < existing.firstLegendaryAt) {
+          existing.firstLegendaryAt = ua.unlockedAt;
+        }
+      } else {
+        userMap.set(ua.userId, {
+          userId: ua.user.id,
+          name: ua.user.name,
+          avatar: ua.user.avatar,
+          xp: ua.user.xp,
+          level: ua.user.level,
+          totalLegendaryCount: 1,
+          firstLegendaryAt: ua.unlockedAt,
+          achievements: [achievementEntry],
+        });
+      }
+    }
+
+    // Sort by most legendary achievements, then earliest first unlock
+    const users = [...userMap.values()].sort((a, b) => {
+      if (b.totalLegendaryCount !== a.totalLegendaryCount) return b.totalLegendaryCount - a.totalLegendaryCount;
+      return a.firstLegendaryAt.getTime() - b.firstLegendaryAt.getTime();
+    });
+
+    const hallOfFame = users.map((user, index) => ({
+      rank: index + 1,
+      ...user,
+      isCurrentUser: user.userId === req.user!.id,
+    }));
+
+    res.json({
+      status: 'success',
+      data: {
+        hallOfFame,
+        totalLegendaryUsers: hallOfFame.length,
+        totalLegendaryAchievements: userAchievements.length,
+        legendaryAchievements,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Get friends leaderboard
 leaderboardRouter.get('/friends', authenticate, async (req: AuthRequest, res, next) => {
   try {

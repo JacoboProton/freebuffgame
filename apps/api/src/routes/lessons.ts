@@ -10,7 +10,7 @@ import { notifyUser, broadcastToAll } from '../services/notifications.js';
 export const lessonsRouter = Router();
 
 // IDs of the final exam lessons for all courses
-"const FINAL_EXAM_LESSON_IDS" = ['ai-9-1', 'fin-8-1', 'coc-6-1', 'web-4-1'];
+const FINAL_EXAM_LESSON_IDS = ['ai-9-1', 'fin-8-1', 'coc-6-1', 'web-4-1'];
 
 // Get lesson content
 lessonsRouter.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
@@ -366,10 +366,6 @@ async function broadcastLegendaryAchievement(userId: string, achievement: { key:
       createdAt: new Date(),
     });
 
-    // Push for trigger user is handled by sendNotification above; SSE broadcast handles connected users
-        data: { achievementKey: achievement.key, url: '/dashboard/masters' },
-      }).catch(() => {});
-    }
   } catch (err) {
     console.error('Failed to broadcast legendary achievement:', err);
   }

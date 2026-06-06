@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { Trophy, Medal, Crown, ArrowLeft, Sparkles } from 'lucide-react';
+import { Trophy, Medal, Crown, ArrowLeft, Sparkles, Flame } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -125,6 +126,10 @@ export default function LeaderboardPage() {
               <Sparkles className='w-3.5 h-3.5' />
               Maestros
             </TabsTrigger>
+            <TabsTrigger value='halloffame' className='gap-1'>
+              <Flame className='w-3.5 h-3.5' />
+              Hall of Fame
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value='global' className='mt-4'>
@@ -214,9 +219,7 @@ export default function LeaderboardPage() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value='masters' className='mt-4'>
+          </TabsContent>            <TabsContent value='masters' className='mt-4'>
             <MastersLeaderboard />
             <div className='text-center mt-4'>
               <a
@@ -227,6 +230,27 @@ export default function LeaderboardPage() {
                 Ver leaderboard completo de Maestros
               </a>
             </div>
+          </TabsContent>
+
+          <TabsContent value='halloffame' className='mt-4'>
+            <Card className='p-6 text-center'>
+              <motion.div
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className='text-5xl mb-4'
+              >
+                🏛️
+              </motion.div>
+              <h3 className='text-xl font-bold text-gray-800 mb-2'>Hall of Fame</h3>
+              <p className='text-gray-500 mb-4 text-sm'>Los usuarios más legendarios con todos sus logros desbloqueados</p>
+              <a
+                href='/dashboard/hall-of-fame'
+                className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-full font-semibold hover:from-yellow-600 hover:to-amber-600 transition-all shadow-lg text-sm'
+              >
+                <Flame className='w-4 h-4' />
+                Ver Hall of Fame
+              </a>
+            </Card>
           </TabsContent>
         </Tabs>
 
