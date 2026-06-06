@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Trophy, Users, BookOpen, ChevronRight, Flame, Star, TrendingUp, ArrowRight, Target, Sparkles } from 'lucide-react';
+import { Zap, Trophy, Users, BookOpen, ChevronRight, Flame, Star, TrendingUp, ArrowRight, Sparkles } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -206,16 +206,8 @@ export function HomePage() {
             >
               <div className="relative w-full max-w-md aspect-square">
                 <div className="absolute inset-8 bg-gradient-to-br from-primary/20 via-emerald-400/10 to-secondary/15 rounded-full blur-2xl" />
-                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shadow-sm"><SplineScene className="w-full aspect-square" />
-                  {/* Fallback abstract visualization */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="relative">
-                      <div className="w-32 h-32 bg-gradient-to-br from-primary/30 to-emerald-500/20 rounded-3xl rotate-12 blur-[1px]" />
-                      <div className="absolute inset-0 w-32 h-32 bg-gradient-to-tl from-secondary/20 to-primary/30 rounded-3xl -rotate-6 flex items-center justify-center">
-                        <Target className="w-10 h-10 text-primary/40" />
-                      </div>
-                    </div>
-                  </div>
+                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shadow-sm">
+                  <SplineScene className="w-full aspect-square" />
                 </div>
                 {isSignedIn && stats && (
                   <motion.div
