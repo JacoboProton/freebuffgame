@@ -109,8 +109,28 @@ export default function PublicHallOfFamePage() {
 
   const topUser = data?.hallOfFame?.[0];
 
+  // Generate JSON-LD structured data for Google rich snippets
+  const jsonLd = data ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Hall of Fame — Los Usuarios Más Legendarios de Duobi-Jac',
+    description: 'Ranking de los usuarios más legendarios de la plataforma educativa Duobi-Jac, ordenados por logros legendarios desbloqueados.',
+    url: 'https://rxktk3y4.insforge.site/hall-of-fame',
+    numberOfItems: data.hallOfFame?.length || 0,
+    itemListElement: (data.hallOfFame || []).map((entry, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: entry.name,
+      description: `${entry.totalLegendaryCount} logros legendarios — Nivel ${entry.level}`,
+      url: `https://rxktk3y4.insforge.site/hall-of-fame#user-${entry.userId}`,
+    })),
+  } : null;
+
+
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {jsonLd && (<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />)}
       {/* Simple public header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">              <Link href="/" className="flex items-center gap-2">
