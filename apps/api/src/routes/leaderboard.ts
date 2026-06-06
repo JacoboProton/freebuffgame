@@ -305,6 +305,99 @@ leaderboardRouter.get('/speed-masters', authenticate, async (req: AuthRequest, r
   }
 });
 
+// Code Masters leaderboard: users who unlocked code_master, ranked by completion percentage
+leaderboardRouter.get('/code-masters', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    // Find the code_master achievement
+    const codeAchievement = await prisma.achievement.findUnique({
+      where: { key: 'code_master' },
+    });
+
+    if (!codeAchievement) {
+      return res.json({ status: 'success', data: { leaderboard: [], totalCodeMasters: 0, achievement: null } });
+    }
+
+    // Get all coding/project lessons total
+    const totalCodingLessons = await prisma.lesson.count({
+      where: { type: { in: ['coding', 'project'] } },
+    });
+
+    // Get all users who unlocked code_master
+    const userAchievements = await prisma.userAchievement.findMany({
+      where: { achievementId: codeAchievement.id },
+      include: {
+        user: {
+          select: { id: true, name: true, avatar: true, xp: true, level: true },
+        },
+      },
+      orderBy: { unlockedAt: 'asc' },
+    });
+
+    // For each user, calculate their coding/project lesson completion
+    const leaderboard = await Promise.all(
+      userAchievements.map(async (ua) => {
+        const completedCoding = await prisma.lessonProgress.count({
+          where: {
+            userId: ua.userId,
+            completed: true,
+            lesson: { type: { in: ['coding', 'project'] } },
+          },
+        });
+
+        const percentage = totalCodingLessons > 0 ? Math.round((completedCoding / totalCodingLessons) * 100) : 0;
+        const avgScore = await prisma.lessonProgress.aggregate({
+          where: {
+            userId: ua.userId,
+            completed: true,
+            lesson: { type: { in: ['coding', 'project'] } },
+          },
+          _avg: { score: true },
+        });
+
+        return {
+          rank: 0,
+          userId: ua.user.id,
+          name: ua.user.name,
+          avatar: ua.user.avatar,
+          xp: ua.user.xp,
+          level: ua.user.level,
+          completedCodingLessons: completedCoding,
+          totalCodingLessons,
+          percentage,
+          avgScore: Math.round(avgScore._avg.score || 0),
+          unlockedAt: ua.unlockedAt,
+          isCurrentUser: ua.userId === req.user!.id,
+        };
+      })
+    );
+
+    // Sort by percentage descending (most complete first), then by earliest unlock
+    leaderboard.sort((a, b) => {
+      if (b.percentage !== a.percentage) return b.percentage - a.percentage;
+      return a.unlockedAt.getTime() - b.unlockedAt.getTime();
+    });
+    leaderboard.forEach((entry, i) => { entry.rank = i + 1; });
+
+    res.json({
+      status: 'success',
+      data: {
+        leaderboard,
+        totalCodeMasters: leaderboard.length,
+        achievement: {
+          key: codeAchievement.key,
+          title: codeAchievement.title,
+          description: codeAchievement.description,
+          icon: codeAchievement.icon,
+          xpReward: codeAchievement.xpReward,
+        },
+        totalCodingLessons,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Get friends leaderboard
 leaderboardRouter.get('/friends', authenticate, async (req: AuthRequest, res, next) => {
   try {

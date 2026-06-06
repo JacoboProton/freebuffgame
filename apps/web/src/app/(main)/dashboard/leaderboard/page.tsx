@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { Trophy, Medal, Crown, ArrowLeft, Sparkles, Flame, Zap } from 'lucide-react';
+import { Trophy, Medal, Crown, ArrowLeft, Sparkles, Flame, Zap, Code } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -117,7 +117,7 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue='global' className='mb-6'>            <TabsList className='grid w-full grid-cols-6'>
+        <Tabs defaultValue='global' className='mb-6'>            <TabsList className='grid w-full grid-cols-7'>
             <TabsTrigger value='global'>Global</TabsTrigger>
             <TabsTrigger value='weekly'>Semanal</TabsTrigger>
             <TabsTrigger value='friends'>Amigos</TabsTrigger>
@@ -132,6 +132,10 @@ export default function LeaderboardPage() {
             <TabsTrigger value='speed' className='gap-1'>
               <Zap className='w-3.5 h-3.5' />
               Velocistas
+            </TabsTrigger>
+            <TabsTrigger value='code' className='gap-1'>
+              <Code className='w-3.5 h-3.5' />
+              Ingenieros
             </TabsTrigger>
           </TabsList>
 
@@ -252,6 +256,27 @@ export default function LeaderboardPage() {
               >
                 <Zap className='w-4 h-4' />
                 Ver Ranking de Velocistas
+              </a>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value='code' className='mt-4'>
+            <Card className='p-6 text-center'>
+              <motion.div
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className='text-5xl mb-4'
+              >
+                💻
+              </motion.div>
+              <h3 className='text-xl font-bold text-gray-800 mb-2'>Ingenieros de Datos</h3>
+              <p className='text-gray-500 mb-4 text-sm'>Los maestros del código — completaron todos los ejercicios de programación y proyectos</p>
+              <a
+                href='/dashboard/code-masters'
+                className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-semibold hover:from-orange-600 hover:to-red-600 transition-all shadow-lg text-sm'
+              >
+                <Code className='w-4 h-4' />
+                Ver Ranking de Ingenieros
               </a>
             </Card>
           </TabsContent>
