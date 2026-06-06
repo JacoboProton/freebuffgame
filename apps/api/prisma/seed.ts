@@ -3252,7 +3252,126 @@ CANTIDAD: 1 botella por 4 personas.`,
     keyPoints: ['Componentes reutilizables', 'useState para estado', 'useEffect para efectos', 'Siempre incluye key en listas']
   }, 25, 1);
 
-  console.log('Desarrollo Web completed (3 modules, 6 lessons)');
+    // MÓDULO 4: Examen Final del Curso de Desarrollo Web
+  const webM4 = await createModule('web-mod-4', webCourse.id, 'Examen Final: Demuestra tu Dominio del Desarrollo Web', 4);
+
+  await createLesson('web-4-1', webM4.id, 'Quiz Final: Desarrollo Web Completo', 'quiz', {
+    questions: [
+      {
+        question: '¿Qué etiqueta HTML se usa para crear un enlace de hipertexto?',
+        options: [
+          '<link>',
+          '<a>',
+          '<href>',
+          '<url>'
+        ],
+        correctIndex: 1,
+        explanation: "La etiqueta <a> (anchor) crea enlaces de hipertexto. Se usa con el atributo href para especificar la URL de destino. Ejemplo: <a href='https://google.com'>Google</a>."
+      },
+      {
+        question: '¿Qué propiedad CSS se usa para cambiar el color de fondo?',
+        options: [
+          'color',
+          'background-color',
+          'background-style',
+          'bg-color'
+        ],
+        correctIndex: 1,
+        explanation: "background-color establece el color de fondo. La propiedad 'color' cambia el color del texto, no del fondo."
+      },
+      {
+        question: '¿Qué es el "box model" en CSS y por qué es importante?',
+        options: [
+          'Un modelo 3D para renderizar elementos',
+          'El sistema que define cómo se calcula el tamaño y espaciado: contenido + padding + border + margin',
+          'Una librería para crear layouts',
+          'Un tipo de grid para diseño responsivo'
+        ],
+        correctIndex: 1,
+        explanation: 'El box model define que cada elemento es una caja con 4 capas: contenido (content), relleno (padding), borde (border) y margen (margin). Comprenderlo es esencial para controlar el diseño.'
+      },
+      {
+        question: "¿Qué hace document.querySelector con selector ID en JavaScript?",
+        options: [
+          'Selecciona TODOS los elementos con esa clase',
+          'Selecciona el primer elemento que coincida con el selector CSS dado',
+          'Crea un nuevo elemento con ese ID',
+          'Elimina el elemento con ese ID'
+        ],
+        correctIndex: 1,
+        explanation: "querySelector selecciona el primer elemento que coincida con el selector CSS. El prefijo # indica un ID, y el punto (.) indica una clase."
+      },
+      {
+        question: '¿Qué es "event delegation" en JavaScript?',
+        options: [
+          'Pasar eventos de un componente a otro',
+          'Adjuntar un único listener a un elemento padre que maneja eventos de sus hijos',
+          'Crear eventos personalizados',
+          'Eliminar listeners después de usarlos'
+        ],
+        correctIndex: 1,
+        explanation: 'Event delegation adjunta un único listener al padre en lugar de uno por cada hijo. Es más eficiente y funciona con elementos aún no creados.'
+      },
+      {
+        question: '¿Qué es JSX en React?',
+        options: [
+          'Un lenguaje de programación nuevo',
+          'Una sintaxis que permite escribir HTML dentro de JavaScript que se transforma en React.createElement()',
+          'Un framework CSS para React',
+          'Un type checker como TypeScript'
+        ],
+        correctIndex: 1,
+        explanation: 'JSX (JavaScript XML) es una extensión de sintaxis que parece HTML pero se compila a JavaScript mediante React.createElement().'
+      },
+      {
+        question: '¿Qué es un "componente funcional" en React?',
+        options: [
+          'Una clase que extiende React.Component',
+          'Una función que recibe props como parámetro y retorna JSX',
+          'Una función que solo puede retornar strings',
+          'Un archivo de configuración de React'
+        ],
+        correctIndex: 1,
+        explanation: 'Los componentes funcionales son funciones que reciben props (propiedades) y retornan JSX. Son la forma moderna de crear componentes en React.'
+      },
+      {
+        question: '¿Qué es el "Virtual DOM" y por qué React lo usa?',
+        options: [
+          'Una copia del DOM en una base de datos',
+          'Una representación ligera en memoria del DOM real que permite actualizaciones eficientes',
+          'Un reemplazo completo del DOM del navegador',
+          'Una herramienta de depuración del navegador'
+        ],
+        correctIndex: 1,
+        explanation: 'El Virtual DOM es una copia ligera del DOM real en memoria. React compara el anterior con el nuevo y solo actualiza las partes que cambiaron, mucho más rápido que re-renderizar todo.'
+      },
+      {
+        question: '¿Qué hace "display: flex" en CSS y por qué es importante?',
+        options: [
+          'Oculta el elemento completamente',
+          'Crea un contenedor flexible que alinea y distribuye hijos de forma sencilla',
+          'Muestra el elemento como una tabla',
+          'Activa animaciones CSS'
+        ],
+        correctIndex: 1,
+        explanation: 'Flexbox simplifica enormemente el alineamiento y distribución de elementos. Con justify-content, align-items y flex-direction se crean layouts que antes requerían hacks complejos.'
+      },
+      {
+        question: '¿Qué es "responsive design" y qué herramienta CSS es fundamental?',
+        options: [
+          'Diseñar siempre para pantallas grandes',
+          'Diseño que se adapta a diferentes tamaños de pantalla usando media queries y unidades relativas',
+          'Usar siempre tamaños fijos en píxeles',
+          'Crear una app móvil separada'
+        ],
+        correctIndex: 1,
+        explanation: 'Responsive design asegura que el sitio se vea bien en cualquier dispositivo. Las @media queries aplican estilos diferentes según el tamaño de pantalla.'
+      }
+    ]
+  }, 100, 1);
+
+console.log('Desarrollo Web completed (4 modules, 7 lessons)');
+
 
   // ===========================================
   // CURSO 5: MARKETING DIGITAL
@@ -3503,7 +3622,7 @@ CANTIDAD: 1 botella por 4 personas.`,
   console.log('  Fundamentos de IA: 9 modules, 24 lessons (reading, quiz, coding, project, final exam)');
   console.log('  Finanzas Personales: 8 modules, 18 lessons (reading, quiz, coding, project, final exam)');
   console.log('  Cocina Italiana: 6 modules, 18 lessons (reading, quiz, project, final exam)');
-    console.log('  Desarrollo Web: 3 modules, 6 lessons (reading, quiz, project)');
+    console.log('  Desarrollo Web: 4 modules, 7 lessons (reading, quiz, coding, project, final exam)');
     console.log('  Marketing Digital: 3 modules, 5 lessons (reading, quiz, project)');
     console.log('  Fotografia Digital: 2 modules, 4 lessons (reading, quiz, project)');
     console.log('  Productividad Personal: 2 modules, 4 lessons (reading, quiz, project)');
