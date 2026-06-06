@@ -88,7 +88,7 @@ export default function PublicHallOfFamePage() {
   const [copiedUserId, setCopiedUserId] = useState<string | null>(null);
 
   const onShare = async (entry: HallOfFameEntry, e: React.MouseEvent) => { e.stopPropagation(); await handleShare(entry); };
-  const onCopy = (entry: HallOfFameEntry, e: React.MouseEvent) => { e.stopPropagation(); copyShareLink(); setCopiedUserId(entry.userId); setTimeout(() => setCopiedUserId(null), 2000); };
+  const onCopy = (entry: HallOfFameEntry, e: React.MouseEvent) => { e.stopPropagation(); copyShareLink(entry); setCopiedUserId(entry.userId); setTimeout(() => setCopiedUserId(null), 2000); };
   const onTwitter = (entry: HallOfFameEntry, e: React.MouseEvent) => { e.stopPropagation(); shareToTwitter(entry); };
   const onWhatsApp = (entry: HallOfFameEntry, e: React.MouseEvent) => { e.stopPropagation(); shareToWhatsApp(entry); };
   const onFacebook = (entry: HallOfFameEntry, e: React.MouseEvent) => { e.stopPropagation(); shareToFacebook(entry); };
