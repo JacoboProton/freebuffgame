@@ -218,6 +218,15 @@ export default function LeaderboardPage() {
 
           <TabsContent value='masters' className='mt-4'>
             <MastersLeaderboard />
+            <div className='text-center mt-4'>
+              <a
+                href='/dashboard/masters'
+                className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full font-semibold hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg text-sm'
+              >
+                <Sparkles className='w-4 h-4' />
+                Ver leaderboard completo de Maestros
+              </a>
+            </div>
           </TabsContent>
         </Tabs>
 
