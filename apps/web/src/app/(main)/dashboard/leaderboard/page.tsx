@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { Trophy, Medal, Crown, ArrowLeft, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,6 +49,10 @@ function getRankBgColor(rank: number) {
 }
 
 export default function LeaderboardPage() {
+  useEffect(() => {
+    document.title = 'Leaderboard | Duobi-Jac';
+  }, []);
+
   return (
     <div className='min-h-screen bg-background'>
       <header className='bg-white shadow-card sticky top-0 z-50'>

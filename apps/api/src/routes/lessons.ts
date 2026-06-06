@@ -9,6 +9,9 @@ import { notifyUser } from '../services/notifications.js';
 
 export const lessonsRouter = Router();
 
+// IDs of the final exam lessons for all courses
+"const FINAL_EXAM_LESSON_IDS" = ['ai-9-1', 'fin-8-1', 'coc-6-1', 'web-4-1'];
+
 // Get lesson content
 lessonsRouter.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
   try {
@@ -459,7 +462,6 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
     }
 
     // Check if ALL final exams have been completed (all_final_exams achievement)
-    const FINAL_EXAM_LESSON_IDS = ['ai-9-1', 'fin-8-1', 'coc-6-1', 'web-4-1'];
     if (!unlockedKeys.has('all_final_exams')) {
       const completedFinalExams = await prisma.lessonProgress.count({
         where: {
