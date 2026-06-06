@@ -16,6 +16,7 @@ import { useUser } from '@clerk/nextjs';
 import { useClerkAPIs } from '@/lib/clerk-api';
 import { useUserStore, calculateLevel, xpToNextLevel, progressToNextLevel } from '@/stores/user-store';
 import { ConfettiCelebration } from '@/components/jac-mascot';
+import { MasterBadge } from '@/components/master-badge';
 
 interface UserProfile {
   id: string;
@@ -370,15 +371,25 @@ export default function ProfilePage() {
               </div>
             </div>
           </Card>
-        </motion.div>
+        </motion.div>            {/* Legendary Master Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="mb-6"
+            >
+              <MasterBadge
+                unlocked={achievements.some(a => a.key === 'all_final_exams' && !!a.unlockedAt)}
+              />
+            </motion.div>
 
-        {/* Tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Tabs defaultValue="achievements" className="w-full">
+            {/* Tabs */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Tabs defaultValue="achievements" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="achievements" className="gap-2">
                 <Award className="w-4 h-4" />
