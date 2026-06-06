@@ -2249,7 +2249,125 @@ const miPlan = {
     tips: ['Empieza con lo que tienes, no esperes a tener más', 'La consistencia es más importante que la cantidad', 'Revisa tu plan cada 3 meses y ajusta']
   }, 80, 3);
 
-  console.log('✅ Finanzas Personales completed (7 modules, 17 lessons)');
+  // MÓDULO 8: Examen Final del Curso de Finanzas Personales
+  const finM8 = await createModule('fin-mod-8', finanzasCourse.id, 'Examen Final: Demuestra tu Dominio de las Finanzas', 8);
+
+  await createLesson('fin-8-1', finM8.id, 'Quiz Final: Finanzas Personales para Principiantes', 'quiz', {
+    questions: [
+      {
+        question: '\u00bfQu\u00e9 es el "inter\u00e9s compuesto" y por qu\u00e9 se le llama la "octava maravilla del mundo"?',
+        options: [
+          'Un tipo de pr\u00e9stamo con tasa fija',
+          'Inter\u00e9s que se calcula sobre el capital m\u00e1s los intereses acumulados, creciendo exponencialmente con el tiempo',
+          'Un impuesto que aplica el gobierno sobre los ahorros',
+          'Una comisi\u00f3n que cobran los bancos por guardar tu dinero'
+        ],
+        correctIndex: 1,
+        explanation: 'El inter\u00e9s compuesto genera intereses sobre los intereses ya acumulados, creciendo exponencialmente. Ej: $200/mes al 7% desde los 25 da ~$525K a los 65, pero empezar a los 35 solo da ~$244K. La paciencia y el tiempo son tu mayor ventaja.'
+      },
+      {
+        question: '\u00bfQu\u00e9 porcentaje de tus ingresos netos deber\u00edas destinar a ahorro e inversi\u00f3n seg\u00fan el m\u00e9todo 50/30/20?',
+        options: [
+          '50% a ahorro, 30% a necesidades, 20% a deseos',
+          '30% a ahorro, 50% a necesidades, 20% a deseos',
+          '20% a ahorro e inversi\u00f3n, 50% a necesidades, 30% a deseos',
+          '10% a ahorro, 60% a necesidades, 30% a deseos'
+        ],
+        correctIndex: 2,
+        explanation: 'El m\u00e9todo 50/30/20 asigna: 50% a necesidades (alquiler, comida, servicios), 30% a deseos (restaurantes, entretenimiento, ropa), y 20% a ahorro e inversi\u00f3n. Es un excelente punto de partida para principiantes.'
+      },
+      {
+        question: '\u00bfCu\u00e1l es la diferencia entre una deuda "buena" y una deuda "mala"?',
+        options: [
+          'No hay diferencia, todas las deudas son iguales',
+          'La deuda buena tiene tasa baja y genera valor (hipoteca); la mala tiene tasa alta y consume valor (tarjeta de cr\u00e9dito)',
+          'La deuda buena es la que paga el gobierno; la mala es la que t\u00fa pagas',
+          'La deuda buena es la que tienes con amigos; la mala es con bancos'
+        ],
+        correctIndex: 1,
+        explanation: 'Una hipoteca al 5% es "buena deuda" porque el inmueble se aprecia y la tasa es baja. Una tarjeta de cr\u00e9dito al 22% es "mala deuda" porque consume tu dinero en intereses sin generar valor. Las tarjetas de payday (al 200-400%) son las peores.'
+      },
+      {
+        question: '\u00bfQu\u00e9 es un "fondo de emergencia" y cu\u00e1nto deber\u00edas tener?',
+        options: [
+          'Un pr\u00e9stamo de emergencia del banco',
+          'Ahorros de 3-6 meses de gastos fijos, accesibles inmediatamente para emergencias reales',
+          'Una inversi\u00f3n en criptomonedas para ganar r\u00e1pido',
+          'Un seguro de vida que cubre tus deudas'
+        ],
+        correctIndex: 1,
+        explanation: 'El fondo de emergencia cubre 3-6 meses de gastos fijos (alquiler, comida, servicios) en una cuenta l\u00edquida y segura. Se usa para p\u00e9rdida de empleo, reparaciones m\u00e9dicas, etc. NUNCA se toca para compras o vacaciones.'
+      },
+      {
+        question: '\u00bfQu\u00e9 estrategia de pago de deudas ahorra M\u00c1S dinero en intereses totales?',
+        options: [
+          'M\u00e9todo bola de nieve (pagar la deuda m\u00e1s peque\u00f1a primero)',
+          'M\u00e9todo avalancha (pagar primero la deuda con mayor tasa de inter\u00e9s)',
+          'Pagar solo el m\u00ednimo en todas las deudas por igual',
+          'Consolidar todas las deudas en una sola sin cambiar h\u00e1bitos'
+        ],
+        correctIndex: 1,
+        explanation: 'El m\u00e9todo avalancha prioriza la deuda con mayor tasa de inter\u00e9s (ej: tarjeta al 22% antes que pr\u00e9stamo al 8%). Esto minimiza el dinero total pagado en intereses. La bola de nieve da m\u00e1s motivaci\u00f3n al eliminar deudas r\u00e1pidamente, pero cuesta m\u00e1s.'
+      },
+      {
+        question: '\u00bfQu\u00e9 es un "fondo indexado" y por qu\u00e9 es ideal para principiantes?',
+        options: [
+          'Una cartera de acciones individuales que elegiste t\u00fa',
+          'Un fondo que replica autom\u00e1ticamente un \u00edndice (como S&P 500), con diversificaci\u00f3n autom\u00e1tica y comisiones bajas',
+          'Una cuenta de ahorro de alto rendimiento del banco',
+          'Un pr\u00e9stamo que te da el gobierno para invertir'
+        ],
+        correctIndex: 1,
+        explanation: 'Un fondo indexado del S&P 500 compra autom\u00e1ticamente acciones de las 500 empresas m\u00e1s grandes de EE.UU. Con una sola inversi\u00f3n, diversificas en todas. Comisiones de 0.03-0.20% y rendimiento hist\u00f3rico del ~10% anual. No necesitas elegir acciones individuales.'
+      },
+      {
+        question: '\u00bfQu\u00e9 es "Dollar Cost Averaging" (DCA) y por qu\u00e9 reduce el riesgo?',
+        options: [
+          'Cambiar d\u00f3lares a otra moneda antes de invertir',
+          'Invertir una cantidad fija peri\u00f3dicamente sin importar si el mercado est\u00e1 alto o bajo, promediando el precio de compra',
+          'Esperar a que el mercado baje para invertir todo de golpe',
+          'Vender acciones cada vez que el mercado sube 5%'
+        ],
+        correctIndex: 1,
+        explanation: 'DCA significa invertir la misma cantidad regularmente (ej: $300 cada mes) sin importar el precio. Esto promedia tu precio de compra: compras m\u00e1s acciones cuando est\u00e1n baratas y menos cuando est\u00e1n caras, eliminando el riesgo de "mal timing".'
+      },
+      {
+        question: '\u00bfQu\u00e9 es la "utilizaci\u00f3n de cr\u00e9dito" y qu\u00e9 porcentaje deber\u00edas mantener?',
+        options: [
+          'El total de deudas que tienes; ideal es $0',
+          'El porcentaje de tu l\u00edmite de cr\u00e9dito que est\u00e1s usando; ideal es bajo 30%',
+          'El n\u00famero de tarjetas que tienes; ideal es 1-2',
+          'Los intereses que pagas al a\u00f1o; ideal es 0%'
+        ],
+        correctIndex: 1,
+        explanation: 'Utilizaci\u00f3n = saldo actual / l\u00edmite total x 100. Si debes $3,000 en una tarjeta con l\u00edmite $10,000, tu utilizaci\u00f3n es 30%. Mantenerla bajo 30% (idealmente bajo 10%) mejora significativamente tu score de cr\u00e9dito (300-850).'
+      },
+      {
+        question: '\u00bfQu\u00e9 porcentaje m\u00e1ximo del portafolio se recomienda invertir en criptomonedas para principiantes?',
+        options: [
+          '50% o m\u00e1s para maximizar ganancias',
+          '25-30% porque son la inversi\u00f3n del futuro',
+          '5-10% m\u00e1ximo, ya que son extremadamente vol\u00e1tiles',
+          '0%, las criptomonedas son una estafa'
+        ],
+        correctIndex: 2,
+        explanation: 'Las criptomonedas son extremadamente volátiles (pueden bajar 50%+ en semanas). Para principiantes, máximo 5-10% del portafolio. Nunca inviertas dinero que no puedas perder. Los fondos indexados son la base sólida para la mayoría.'
+      },
+      {
+        question: '\u00bfQu\u00e9 es la "tributaci\u00f3n diferida" y por qu\u00e9 es ventajosa?',
+        options: [
+          'No pagar impuestos nunca, lo cual es ilegal',
+          'Que las ganancias de inversi\u00f3n no se gravan hasta que retires el dinero, permitiendo que crezcan sin impuestos intermedios',
+          'Pagar impuestos m\u00e1s r\u00e1pido para que el gobierno no te persiga',
+          'Un tipo de multa fiscal por no declarar a tiempo'
+        ],
+        correctIndex: 1,
+        explanation: 'Planes de jubilaci\u00f3n (401k, IRA, planes de pensiones) permiten que tus inversiones crezcan sin pagar impuestos sobre las ganancias hasta que retires el dinero. Esto acelera el crecimiento del interés compuesto significativamente a largo plazo.'
+      }
+    ]
+  }, 100, 1);
+
+  console.log('\u2705 Finanzas Personales completed (8 modules, 18 lessons)');
 
   // ===========================================
   // 🍝 CURSO 3: COCINA ITALIANA TRADICIONAL
@@ -3383,7 +3501,7 @@ CANTIDAD: 1 botella por 4 personas.`,
   console.log('Seed completed successfully!');
   console.log('Courses Summary:');
   console.log('  Fundamentos de IA: 9 modules, 24 lessons (reading, quiz, coding, project, final exam)');
-  console.log('  Finanzas Personales: 7 modules, 17 lessons (reading, quiz, coding, project)');
+  console.log('  Finanzas Personales: 8 modules, 18 lessons (reading, quiz, coding, project, final exam)');
   console.log('  Cocina Italiana: 6 modules, 18 lessons (reading, quiz, project, final exam)');
     console.log('  Desarrollo Web: 3 modules, 6 lessons (reading, quiz, project)');
     console.log('  Marketing Digital: 3 modules, 5 lessons (reading, quiz, project)');
