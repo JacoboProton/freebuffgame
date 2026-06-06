@@ -458,6 +458,34 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
       }
     }
 
+    // Check if ALL final exams have been completed (all_final_exams achievement)
+    const FINAL_EXAM_LESSON_IDS = ['ai-9-1', 'fin-8-1', 'coc-6-1', 'web-4-1'];
+    if (!unlockedKeys.has('all_final_exams')) {
+      const completedFinalExams = await prisma.lessonProgress.count({
+        where: {
+          userId,
+          completed: true,
+          lessonId: { in: FINAL_EXAM_LESSON_IDS },
+        },
+      });
+
+      if (completedFinalExams >= FINAL_EXAM_LESSON_IDS.length) {
+        const allExamsAchievement = await prisma.achievement.findUnique({ where: { key: 'all_final_exams' } });
+        if (allExamsAchievement) {
+          await prisma.userAchievement.create({ data: { userId, achievementId: allExamsAchievement.id } });
+          await prisma.user.update({ where: { id: userId }, data: { xp: { increment: allExamsAchievement.xpReward } } });
+
+          sendNotification(
+            userId,
+            'achievement',
+            `🏆 ¡Logro Legendario: ${allExamsAchievement.title}!`,
+            `Has aprobado TODOS los exámenes finales de los cursos. Ganas ${allExamsAchievement.xpReward} XP extra. ¡Eres un verdadero Maestro del Conocimiento!`,
+            { achievementKey: allExamsAchievement.key, achievementTitle: allExamsAchievement.title, xpReward: allExamsAchievement.xpReward, icon: allExamsAchievement.icon, completedFinalExams }
+          );
+        }
+      }
+    }
+
     // Send course completion notification
     sendNotification(
       userId,

@@ -115,6 +115,7 @@ async function main() {
     { key: 'speed_demon', title: 'Velocista', description: 'Completa una lección en menos de 1 minuto', icon: '⚡', xpReward: 30 },
     { key: 'code_ninja', title: 'Código Ninja', description: 'Completa 10 ejercicios de código', icon: '🥷', xpReward: 100 },
     { key: 'project_builder', title: 'Constructor de Proyectos', description: 'Completa tu primer mini-proyecto', icon: '🔧', xpReward: 150 },
+    { key: 'all_final_exams', title: 'Maestro del Conocimiento', description: 'Aprueba todos los exámenes finales de los cursos', icon: '🎓', xpReward: 500 },
   ];
 
   for (const achievement of achievements) {
@@ -124,7 +125,7 @@ async function main() {
       create: achievement,
     });
   }
-  console.log('✅ Achievements created (15 achievements)');
+  console.log('✅ Achievements created (16 achievements)');
 
   // ===========================================
   // GAMES
