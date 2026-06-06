@@ -13,6 +13,7 @@ import { useUserStore, calculateLevel, xpToNextLevel, progressToNextLevel } from
 import { useAuthStore } from '@/stores/auth-store';
 import { useToast } from '@/components/ui/toast';
 import { AdminAccessModal } from '@/components/admin-access-modal';
+import { LegendaryToastListener } from '@/components/legendary-toast';
 
 // Separate component for payment success handling (requires Suspense for useSearchParams)
 function PaymentSuccessHandler() {
@@ -219,6 +220,9 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Legendary achievement broadcast listener */}
+      <LegendaryToastListener />
+
       {/* Admin Access Modal */}
       <AdminAccessModal
         isOpen={showAdminModal}

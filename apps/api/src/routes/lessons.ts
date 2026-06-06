@@ -5,7 +5,8 @@ import { authenticate, AuthRequest } from '../middlewares/auth.js';
 import { SubmitProgressSchema } from '@duobijac/shared';
 import { AppError } from '../middlewares/error.js';
 import { sendCourseCompletionEmail, isEmailConfigured } from '../services/email.js';
-import { notifyUser } from '../services/notifications.js';
+import { notifyUser, broadcastToAll } from '../services/notifications.js';
+import { sendBroadcastNotification } from '../services/push-notifications.js';
 
 export const lessonsRouter = Router();
 
@@ -351,6 +352,46 @@ async function checkReferralCompletion(userId: string) {
   }
 }
 
+// Helper function to broadcast a legendary achievement unlock to all users (SSE + push)
+async function broadcastLegendaryAchievement(userId: string, achievement: { key: string; title: string; description: string; icon: string; xpReward: number }) {
+  try {
+    // Get user name for the broadcast message
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+    const userName = user?.name || 'Un usuario';
+
+    // Create a notification in DB for the broadcasting user
+    const notification = await prisma.notification.create({
+      data: {
+        user: { connect: { id: userId } },
+        type: 'achievement',
+        title: `${achievement.icon} ¡Alguien desbloqueó un logro legendario!`,
+        message: `${userName} ha desbloqueado "${achievement.title}". ¡Felicidades!`,
+        data: { achievementKey: achievement.key, achievementTitle: achievement.title, icon: achievement.icon, xpReward: achievement.xpReward, userName } as any,
+      },
+    });
+
+    // Broadcast via SSE to all connected users
+    broadcastToAll({
+      id: notification.id,
+      type: 'legendary_achievement',
+      title: `${achievement.icon} ¡Logro Legendario Desbloqueado!`,
+      message: `${userName} ha desbloqueado "${achievement.title}"`,
+      data: { achievementKey: achievement.key, achievementTitle: achievement.title, icon: achievement.icon, xpReward: achievement.xpReward, userName },
+      createdAt: notification.createdAt,
+    });
+
+    // Send push notification to all subscribed users (fire-and-forget)
+    sendBroadcastNotification({
+      title: `${achievement.icon} ¡Logro Legendario!`,
+      body: `${userName} ha desbloqueado "${achievement.title}"`,
+      tag: `legendary-${achievement.key}`,
+      data: { achievementKey: achievement.key, url: '/dashboard/masters' },
+    }).catch(() => {});
+  } catch (err) {
+    console.error('Failed to broadcast legendary achievement:', err);
+  }
+}
+
 // Helper function to check if course is complete
 async function checkCourseCompletion(userId: string, courseId: string): Promise<boolean> {
   // Get all lessons in the course
@@ -484,6 +525,8 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
             `Has aprobado TODOS los exámenes finales de los cursos. Ganas ${allExamsAchievement.xpReward} XP extra. ¡Eres un verdadero Maestro del Conocimiento!`,
             { achievementKey: allExamsAchievement.key, achievementTitle: allExamsAchievement.title, xpReward: allExamsAchievement.xpReward, icon: allExamsAchievement.icon, completedFinalExams }
           );
+          // Broadcast legendary achievement to all users
+          broadcastLegendaryAchievement(userId, { key: allExamsAchievement.key, title: allExamsAchievement.title, description: allExamsAchievement.description, icon: allExamsAchievement.icon, xpReward: allExamsAchievement.xpReward });
         }
       }
     }
@@ -512,6 +555,8 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
             `Has obtenido 100% en TODOS los exámenes finales. Ganas ${perfectAchievement.xpReward} XP extra. ¡Perfección absoluta!`,
             { achievementKey: perfectAchievement.key, achievementTitle: perfectAchievement.title, xpReward: perfectAchievement.xpReward, icon: perfectAchievement.icon }
           );
+          // Broadcast legendary achievement to all users
+          broadcastLegendaryAchievement(userId, { key: perfectAchievement.key, title: perfectAchievement.title, description: perfectAchievement.description, icon: perfectAchievement.icon, xpReward: perfectAchievement.xpReward });
         }
       }
     }
@@ -533,6 +578,8 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
             `Has completado TODOS los cursos de la plataforma. Ganas ${allCoursesAchievement.xpReward} XP extra. ¡Eres un Explorador Total!`,
             { achievementKey: allCoursesAchievement.key, achievementTitle: allCoursesAchievement.title, xpReward: allCoursesAchievement.xpReward, icon: allCoursesAchievement.icon, completedCourses, totalCourses }
           );
+          // Broadcast legendary achievement to all users
+          broadcastLegendaryAchievement(userId, { key: allCoursesAchievement.key, title: allCoursesAchievement.title, description: allCoursesAchievement.description, icon: allCoursesAchievement.icon, xpReward: allCoursesAchievement.xpReward });
         }
       }
     }
