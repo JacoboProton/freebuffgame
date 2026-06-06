@@ -62,7 +62,7 @@ export default function PublicHallOfFamePage() {
     switch (rank) {
       case 1:
         return (
-          <motion.div animate={{ scale: [1, 1.2, 1], rotate: [0, -5, 5, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+          <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity }}>
             <Crown className="w-9 h-9 text-yellow-500 drop-shadow-lg" />
           </motion.div>
         );
@@ -113,9 +113,10 @@ export default function PublicHallOfFamePage() {
     <div className="min-h-screen bg-gray-50">
       {/* Simple public header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl">🎓</span>
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">              <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">D</span>
+            </div>
             <span className="font-bold text-gray-800">Duobi-Jac</span>
           </Link>
           <div className="flex items-center gap-3">
@@ -130,7 +131,7 @@ export default function PublicHallOfFamePage() {
       <main className="max-w-5xl mx-auto px-4 py-8">
         {/* Title */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-          <motion.div animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }} transition={{ duration: 3, repeat: Infinity }} className="text-7xl mb-4">🏛️</motion.div>
+          <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trophy className="w-8 h-8 text-white" /></div>
           <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 bg-clip-text text-transparent">
             Hall of Fame
           </h1>
@@ -229,16 +230,17 @@ export default function PublicHallOfFamePage() {
                             <span>•</span><span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDate(entry.firstLegendaryAt)}</span>
                           </div>
                           <div className="flex items-center gap-1 mt-1.5">{entry.achievements.map((ach) => <span key={ach.key} className="text-sm" title={ach.title}>{ach.icon}</span>)}</div>
-                        </div>                          <div className="flex items-center gap-2">
-                            <button onClick={(e) => onShare(entry, e)} className="p-1.5 rounded-full hover:bg-amber-100 text-amber-600 transition-colors" title="Compartir en redes sociales">
-                              <Share2 className="w-4 h-4" />
-                            </button>
-                            <button onClick={(e) => onCopy(entry, e)} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 transition-colors" title="Copiar enlace">
-                              {copiedUserId === entry.userId ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                            </button>
-                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={(e) => onShare(entry, e)} className="p-1.5 rounded-full hover:bg-amber-100 text-amber-600 transition-colors" title="Compartir en redes sociales">
+                            <Share2 className="w-4 h-4" />
+                          </button>
+                          <button onClick={(e) => onCopy(entry, e)} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 transition-colors" title="Copiar enlace">
+                            {copiedUserId === entry.userId ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                          </button>
                           <div className="text-gray-400 text-xs">{isExpanded ? '▲' : '▼'}</div>
                         </div>
+                      </div>
                       {isExpanded && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-gray-50 border-t border-gray-100">
                           <div className="px-6 py-4 ml-16">
