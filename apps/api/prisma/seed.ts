@@ -118,6 +118,8 @@ async function main() {
     { key: 'all_final_exams', title: 'Maestro del Conocimiento', description: 'Aprueba todos los exámenes finales de los cursos', icon: '🎓', xpReward: 500 },
     { key: 'perfect_final_exams', title: 'Perfeccionista Absoluto', description: 'Obtén 100% en TODOS los exámenes finales de los cursos', icon: '🌟', xpReward: 750 },
     { key: 'all_courses_complete', title: 'Explorador Total', description: 'Completa TODOS los cursos disponibles en la plataforma', icon: '🌍', xpReward: 600 },
+    { key: 'speed_master', title: 'Velocista Absoluto', description: 'Completa todos los exámenes finales en menos de 60 minutos en total', icon: '⚡', xpReward: 800 },
+    { key: 'code_master', title: 'Ingeniero de Datos', description: 'Completa todos los ejercicios de código y proyectos de todos los cursos', icon: '💻', xpReward: 700 },
   ];
 
   for (const achievement of achievements) {
@@ -127,7 +129,7 @@ async function main() {
       create: achievement,
     });
   }
-  console.log('✅ Achievements created (18 achievements)');
+  console.log('✅ Achievements created (20 achievements)');
 
   // ===========================================
   // GAMES

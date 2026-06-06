@@ -567,6 +567,52 @@ async function checkCourseCompletion(userId: string, courseId: string): Promise<
       }
     }
 
+    // Check if all final exams completed under 60 minutes total (speed_master achievement)
+    if (!unlockedKeys.has('speed_master')) {
+      const allFinalExamDone = await prisma.lessonProgress.count({
+        where: { userId, completed: true, lessonId: { in: FINAL_EXAM_LESSON_IDS } },
+      });
+      if (allFinalExamDone >= FINAL_EXAM_LESSON_IDS.length) {
+        const totalTimeOnExams = await prisma.lessonProgress.aggregate({
+          where: { userId, lessonId: { in: FINAL_EXAM_LESSON_IDS } },
+          _sum: { timeSpent: true },
+        });
+        const totalTime = totalTimeOnExams._sum.timeSpent || 0;
+        // 60 minutes = 3600 seconds
+        if (totalTime > 0 && totalTime < 3600) {
+          const speedAchievement = await prisma.achievement.findUnique({ where: { key: 'speed_master' } });
+          if (speedAchievement) {
+            await prisma.userAchievement.create({ data: { userId, achievementId: speedAchievement.id } });
+            await prisma.user.update({ where: { id: userId }, data: { xp: { increment: speedAchievement.xpReward } } });
+            sendNotification(userId, 'achievement', `⚡ ¡Logro Legendario: ${speedAchievement.title}!`, `Completaste todos los exámenes finales en ${Math.round(totalTime / 60)} minutos. Ganas ${speedAchievement.xpReward} XP extra. ¡Velocidad absoluta!`, { achievementKey: speedAchievement.key, achievementTitle: speedAchievement.title, xpReward: speedAchievement.xpReward, icon: speedAchievement.icon, totalTimeSeconds: totalTime });
+            broadcastLegendaryAchievement(userId, { key: speedAchievement.key, title: speedAchievement.title, description: speedAchievement.description, icon: speedAchievement.icon, xpReward: speedAchievement.xpReward });
+          }
+        }
+      }
+    }
+
+    // Check if all coding/project lessons are completed (code_master achievement)
+    if (!unlockedKeys.has('code_master')) {
+      const codingAndProjectLessons = await prisma.lesson.findMany({
+        where: { type: { in: ['coding', 'project'] } },
+        select: { id: true },
+      });
+      if (codingAndProjectLessons.length > 0) {
+        const completedCoding = await prisma.lessonProgress.count({
+          where: { userId, completed: true, lessonId: { in: codingAndProjectLessons.map(l => l.id) } },
+        });
+        if (completedCoding >= codingAndProjectLessons.length) {
+          const codeAchievement = await prisma.achievement.findUnique({ where: { key: 'code_master' } });
+          if (codeAchievement) {
+            await prisma.userAchievement.create({ data: { userId, achievementId: codeAchievement.id } });
+            await prisma.user.update({ where: { id: userId }, data: { xp: { increment: codeAchievement.xpReward } } });
+            sendNotification(userId, 'achievement', `💻 ¡Logro Legendario: ${codeAchievement.title}!`, `Has completado TODOS los ejercicios de código y proyectos de la plataforma. Ganas ${codeAchievement.xpReward} XP extra. ¡Eres un verdadero Ingeniero de Datos!`, { achievementKey: codeAchievement.key, achievementTitle: codeAchievement.title, xpReward: codeAchievement.xpReward, icon: codeAchievement.icon, totalCodingLessons: codingAndProjectLessons.length });
+            broadcastLegendaryAchievement(userId, { key: codeAchievement.key, title: codeAchievement.title, description: codeAchievement.description, icon: codeAchievement.icon, xpReward: codeAchievement.xpReward });
+          }
+        }
+      }
+    }
+
     // Send course completion notification
     sendNotification(
       userId,
