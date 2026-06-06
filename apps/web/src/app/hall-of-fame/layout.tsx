@@ -21,12 +21,21 @@ export const metadata: Metadata = {
     siteName: 'Duobi-Jac',
     locale: 'es_ES',
     type: 'website',
+    images: [
+      {
+        url: 'https://rxktk3y4.insforge.site/api/og?title=Hall%20of%20Fame&subtitle=Los%20Usuarios%20M%C3%A1s%20Legendarios',
+        width: 1200,
+        height: 630,
+        alt: 'Hall of Fame — Los Usuarios Más Legendarios de Duobi-Jac',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Hall of Fame — Los Usuarios Más Legendarios | Duobi-Jac',
     description:
       'Los maestros que han completado todos los exámenes finales, obtenido puntuaciones perfectas y desbloqueado los logros más difíciles.',
+    images: ['https://rxktk3y4.insforge.site/api/og?title=Hall%20of%20Fame&subtitle=Los%20Usuarios%20M%C3%A1s%20Legendarios'],
   },
 };
 
