@@ -1,15 +1,16 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Star, Sparkles } from 'lucide-react';
+import { Star, Sparkles, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MasterBadgeProps {
   unlocked: boolean;
   className?: string;
+  onShare?: () => void;
 }
 
-export function MasterBadge({ unlocked, className }: MasterBadgeProps) {
+export function MasterBadge({ unlocked, className, onShare }: MasterBadgeProps) {
   if (!unlocked) {
     return (
       <div className={cn(
@@ -131,6 +132,20 @@ export function MasterBadge({ unlocked, className }: MasterBadgeProps) {
             <Sparkles className="w-3 h-3" />
           </span>
         </motion.div>
+
+        {/* Share button */}
+        {onShare && (
+          <motion.button
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            onClick={(e) => { e.stopPropagation(); onShare(); }}
+            className="mt-4 relative z-10 inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full text-sm font-semibold hover:from-amber-600 hover:to-orange-600 transition-all shadow-md hover:shadow-lg active:scale-95"
+          >
+            <Share2 className="w-4 h-4" />
+            Compartir Logro
+          </motion.button>
+        )}
       </div>
     </motion.div>
   );

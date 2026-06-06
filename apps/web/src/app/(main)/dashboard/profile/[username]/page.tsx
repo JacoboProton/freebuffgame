@@ -18,6 +18,7 @@ import { useUserStore, calculateLevel, xpToNextLevel, progressToNextLevel } from
 import { ConfettiCelebration } from '@/components/jac-mascot';
 import { MasterBadge } from '@/components/master-badge';
 import { LegendaryProgressCard } from '@/components/legendary-progress';
+import { handleShare } from '@/lib/share-utils';
 
 interface UserProfile {
   id: string;
@@ -381,6 +382,10 @@ export default function ProfilePage() {
             >
               <MasterBadge
                 unlocked={achievements.some(a => a.key === 'all_final_exams' && !!a.unlockedAt)}
+                onShare={() => {
+                  const legendaryCount = achievements.filter(a => a.unlockedAt).length;
+                  handleShare({ rank: 1, totalLegendaryCount: legendaryCount, name: profile.name, level, userId: profile.id });
+                }}
               />
             </motion.div>
 
