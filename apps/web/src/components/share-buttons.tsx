@@ -155,6 +155,40 @@ export function ShareButtons({ name, rank, legendaryCount, level, shareUrl }: Sh
         )}
         {copied ? 'Copiado' : 'Copiar enlace'}
       </motion.button>
+
+      <motion.button
+        type="button"
+        onClick={async () => {
+          const ogUrl = `https://rxktk3y4.insforge.site/api/og?userName=${encodeURIComponent(name)}&rank=${rank}&legendaryCount=${legendaryCount}&level=${level}`;
+          try {
+            const res = await fetch(ogUrl);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `hall-of-fame-${name.replace(/\s+/g, '-').toLowerCase()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          } catch {
+            window.open(ogUrl, '_blank');
+          }
+        }}
+        style={{
+          ...buttonStyle(),
+          background: 'rgba(255,255,255,0.12)',
+          border: '1px solid rgba(255,255,255,0.15)',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.transform = 'none'; }}
+        whileHover={{ y: -2 }}
+      >
+        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Descargar
+      </motion.button>
       </motion.div>
     </div>
   );
