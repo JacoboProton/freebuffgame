@@ -13,6 +13,7 @@ import { useUserStore, calculateLevel, xpToNextLevel, progressToNextLevel } from
 import { coursesAPI } from '@/lib/api-client';
 import { SplineScene } from '@/components/visual/SplineScene';
 import { SplineHoverEffect } from '@/components/visual/SplineHoverEffect';
+import { SplineTiltEffect } from '@/components/visual/SplineTiltEffect';
 import { Spline3DTooltip } from '@/components/visual/Spline3DTooltip';
 
 interface FeaturedCourse {
@@ -209,16 +210,18 @@ export function HomePage() {
             >
               <div className="relative w-full max-w-md aspect-square">
                 <div className="absolute inset-8 bg-gradient-to-br from-primary/20 via-emerald-400/10 to-secondary/15 rounded-full blur-2xl" />
-                <SplineHoverEffect scale={1.03} glowColor="rgba(34, 197, 94, 0.25)" glowIntensity={25}>
-                  <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shadow-sm">
-                    <SplineScene
-                      scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
-                      className="w-full aspect-square"
-                      onMouseEnter={() => setHeroHovered(true)}
-                      onMouseLeave={() => setHeroHovered(false)}
-                    />
-                  </div>
-                </SplineHoverEffect>
+                <SplineTiltEffect tiltAmount={12} glareEnabled glareColor="rgba(34, 197, 94, 0.3)" scale={1.03}>
+                  <SplineHoverEffect glowColor="rgba(34, 197, 94, 0.25)" glowIntensity={25}>
+                    <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shadow-sm">
+                      <SplineScene
+                        scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
+                        className="w-full aspect-square"
+                        onMouseEnter={() => setHeroHovered(true)}
+                        onMouseLeave={() => setHeroHovered(false)}
+                      />
+                    </div>
+                  </SplineHoverEffect>
+                </SplineTiltEffect>
                 {/* 3D Tooltip showing user stats on hover */}
                 <Spline3DTooltip
                   visible={!!(heroHovered && isSignedIn && stats)}
@@ -259,14 +262,16 @@ export function HomePage() {
             viewport={{ once: true }}
             className="flex justify-center mb-12"
           >
-            <SplineHoverEffect scale={1.02} glowColor="rgba(16, 185, 129, 0.2)" glowIntensity={15}>
-              <div className="relative w-full max-w-lg h-64">
-                <SplineScene
-                  scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
-                  className="w-full h-full"
-                />
-              </div>
-            </SplineHoverEffect>
+            <SplineTiltEffect tiltAmount={10} glareEnabled glareColor="rgba(16, 185, 129, 0.25)" scale={1.02}>
+              <SplineHoverEffect glowColor="rgba(16, 185, 129, 0.2)" glowIntensity={15}>
+                <div className="relative w-full max-w-lg h-64">
+                  <SplineScene
+                    scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
+                    className="w-full h-full"
+                  />
+                </div>
+              </SplineHoverEffect>
+            </SplineTiltEffect>
           </motion.div>
 
           <div className="flex items-end justify-between mb-10">
