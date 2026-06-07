@@ -224,18 +224,29 @@ export default function CoursesPage() {
                         {course.id === 'course-carpinteria-pro' ? (
                           <div className="flex items-center gap-1">
                             {carpentryModuleIcons.map((mod, i) => (
-                              <div key={i} className="relative group/icon">
-                                <div className="flex flex-col items-center gap-0.5 opacity-70 group-hover:opacity-100 transition-all duration-300" style={{ transitionDelay: `${i * 50}ms` }}>
-                                  <mod.icon size={28} className="group-hover/icon:scale-110 transition-transform duration-300" />
-                                  <span className="text-[8px] text-gray-500 font-medium hidden sm:block">{mod.label.split(' ')[0]}</span>
+                              <motion.div
+                                key={i}
+                                className="relative group/icon"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.1, type: 'spring', stiffness: 300, damping: 20 }}
+                                whileHover={{ scale: 1.15, y: -4 }}
+                              >
+                                <div className="flex flex-col items-center gap-0.5 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+                                  <div className="relative">
+                                    <mod.icon size={28} />
+                                    {/* Glow ring on hover */}
+                                    <div className="absolute inset-0 rounded-full bg-primary/20 scale-0 group-hover/icon:scale-150 transition-transform duration-500 ease-out opacity-0 group-hover/icon:opacity-100" />
+                                  </div>
+                                  <span className="text-[8px] text-gray-500 font-medium hidden sm:block group-hover/icon:text-primary transition-colors duration-200">{mod.label.split(' ')[0]}</span>
                                 </div>
                                 {/* Tooltip */}
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl opacity-0 group-hover/icon:opacity-100 scale-95 group-hover/icon:scale-100 translate-y-1 group-hover/icon:translate-y-0 transition-all duration-200 pointer-events-none whitespace-nowrap z-50">
                                   <div className="font-semibold">{mod.label}</div>
                                   <div className="text-gray-300 text-[10px]">{mod.lessons} lecciones</div>
                                   <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
                                 </div>
-                              </div>
+                              </motion.div>
                             ))}
                           </div>
                         ) : (
