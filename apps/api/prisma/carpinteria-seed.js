@@ -43,7 +43,12 @@ async function main() {
       },
       {
         id: 'lesson-carp-2', moduleId: mod1.id, title: 'El Serrucho', type: 'true_false', order: 2, xpReward: 15,
-        content: JSON.stringify({ statement: 'El serrucho de cola de rata se usa para cortes curvos en madera', correctAnswer: true }),
+        content: JSON.stringify({
+          statement: 'El serrucho de cola de rata se usa para cortes curvos en madera',
+          correctAnswer: true,
+          videoUrl: 'https://stream.mux.com/JAvSKKI4A7g9012e0000kqkV5P1DsKMVBMEdi201UosVxQA.m3u8',
+          videoTitle: 'El Serrucho - Uso correcto',
+        }),
       },
       {
         id: 'lesson-carp-3', moduleId: mod1.id, title: 'El Destornillador', type: 'multiple_choice', order: 3, xpReward: 20,
@@ -92,7 +97,13 @@ async function main() {
       },
       {
         id: 'lesson-carp-10', moduleId: mod2.id, title: 'Madera Contrachapada', type: 'multiple_choice', order: 2, xpReward: 20,
-        content: JSON.stringify({ question: '¿Qué es la madera contrachapada?', options: ['Un solo bloque de madera', 'Capas de madera pegadas en dirección alterna', 'Madera plástica', 'Madera reciclada'], correctIndex: 1 }),
+        content: JSON.stringify({
+          question: '¿Qué es la madera contrachapada?',
+          options: ['Un solo bloque de madera', 'Capas de madera pegadas en dirección alterna', 'Madera plástica', 'Madera reciclada'],
+          correctIndex: 1,
+          videoUrl: 'https://stream.mux.com/JAvSKKI4A7g9012e0000kqkV5P1DsKMVBMEdi201UosVxQA.m3u8',
+          videoTitle: 'Madera Contrachapada - Explicación',
+        }),
       },
       {
         id: 'lesson-carp-11', moduleId: mod2.id, title: 'El Pino', type: 'true_false', order: 3, xpReward: 15,
@@ -127,7 +138,13 @@ async function main() {
     data: [
       {
         id: 'lesson-carp-16', moduleId: mod3.id, title: 'Corte a 45 Grados', type: 'multiple_choice', order: 1, xpReward: 25,
-        content: JSON.stringify({ question: '¿Por qué se hace un corte a 45 grados en las esquas de un marco?', options: ['Para ahorrar madera', 'Para que la unión sea más estética y resistente', 'Porque es más rápido', 'No tiene ninguna ventaja'], correctIndex: 1 }),
+        content: JSON.stringify({
+          question: '¿Por qué se hace un corte a 45 grados en las esquas de un marco?',
+          options: ['Para ahorrar madera', 'Para que la unión sea más estética y resistente', 'Porque es más rápido', 'No tiene ninguna ventaja'],
+          correctIndex: 1,
+          videoUrl: 'https://stream.mux.com/JAvSKKI4A7g9012e0000kqkV5P1DsKMVBMEdi201UosVxQA.m3u8',
+          videoTitle: 'Corte a 45 Grados - Demostración',
+        }),
       },
       {
         id: 'lesson-carp-17', moduleId: mod3.id, title: 'Unión con Tornillos', type: 'multiple_choice', order: 2, xpReward: 20,
@@ -170,7 +187,13 @@ async function main() {
     data: [
       {
         id: 'lesson-carp-24', moduleId: mod4.id, title: 'Repisa para Libros', type: 'multiple_choice', order: 1, xpReward: 25,
-        content: JSON.stringify({ question: '¿Qué herramientas básicas necesitas para hacer una repisa de madera simple?', options: ['Solo un martillo', 'Sierra, taladro, lija, tornillos y madera', 'Solo pegamento', 'Ninguna herramienta'], correctIndex: 1 }),
+        content: JSON.stringify({
+          question: '¿Qué herramientas básicas necesitas para hacer una repisa de madera simple?',
+          options: ['Solo un martillo', 'Sierra, taladro, lija, tornillos y madera', 'Solo pegamento', 'Ninguna herramienta'],
+          correctIndex: 1,
+          videoUrl: 'https://stream.mux.com/JAvSKKI4A7g9012e0000kqkV5P1DsKMVBMEdi201UosVxQA.m3u8',
+          videoTitle: 'Repisa para Libros - Proyecto paso a paso',
+        }),
       },
       {
         id: 'lesson-carp-25', moduleId: mod4.id, title: 'Caja de Herramientas', type: 'multiple_choice', order: 2, xpReward: 30,
@@ -209,7 +232,13 @@ async function main() {
     data: [
       {
         id: 'lesson-carp-31', moduleId: mod5.id, title: 'La Jaula de Cola de Milano', type: 'multiple_choice', order: 1, xpReward: 35,
-        content: JSON.stringify({ question: '¿Qué hace especial a la unión de cola de milano?', options: ['Es la más rápida de hacer', 'Sus colas entrelazadas la hacen extremadamente resistente sin pegamento', 'Solo es decorativa', 'Se hace con clavos'], correctIndex: 1 }),
+        content: JSON.stringify({
+          question: '¿Qué hace especial a la unión de cola de milano?',
+          options: ['Es la más rápida de hacer', 'Sus colas entrelazadas la hacen extremadamente resistente sin pegamento', 'Solo es decorativa', 'Se hace con clavos'],
+          correctIndex: 1,
+          videoUrl: 'https://stream.mux.com/JAvSKKI4A7g9012e0000kqkV5P1DsKMVBMEdi201UosVxQA.m3u8',
+          videoTitle: 'Cola de Milano - Técnica avanzada',
+        }),
       },
       {
         id: 'lesson-carp-32', moduleId: mod5.id, title: 'Torno para Madera', type: 'multiple_choice', order: 2, xpReward: 35,
