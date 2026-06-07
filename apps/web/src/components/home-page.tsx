@@ -7,6 +7,7 @@ import { Zap, Trophy, Users, BookOpen, ChevronRight, Flame, Star, TrendingUp, Ar
 import { useUser } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { BeamCard } from '@/components/beam-card';
 import { Badge } from '@/components/ui/badge';
 import { ProgressBar } from '@/components/ui/progress';
 import { useUserStore, calculateLevel, xpToNextLevel, progressToNextLevel } from '@/stores/user-store';
@@ -452,6 +453,7 @@ export function HomePage() {
                 color: 'from-amber-500/10 to-amber-500/5',
                 iconColor: 'text-amber-500',
                 stat: isSignedIn && stats ? `${stats.xp} XP acumulados` : null,
+                beamColor: '#f59e0b',
               },
               {
                 icon: Trophy,
@@ -460,6 +462,7 @@ export function HomePage() {
                 color: 'from-primary/10 to-primary/5',
                 iconColor: 'text-primary',
                 stat: null,
+                beamColor: '#22c55e',
               },
               {
                 icon: Flame,
@@ -468,6 +471,7 @@ export function HomePage() {
                 color: 'from-rose-500/10 to-rose-500/5',
                 iconColor: 'text-rose-500',
                 stat: isSignedIn && stats && stats.currentStreak > 0 ? `${stats.currentStreak} días activos` : null,
+                beamColor: '#f43f5e',
               },
             ].map((feature, i) => (
               <motion.div
@@ -477,7 +481,7 @@ export function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
               >
-                <Card hoverable className="p-6 h-full border border-gray-100">
+                <BeamCard beamColor={feature.beamColor} corner="bottom-right" variant="single" duration={5 + i} glowIntensity="low" className="h-full">
                   <div className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mb-5`}>
                     <feature.icon className={`w-6 h-6 ${feature.iconColor}`} />
                   </div>
@@ -488,7 +492,7 @@ export function HomePage() {
                       <span className="text-xs font-medium text-gray-500">{feature.stat}</span>
                     </div>
                   )}
-                </Card>
+                </BeamCard>
               </motion.div>
             ))}
           </div>

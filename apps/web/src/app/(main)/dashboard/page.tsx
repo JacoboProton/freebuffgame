@@ -12,6 +12,7 @@ const HolographicTerrain = dynamic(
   { ssr: false }
 );
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BeamCard } from '@/components/beam-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ProgressBar } from '@/components/ui/progress';
@@ -334,7 +335,7 @@ export default function DashboardPage() {
           className="grid md:grid-cols-4 gap-4 mb-8"
         >
           {/* Level with Progress Ring */}
-          <Card className="md:col-span-2 flex items-center gap-6 p-6">
+          <BeamCard className="md:col-span-2 flex items-center gap-6 p-6" beamColor="#22c55e" corner="all" variant="pulse" duration={6} glowIntensity="low">
             <ProgressRing progress={xpProgress} size={100} strokeWidth={8} />
             <div>
               <div className="text-4xl font-bold text-primary mb-1">Nivel {level}</div>
@@ -348,10 +349,10 @@ export default function DashboardPage() {
                 </span>
               </div>
             </div>
-          </Card>
+          </BeamCard>
 
           {/* Streak */}
-          <Card className="p-6">
+          <BeamCard className="p-6" beamColor="#f97316" corner="all" variant="pulse" duration={5} glowIntensity="low">
             <div className="text-sm text-gray-500 mb-2">Racha Actual</div>
             <StreakFlame streak={stats?.currentStreak ?? 0} isToday={(stats?.currentStreak ?? 0) > 0} />
             {(stats?.longestStreak ?? 0) > (stats?.currentStreak ?? 0) && (
@@ -359,16 +360,16 @@ export default function DashboardPage() {
                 Récord: {stats?.longestStreak} días 🔥
               </p>
             )}
-          </Card>
+          </BeamCard>
 
           {/* Coins */}
-          <Card className="p-6">
+          <BeamCard className="p-6" beamColor="#eab308" corner="all" variant="single" duration={5} glowIntensity="low">
             <div className="text-sm text-gray-500 mb-2">Monedas</div>
             <div className="flex items-center gap-2">
               <span className="text-4xl font-bold text-yellow-500">{stats?.coins || 0}</span>
               <span className="text-2xl">🪙</span>
             </div>
-          </Card>
+          </BeamCard>
         </motion.div>
 
         {/* XP Progress Bar - Full Width */}
@@ -377,14 +378,14 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <BeamCard className="mb-8" beamColor="#22c55e" corner="bottom-right" variant="single" duration={5}>
+            <div className="p-6 pb-0">
+              <h3 className="font-bold text-lg flex items-center gap-2">
                 <Zap className="w-5 h-5 text-primary" />
                 Progreso de XP
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
+            </div>
+            <div className="p-6">
               <div className="flex items-center gap-4 mb-2">
                 <span className="font-semibold text-lg">{stats?.xp || 0} XP</span>
                 <div className="flex-1">
@@ -402,8 +403,8 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-500">
                 {nextLevelXP} XP para subir al nivel {level + 1}
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </BeamCard>
         </motion.div>
 
         {/* Quick Actions + Stats Summary */}
