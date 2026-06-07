@@ -351,6 +351,7 @@ coursesRouter.get('/:id/current-lesson', authenticate, async (req: AuthRequest, 
           totalLessons,
           percentage: totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0,
         },
+        completedLessonIds: Array.from(completedLessonIds),
       },
     });
   } catch (err) {

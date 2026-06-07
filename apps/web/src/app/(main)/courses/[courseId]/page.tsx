@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, Users, BookOpen, ChevronRight, CheckCircle2, Play, Crown, Lock, Layers } from 'lucide-react';
+import { ArrowLeft, Clock, Users, BookOpen, ChevronRight, CheckCircle2, Play, Crown, Lock, Layers, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
+import { ProgressBar } from '@/components/ui/progress';
 import { useClerkAPIs } from '@/lib/clerk-api';
 import { useUser } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
@@ -77,6 +77,7 @@ export default function CourseDetailPage() {
   const [enrolled, setEnrolled] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
   const [enrollError, setEnrollError] = useState<string | null>(null);
+  const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (courseId) loadCourse();
@@ -92,7 +93,16 @@ export default function CourseDetailPage() {
         try {
           const enrollmentsResponse = await coursesAPI.getEnrollments();
           const enrollments = enrollmentsResponse.enrollments || [];
-          setEnrolled(enrollments.some((e: any) => e.courseId === courseId));
+          const isEnrolled = enrollments.some((e: any) => e.courseId === courseId);
+          setEnrolled(isEnrolled);
+
+          if (isEnrolled) {
+            // Fetch current lesson to get progress data including completed lesson IDs
+            const currentResponse = await coursesAPI.getCurrentLesson(courseId).catch(() => null) as any;
+            if (currentResponse?.completedLessonIds) {
+              setCompletedLessonIds(new Set(currentResponse.completedLessonIds));
+            }
+          }
         } catch { /* continue */ }
       }
     } catch (err: any) {
@@ -121,6 +131,8 @@ export default function CourseDetailPage() {
 
   const isCarpentry = courseId === 'course-carpinteria-pro';
   const totalLessons = course?.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || 0;
+  const completedTotal = completedLessonIds.size;
+  const overallProgress = totalLessons > 0 ? Math.round((completedTotal / totalLessons) * 100) : 0;
 
   if (loading) {
     return (
@@ -175,6 +187,21 @@ export default function CourseDetailPage() {
             <span className="flex items-center gap-1.5"><Layers className="w-4 h-4" />{course.modules?.length || 0} módulos</span>
           </div>
 
+          {/* Overall Progress */}
+          {enrolled && totalLessons > 0 && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-gray-700">Progreso del Curso</span>
+                </div>
+                <span className="text-sm font-bold text-primary">{overallProgress}%</span>
+              </div>
+              <ProgressBar value={overallProgress} variant="success" />
+              <p className="text-xs text-gray-400 mt-1.5">{completedTotal} de {totalLessons} lecciones completadas</p>
+            </div>
+          )}
+
           {/* CTA */}
           <div className="mt-6 flex items-center gap-4">
             {enrolled ? (
@@ -205,6 +232,10 @@ export default function CourseDetailPage() {
                 const ModuleIcon = isCarpentry ? carpentryIcons[mod.order] : null;
                 const color = moduleColors[index % moduleColors.length];
                 const lessonCount = mod.lessons?.length || 0;
+                const completedCount = mod.lessons?.filter(l => completedLessonIds.has(l.id)).length || 0;
+                const moduleCompleted = lessonCount > 0 && completedCount === lessonCount;
+                const moduleCompletedCount = completedCount;
+                const moduleProgressPct = lessonCount > 0 ? Math.round((completedCount / lessonCount) * 100) : 0;
 
                 return (
                   <motion.div
@@ -229,22 +260,51 @@ export default function CourseDetailPage() {
                           <div className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-0.5">Módulo {mod.order}</div>
                           <h3 className="font-bold text-gray-900 text-sm leading-tight truncate">{mod.title}</h3>
                         </div>
-                        <Badge className="bg-white/80 text-gray-600 text-[10px] shrink-0">{lessonCount} lecciones</Badge>
+                        {enrolled ? (
+                          <Badge className={cn(
+                            "text-[10px] shrink-0",
+                            moduleCompleted
+                              ? "bg-emerald-500 text-white"
+                              : "bg-white/80 text-gray-600"
+                          )}>
+                            {moduleCompleted ? (
+                              <><CheckCircle2 className="w-3 h-3 mr-0.5" />Completado</>
+                            ) : (
+                              `${moduleCompletedCount}/${lessonCount}`
+                            )}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-white/80 text-gray-600 text-[10px] shrink-0">{lessonCount} lecciones</Badge>
+                        )}
                       </div>
 
                       {/* Lessons List */}
                       <CardContent className="p-4 flex-1 flex flex-col">
                         <div className="space-y-2 flex-1">
+                          {/* Module progress bar */}
+                          {enrolled && lessonCount > 0 && (
+                            <div className="mb-3">
+                              <ProgressBar value={moduleProgressPct} variant={moduleCompleted ? 'success' : 'default'} />
+                            </div>
+                          )}
+
                           {(mod.lessons || [])
                             .sort((a, b) => a.order - b.order)
                             .slice(0, 5)
-                            .map((lesson, li) => (
-                              <div key={lesson.id} className="flex items-center gap-2 text-sm">
-                                <span className="text-xs">{lessonTypeIcons[lesson.type] || '📖'}</span>
-                                <span className="text-gray-600 truncate flex-1">{lesson.title}</span>
-                                <span className="text-[10px] text-amber-500 font-medium shrink-0">+{lesson.xpReward} XP</span>
-                              </div>
-                            ))}
+                            .map((lesson, li) => {
+                              const isCompleted = completedLessonIds.has(lesson.id);
+                              return (
+                                <div key={lesson.id} className="flex items-center gap-2 text-sm">
+                                  {isCompleted ? (
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                  ) : (
+                                    <span className="text-xs">{lessonTypeIcons[lesson.type] || '📖'}</span>
+                                  )}
+                                  <span className={cn("truncate flex-1", isCompleted ? "text-gray-400 line-through" : "text-gray-600")}>{lesson.title}</span>
+                                  <span className="text-[10px] text-amber-500 font-medium shrink-0">+{lesson.xpReward} XP</span>
+                                </div>
+                              );
+                            })}
                           {lessonCount > 5 && (
                             <div className="text-xs text-gray-400 text-center pt-1">
                               +{lessonCount - 5} lecciones más
