@@ -2,10 +2,16 @@
 
 import { useUser, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { NotificationsBell } from './notifications-bell';
 import { SoundToggle } from './sound-toggle';
+
+const HolographicTerrain = dynamic(
+  () => import('@/components/neonblade-ui/holographic-terrain').then((m) => m.HolographicTerrain),
+  { ssr: false }
+);
 
 export function UserButtonWithData() {
   const { isSignedIn, user, isLoaded } = useUser();
@@ -45,8 +51,19 @@ export function HeaderWithAuth() {
       <div className='max-w-7xl mx-auto px-4 py-4'>
         <div className='flex items-center justify-between'>
           <Link href={isSignedIn ? '/dashboard' : '/'} className='flex items-center gap-3'>
-            <div className='w-10 h-10 bg-primary rounded-xl flex items-center justify-center'>
-              <span className='text-2xl'>🐐</span>
+            <div className='w-10 h-10 rounded-xl overflow-hidden relative'>
+              <HolographicTerrain
+                lineColor="#22c55e"
+                bgColor="#0a0a0a"
+                waveAmplitude={0.5}
+                waveFrequency={2}
+                waveSpeed={0.8}
+                planeWidth={6}
+                planeDepth={6}
+                cameraHeight={5}
+                gridSegments={20}
+                fog={true}
+              />
             </div>
             <span className='font-bold text-xl'>Duobi-Jac</span>
           </Link>

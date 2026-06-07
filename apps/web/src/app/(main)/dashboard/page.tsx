@@ -2,9 +2,15 @@
 
 import { useEffect, Suspense, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Trophy, ShoppingBag, User, BookOpen, Zap, Target, Flame, TrendingUp, Award, Gamepad2, Bell, Shield } from 'lucide-react';
+
+const HolographicTerrain = dynamic(
+  () => import('@/components/neonblade-ui/holographic-terrain').then((m) => m.HolographicTerrain),
+  { ssr: false }
+);
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -240,8 +246,19 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                <span className="text-2xl">🐐</span>
+              <div className='w-10 h-10 rounded-xl overflow-hidden relative'>
+                <HolographicTerrain
+                  lineColor="#22c55e"
+                  bgColor="#0a0a0a"
+                  waveAmplitude={0.5}
+                  waveFrequency={2}
+                  waveSpeed={0.8}
+                  planeWidth={6}
+                  planeDepth={6}
+                  cameraHeight={5}
+                  gridSegments={20}
+                  fog={true}
+                />
               </div>
               <span className="font-bold text-xl">Duobi-Jac</span>
             </Link>
