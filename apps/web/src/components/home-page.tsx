@@ -53,6 +53,7 @@ export function HomePage() {
   const [featuredCourses, setFeaturedCourses] = useState<FeaturedCourse[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [heroHovered, setHeroHovered] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -209,9 +210,47 @@ export function HomePage() {
                 <div className="absolute inset-8 bg-gradient-to-br from-primary/20 via-emerald-400/10 to-secondary/15 rounded-full blur-2xl" />
                 <SplineHoverEffect scale={1.03} glowColor="rgba(34, 197, 94, 0.25)" glowIntensity={25}>
                   <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shadow-sm">
-                    <SplineScene scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/" className="w-full aspect-square" />
+                    <SplineScene
+                      scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
+                      className="w-full aspect-square"
+                      onMouseEnter={() => setHeroHovered(true)}
+                      onMouseLeave={() => setHeroHovered(false)}
+                    />
                   </div>
                 </SplineHoverEffect>
+                {/* Hover tooltip showing user stats */}
+                <AnimatePresence>
+                  {heroHovered && isSignedIn && stats && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.2, ease: 'easeOut' }}
+                      className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-20 bg-white rounded-2xl shadow-lg border border-gray-100 p-4 min-w-[280px]"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-emerald-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                          {level}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-semibold text-gray-800 text-sm">{user?.firstName || user?.fullName || 'Aprendiz'}</div>
+                          <div className="text-xs text-gray-400">Nivel {level}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-bold text-primary">{stats.xp} XP</div>
+                          <div className="text-[10px] text-gray-400">{xpNeeded} al siguiente</div>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <ProgressBar value={xpProgress} className="h-1.5" />
+                      </div>
+                      <div className="flex justify-between mt-2 text-[10px] text-gray-400">
+                        <span className="flex items-center gap-1"><Flame className="w-3 h-3 text-orange-500" />{stats.currentStreak} días</span>
+                        <span className="flex items-center gap-1"><Trophy className="w-3 h-3 text-emerald-500" />{stats.achievementsUnlocked} logros</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 {isSignedIn && stats && (
                   <motion.div
                     initial={{ scale: 0 }}
