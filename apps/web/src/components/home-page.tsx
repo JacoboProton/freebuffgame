@@ -207,7 +207,7 @@ export function HomePage() {
               <div className="relative w-full max-w-md aspect-square">
                 <div className="absolute inset-8 bg-gradient-to-br from-primary/20 via-emerald-400/10 to-secondary/15 rounded-full blur-2xl" />
                 <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shadow-sm">
-                  <SplineScene className="w-full aspect-square" />
+                  <SplineScene scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-r8l/" className="w-full aspect-square" />
                 </div>
                 {isSignedIn && stats && (
                   <motion.div
