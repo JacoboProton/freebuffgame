@@ -14,6 +14,7 @@ import { useUser } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { HerramientasIcon, MaterialesIcon, TecnicasIcon, ProyectosIcon, AvanzadasIcon } from '@/components/carpentry-icons';
 import { CourseReviews } from '@/components/course-reviews';
+import { CoursePaymentModal } from '@/components/course-payment-modal';
 
 interface Module {
   id: string;
@@ -69,7 +70,7 @@ export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
   const courseId = params.courseId as string;
-  const { coursesAPI } = useClerkAPIs();
+  const { coursesAPI, userAPI, paymentsAPI } = useClerkAPIs();
   const { isSignedIn } = useUser();
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
@@ -79,6 +80,9 @@ export default function CourseDetailPage() {
   const [enrolling, setEnrolling] = useState(false);
   const [enrollError, setEnrollError] = useState<string | null>(null);
   const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [purchased, setPurchased] = useState(false);
+  const [userLevel, setUserLevel] = useState(1);
 
   useEffect(() => {
     if (courseId) loadCourse();
@@ -91,6 +95,17 @@ export default function CourseDetailPage() {
       setCourse(response.course);
 
       if (isSignedIn) {
+        try {
+          const statsResponse = await userAPI.getStats();
+          if (statsResponse.stats?.level) setUserLevel(statsResponse.stats.level);
+        } catch { /* continue */ }
+        try {
+          const purchasesResponse = await paymentsAPI.getPurchases() as any;
+          const purchases = purchasesResponse?.data?.purchases || purchasesResponse?.purchases || [];
+          if (purchases.some((p: any) => p.courseId === courseId)) {
+            setPurchased(true);
+          }
+        } catch { /* continue */ }
         try {
           const enrollmentsResponse = await coursesAPI.getEnrollments();
           const enrollments = enrollmentsResponse.enrollments || [];
@@ -211,6 +226,17 @@ export default function CourseDetailPage() {
                   <Play className="w-5 h-5" /> Continuar Curso
                 </Button>
               </Link>
+            ) : course.isPro && !purchased ? (
+              <>
+                <Button
+                  size="lg"
+                  className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                  onClick={() => setPaymentModalOpen(true)}
+                >
+                  <Crown className="w-5 h-5" /> Comprar ${((course.price || 0) / 100).toFixed(2)}
+                </Button>
+                {enrollError && <span className="text-sm text-rose-500">{enrollError}</span>}
+              </>
             ) : (
               <>
                 <Button size="lg" className="gap-2" onClick={handleEnroll} disabled={enrolling}>
@@ -402,6 +428,20 @@ export default function CourseDetailPage() {
           <h2 className="text-xl font-bold text-gray-900 mb-6">Reseñas del Curso</h2>
           <CourseReviews courseId={courseId} isEnrolled={enrolled} />
         </div>
+
+        {/* Payment Modal */}
+        <CoursePaymentModal
+          isOpen={paymentModalOpen}
+          onClose={() => setPaymentModalOpen(false)}
+          course={course}
+          userLevel={userLevel}
+          isPurchased={purchased}
+          onSuccess={() => {
+            setPurchased(true);
+            setPaymentModalOpen(false);
+            loadCourse();
+          }}
+        />
       </main>
     </div>
   );
