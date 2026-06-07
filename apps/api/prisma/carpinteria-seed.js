@@ -15,7 +15,7 @@ async function main() {
       description: 'Aprende los fundamentos de la carpintería, desde el uso de herramientas básicas hasta proyectos prácticos.',
       category: 'Oficios',
       difficulty: 'beginner',
-      estimatedHours: 15,
+      estimatedHours: 20,
       isPublished: true,
       isPro: true,
       price: 999,
@@ -188,8 +188,51 @@ async function main() {
   });
   console.log('✅ Módulo 4: Proyectos Prácticos (7 lecciones)');
 
+  // ── Módulo 5: Técnicas Avanzadas ──
+  const mod5 = await prisma.module.create({
+    data: { id: 'mod-carpinteria-5', courseId: course.id, title: 'Técnicas Avanzadas', order: 5 },
+  });
+
+  await prisma.lesson.createMany({
+    data: [
+      {
+        id: 'lesson-carp-31', moduleId: mod5.id, title: 'La Jaula de Cola de Milano', type: 'multiple_choice', order: 1, xpReward: 35,
+        content: JSON.stringify({ question: '¿Qué hace especial a la unión de cola de milano?', options: ['Es la más rápida de hacer', 'Sus colas entrelazadas la hacen extremadamente resistente sin pegamento', 'Solo es decorativa', 'Se hace con clavos'], correctIndex: 1 }),
+      },
+      {
+        id: 'lesson-carp-32', moduleId: mod5.id, title: 'Torno para Madera', type: 'multiple_choice', order: 2, xpReward: 35,
+        content: JSON.stringify({ question: '¿Qué se logra con un torno de madera?', options: ['Cortar tablas', 'Crear piezas simétricas y redondas como patas de mesa o cuencos', 'Lijar planchas', 'Unir dos tablas'], correctIndex: 1 }),
+      },
+      {
+        id: 'lesson-carp-33', moduleId: mod5.id, title: 'Juntas a Espiga Doble', type: 'true_false', order: 3, xpReward: 30,
+        content: JSON.stringify({ statement: 'Una junta a espiga doble tiene dos salientes que encajan en dos mortajas, aumentando la resistencia al torque', correctAnswer: true }),
+      },
+      {
+        id: 'lesson-carp-34', moduleId: mod5.id, title: 'Ensamblaje Dominguero', type: 'multiple_choice', order: 4, xpReward: 35,
+        content: JSON.stringify({ question: '¿Qué es un ensamblaje dominguero (knapp joint)?', options: ['Un tipo de pegamento', 'Una junta decorativa y fuerte usada en muebles de época victoriana', 'Una sierra especial', 'Un tipo de barniz'], correctIndex: 1 }),
+      },
+      {
+        id: 'lesson-carp-35', moduleId: mod5.id, title: 'Tallado con Formón', type: 'multiple_choice', order: 5, xpReward: 30,
+        content: JSON.stringify({ question: '¿Cuál es la regla de seguridad más importante al tallar con formón?', options: ['Ir rápido para no perder filo', 'Siempre tallar alejando el cuerpo de la hoja', 'No importa la dirección', 'Usar guantes de lana'], correctIndex: 1 }),
+      },
+      {
+        id: 'lesson-carp-36', moduleId: mod5.id, title: 'Madera Curvada al Vapor', type: 'multiple_choice', order: 6, xpReward: 40,
+        content: JSON.stringify({ question: '¿Cómo se curva la madera con técnica de vapor?', options: ['Con calor seco del horno', 'Exponiendo la madera a vapor caliente para flexibilizarla y luego doblarla en un molde', 'Con un martillo', 'Mojándola en agua fría'], correctIndex: 1 }),
+      },
+      {
+        id: 'lesson-carp-37', moduleId: mod5.id, title: 'Incrustación y Marquetería', type: 'multiple_choice', order: 7, xpReward: 40,
+        content: JSON.stringify({ question: '¿Qué es la marquetería en carpintería?', options: ['Pintura sobre madera', 'Arte de incrustar piezas de madera de diferentes colores para crear diseños', 'Un tipo de clavo', 'Un método de lijar'], correctIndex: 1 }),
+      },
+      {
+        id: 'lesson-carp-38', moduleId: mod5.id, title: 'Dovetail Jig y Sierra de Cremallera', type: 'multiple_choice', order: 8, xpReward: 35,
+        content: JSON.stringify({ question: '¿Qué ventaja ofrece usar un dovetail jig con sierra de cremallera?', options: ['Es más barato', 'Permite hacer juntas de cola de milano uniformes y rápidas sin tallar a mano', 'No hace falta experiencia', 'Es decorativo'], correctIndex: 1 }),
+      },
+    ],
+  });
+  console.log('✅ Módulo 5: Técnicas Avanzadas (8 lecciones)');
+
   console.log('');
-  console.log(`¡Listo! Curso con 4 módulos y 30 lecciones.`);
+  console.log('¡Listo! Curso con 5 módulos y 38 lecciones.');
   console.log('Ve a http://localhost:3000/courses');
 }
 
