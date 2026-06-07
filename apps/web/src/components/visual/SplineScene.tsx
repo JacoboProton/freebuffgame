@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSplinePerformance } from './useSplinePerformance';
 import { SplinePerformanceMonitor } from './SplinePerformanceMonitor';
+import { useSplinePerformanceStore } from './useSplinePerformanceStore';
 
 const Spline = dynamic(() => import('@splinetool/react-spline'), {
   ssr: false,
@@ -168,6 +169,7 @@ export function SplineScene({
   const [hasError, setHasError] = useState(false);
   const [isDebug, setIsDebug] = useState(false);
   const { metrics, startLoad, endLoad, recordError, recordRender } = useSplinePerformance({ sceneId });
+  const recordSnapshot = useSplinePerformanceStore((s) => s.recordSnapshot);
   const containerRef = useCallback((node: HTMLDivElement | null) => {
     if (!node || priority) return;
     const observer = new IntersectionObserver(
@@ -197,17 +199,57 @@ export function SplineScene({
     }
   }, [isVisible, hasError, startLoad]);
 
+  // Periodic snapshot recording for dashboard
+  useEffect(() => {
+    if (!isVisible || isLoading) return;
+    const interval = setInterval(() => {
+      const m = useSplinePerformanceStore.getState();
+      // Read fresh metrics from hook refs via the latest state
+      recordSnapshot({
+        sceneId,
+        timestamp: Date.now(),
+        loadTime: metrics.loadTime,
+        fps: metrics.fps,
+        memoryUsage: metrics.memoryUsage,
+        renderCount: metrics.renderCount,
+        errorCount: metrics.errorCount,
+        averageFps: metrics.averageFps,
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isVisible, isLoading, recordSnapshot, sceneId]);
+
   const handleLoad = useCallback(() => {
     setIsLoading(false);
     endLoad();
     recordRender();
-  }, [endLoad, recordRender]);
+    recordSnapshot({
+      sceneId,
+      timestamp: Date.now(),
+      loadTime: metrics.loadTime,
+      fps: metrics.fps || 0,
+      memoryUsage: metrics.memoryUsage,
+      renderCount: metrics.renderCount + 1,
+      errorCount: metrics.errorCount,
+      averageFps: metrics.averageFps,
+    });
+  }, [endLoad, recordRender, recordSnapshot, sceneId, metrics]);
 
   const handleError = useCallback(() => {
     setHasError(true);
     setIsLoading(false);
     recordError();
-  }, [recordError]);
+    recordSnapshot({
+      sceneId,
+      timestamp: Date.now(),
+      loadTime: null,
+      fps: 0,
+      memoryUsage: null,
+      renderCount: 0,
+      errorCount: metrics.errorCount + 1,
+      averageFps: 0,
+    });
+  }, [recordError, recordSnapshot, sceneId, metrics]);
 
   // Don't render anything on server
   if (!mounted) {

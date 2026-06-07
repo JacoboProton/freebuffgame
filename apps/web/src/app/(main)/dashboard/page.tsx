@@ -435,6 +435,12 @@ export default function DashboardPage() {
                     Tienda de recompensas
                   </Button>
                 </Link>
+                <Link href="/dashboard/performance" className="block">
+                  <Button variant="outline" className="w-full justify-start">
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Performance Dashboard
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </motion.div>
