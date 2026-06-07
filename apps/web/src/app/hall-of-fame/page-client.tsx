@@ -1,0 +1,367 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Trophy, Sparkles, Star, Calendar, Users, Award, Clock, Crown, Flame, ArrowRight, Share2, Copy, Check } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+import { handleShare, shareToTwitter, shareToWhatsApp, shareToFacebook, copyShareLink, shareHallOfFameGeneric } from '@/lib/share-utils';
+
+interface HallOfFameEntry {
+  rank: number;
+  userId: string;
+  name: string;
+  avatar?: string | null;
+  xp: number;
+  level: number;
+  totalLegendaryCount: number;
+  firstLegendaryAt: string;
+  achievements: { key: string; title: string; description: string; icon: string; xpReward: number; unlockedAt: string }[];
+}
+
+interface HallOfFameData {
+  hallOfFame: HallOfFameEntry[];
+  totalLegendaryUsers: number;
+  totalLegendaryAchievements: number;
+  legendaryAchievements: { key: string; title: string; description: string; icon: string; xpReward: number }[];
+}
+
+const ACHIEVEMENT_BG: Record<string, string> = {
+  all_final_exams: 'bg-amber-50 border-amber-200',
+  perfect_final_exams: 'bg-purple-50 border-purple-200',
+  all_courses_complete: 'bg-emerald-50 border-emerald-200',
+  speed_master: 'bg-blue-50 border-blue-200',
+  code_master: 'bg-orange-50 border-orange-200',
+};
+
+interface HallOfFameClientProps {
+  shareUser?: string | null;
+  rank?: string | null;
+  legendaryCount?: string | null;
+  level?: string | null;
+}
+
+export function HallOfFameClient({ shareUser, rank, legendaryCount, level }: HallOfFameClientProps) {
+  const [data, setData] = useState<HallOfFameData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [expandedUser, setExpandedUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchHallOfFame();
+  }, []);
+
+  const fetchHallOfFame = async () => {
+    try {
+      const res = await fetch('/api/leaderboard/hall-of-fame');
+      const result = await res.json();
+      if (result.status === 'success') setData(result.data);
+    } catch (error) {
+      console.error('Failed to fetch Hall of Fame:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getRankIcon = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return (
+          <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity }}>
+            <Crown className="w-9 h-9 text-yellow-500 drop-shadow-lg" />
+          </motion.div>
+        );
+      case 2: return <Trophy className="w-7 h-7 text-gray-400" />;
+      case 3: return <Trophy className="w-7 h-7 text-amber-600" />;
+      default:
+        return <span className="w-8 h-8 flex items-center justify-center text-gray-500 font-bold text-sm">#{rank}</span>;
+    }
+  };
+
+  const getRankBg = (rank: number) => {
+    switch (rank) {
+      case 1: return 'bg-gradient-to-r from-yellow-50 via-amber-50 to-yellow-50 border-yellow-300 shadow-lg';
+      case 2: return 'bg-gradient-to-r from-gray-50 to-slate-50 border-gray-200 shadow-sm';
+      case 3: return 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 shadow-sm';
+      default: return 'bg-white border-gray-100';
+    }
+  };
+
+  const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+  const formatDateTime = (dateStr: string) => new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+  const [copiedUserId, setCopiedUserId] = useState<string | null>(null);
+
+  const onShare = async (entry: HallOfFameEntry, e: React.MouseEvent) => { e.stopPropagation(); await handleShare(entry); };
+  const onCopy = (entry: HallOfFameEntry, e: React.MouseEvent) => { e.stopPropagation(); copyShareLink(entry); setCopiedUserId(entry.userId); setTimeout(() => setCopiedUserId(null), 2000); };
+  const onTwitter = (entry: HallOfFameEntry, e: React.MouseEvent) => { e.stopPropagation(); shareToTwitter(entry); };
+  const onWhatsApp = (entry: HallOfFameEntry, e: React.MouseEvent) => { e.stopPropagation(); shareToWhatsApp(entry); };
+  const onFacebook = (entry: HallOfFameEntry, e: React.MouseEvent) => { e.stopPropagation(); shareToFacebook(entry); };
+
+  // Highlight shared user if params provided
+  const sharedUserId = data?.hallOfFame?.find(e => e.name === shareUser && rank && e.rank === parseInt(rank))?.userId;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-5xl mx-auto px-4 py-8">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-gray-200 rounded w-1/3" />
+            <div className="h-48 bg-gray-100 rounded-2xl" />
+            {[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-gray-100 rounded-xl" />)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const topUser = data?.hallOfFame?.[0];
+
+  // Generate JSON-LD structured data for Google rich snippets
+  const jsonLd = data ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Hall of Fame — Los Usuarios Más Legendarios de Duobi-Jac',
+    description: 'Ranking de los usuarios más legendarios de la plataforma educativa Duobi-Jac, ordenados por logros legendarios desbloqueados.',
+    url: 'https://rxktk3y4.insforge.site/hall-of-fame',
+    numberOfItems: data.hallOfFame?.length || 0,
+    itemListElement: (data.hallOfFame || []).map((entry, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: entry.name,
+      description: `${entry.totalLegendaryCount} logros legendarios — Nivel ${entry.level}`,
+      url: `https://rxktk3y4.insforge.site/hall-of-fame#user-${entry.userId}`,
+    })),
+  } : null;
+
+
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {jsonLd && (<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />)}
+      {/* Simple public header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+              <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">D</span>
+            </div>
+            <span className="font-bold text-gray-800">Duobi-Jac</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/courses" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Cursos</Link>
+            <Link href="/login" className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full text-sm font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all">
+              Iniciar Sesión
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-4 py-8">
+        {/* Shared user highlight banner */}
+        {shareUser && rank && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl text-center">
+            <p className="text-amber-800 font-semibold">
+              🎉 <strong>{shareUser}</strong> está en el <strong>#{rank}</strong> del Hall of Fame con {legendaryCount || '?'} logros legendarios
+            </p>
+          </motion.div>
+        )}
+
+        {/* Title */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+          <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trophy className="w-8 h-8 text-white" /></div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 bg-clip-text text-transparent">
+            Hall of Fame
+          </h1>
+          <p className="text-gray-500 text-lg max-w-lg mx-auto">
+            Los usuarios más legendarios de la plataforma — desbloqueadores de logros épicos
+          </p>
+        </motion.div>
+
+        {/* Stats */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+          <Card className="text-center p-4 bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200">
+            <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-2"><Users className="w-6 h-6 text-yellow-600" /></div>
+            <div className="text-2xl font-bold text-yellow-800">{data?.totalLegendaryUsers || 0}</div>
+            <div className="text-xs text-yellow-600">Usuarios Legendarios</div>
+          </Card>
+          <Card className="text-center p-4 bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2"><Award className="w-6 h-6 text-purple-600" /></div>
+            <div className="text-2xl font-bold text-purple-800">{data?.totalLegendaryAchievements || 0}</div>
+            <div className="text-xs text-purple-600">Logros Legendarios</div>
+          </Card>
+          <Card className="text-center p-4 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 col-span-2 md:col-span-1">
+            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-2"><Flame className="w-6 h-6 text-amber-600" /></div>
+            <div className="text-2xl font-bold text-amber-800">5</div>
+            <div className="text-xs text-amber-600">Tipos de Logros</div>
+          </Card>
+        </motion.div>
+
+        {/* First Legend Spotlight */}
+        {topUser && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-8">
+            <Card className="overflow-hidden border-2 border-yellow-300 shadow-lg">
+              <div className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 px-6 py-3 text-white text-center">
+                <span className="font-bold flex items-center justify-center gap-2"><Crown className="w-5 h-5" /> Leyenda Más Emblemática <Crown className="w-5 h-5" /></span>
+              </div>
+              <CardContent className="p-6 text-center">
+                <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <Avatar className="w-24 h-24 mx-auto border-4 border-yellow-400 shadow-lg mb-3">
+                    <AvatarImage src={topUser.avatar || ''} />
+                    <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-amber-500 text-white text-4xl font-bold">{topUser.name.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </motion.div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-1">{topUser.name}</h3>
+                <p className="text-sm text-gray-500 mb-3">Nivel {topUser.level} • {topUser.xp.toLocaleString()} XP</p>
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200"><Flame className="w-3 h-3 mr-1" />{topUser.totalLegendaryCount} logros legendarios</Badge>
+                  <Badge className="bg-gray-100 text-gray-600 border-gray-200"><Calendar className="w-3 h-3 mr-1" />Desde {formatDate(topUser.firstLegendaryAt)}</Badge>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2 mt-4">
+                  {topUser.achievements.map((ach) => (
+                    <div key={ach.key} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium", ACHIEVEMENT_BG[ach.key] || 'bg-gray-50 border-gray-200')}>
+                      <span>{ach.icon}</span><span>{ach.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Full List */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <Card className="overflow-hidden">
+            <div className="bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 px-6 py-4 text-white">
+              <div className="flex items-center gap-2"><Trophy className="w-5 h-5" /><h2 className="font-bold text-lg">Hall of Fame — Ranking Legendario</h2></div>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {!data?.hallOfFame || data.hallOfFame.length === 0 ? (
+                <div className="px-6 py-16 text-center">
+                  <div className="text-7xl mb-4 grayscale opacity-50">🏛️</div>
+                  <h4 className="text-xl font-semibold text-gray-700 mb-2">Sé el primero en entrar al Hall of Fame</h4>
+                  <p className="text-gray-500 max-w-md mx-auto mb-6">Desbloquea un logro legendario para ganar tu lugar entre las leyendas de la plataforma</p>
+                  <Link href="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full font-semibold hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg">
+                    <Sparkles className="w-4 h-4" /> Crear Cuenta Gratis
+                  </Link>
+                </div>
+              ) : (
+                data.hallOfFame.map((entry, index) => {
+                  const isExpanded = expandedUser === entry.userId;
+                  const isSharedHighlight = entry.userId === sharedUserId;
+                  return (
+                    <motion.div key={entry.userId} initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: Math.min(0.5 + index * 0.05, 1.5) }}>
+                      <div className={cn("px-6 py-4 flex items-center gap-4 transition-all cursor-pointer hover:bg-gray-50/50", getRankBg(entry.rank), isSharedHighlight && "ring-2 ring-amber-400 ring-offset-2")} onClick={() => setExpandedUser(isExpanded ? null : entry.userId)}>
+                        <div className="w-12 flex justify-center">{getRankIcon(entry.rank)}</div>
+                        <Avatar className={cn("border-2", entry.rank === 1 ? "w-14 h-14 border-yellow-400 shadow-md" : "w-11 h-11 border-white")}>
+                          <AvatarImage src={entry.avatar || ''} />
+                          <AvatarFallback className={cn("text-white font-bold", entry.rank === 1 ? "bg-gradient-to-br from-yellow-400 to-amber-500 text-lg" : "bg-gradient-to-br from-amber-400 to-orange-500")}>{entry.name.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={cn("font-semibold truncate", entry.rank === 1 ? "text-amber-800 text-lg" : "text-gray-800")}>{entry.name}</span>
+                            {entry.rank === 1 && <Badge className="bg-yellow-100 text-yellow-700 text-xs border-yellow-200">👑 #1</Badge>}
+                            {isSharedHighlight && <Badge className="bg-amber-100 text-amber-700 text-xs border-amber-200 animate-pulse">🎉 Compartido</Badge>}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
+                            <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-500" />Nivel {entry.level}</span>
+                            <span>•</span><span>{entry.xp.toLocaleString()} XP</span>
+                            <span>•</span><span className="flex items-center gap-1"><Flame className="w-3 h-3 text-orange-500" />{entry.totalLegendaryCount} logro{entry.totalLegendaryCount > 1 ? 's' : ''}</span>
+                            <span>•</span><span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDate(entry.firstLegendaryAt)}</span>
+                          </div>
+                          <div className="flex items-center gap-1 mt-1.5">{entry.achievements.map((ach) => <span key={ach.key} className="text-sm" title={ach.title}>{ach.icon}</span>)}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={(e) => onShare(entry, e)} className="p-1.5 rounded-full hover:bg-amber-100 text-amber-600 transition-colors" title="Compartir en redes sociales">
+                            <Share2 className="w-4 h-4" />
+                          </button>
+                          <button onClick={(e) => onCopy(entry, e)} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 transition-colors" title="Copiar enlace">
+                            {copiedUserId === entry.userId ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                          <div className="text-gray-400 text-xs">{isExpanded ? '▲' : '▼'}</div>
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-gray-50 border-t border-gray-100">
+                          <div className="px-6 py-4 ml-16">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-sm font-semibold text-gray-600">Logros Legendarios Desbloqueados</h4>
+                              <div className="flex items-center gap-1">
+                                <button onClick={(e) => onTwitter(entry, e)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors text-xs font-medium">
+                                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                  Compartir en X
+                                </button>
+                                <button onClick={(e) => onWhatsApp(entry, e)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors text-xs font-medium">
+                                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                  WhatsApp
+                                </button>
+                                <button onClick={(e) => onFacebook(entry, e)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors text-xs font-medium">
+                                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                  Facebook
+                                </button>
+                              </div>
+                            </div>
+                            <div className="grid gap-2">
+                              {entry.achievements.map((ach) => (
+                                <div key={ach.key} className={cn("flex items-center justify-between p-3 rounded-xl border", ACHIEVEMENT_BG[ach.key] || 'bg-gray-50 border-gray-200')}>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-2xl">{ach.icon}</span>
+                                    <div><div className="font-semibold text-sm text-gray-800">{ach.title}</div><div className="text-xs text-gray-500">{ach.description}</div></div>
+                                  </div>
+                                  <div className="text-right"><div className="text-xs text-gray-400">{formatDateTime(ach.unlockedAt)}</div><div className="text-xs font-semibold text-purple-600">+{ach.xpReward} XP</div></div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  );
+                })
+              )}
+            </div>
+            <div className="px-6 py-4 bg-gradient-to-r from-yellow-50 to-amber-50 text-center border-t border-amber-100">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-amber-700 font-medium flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3" />Ordenados por número de logros legendarios<Sparkles className="w-3 h-3" />
+                </p>
+                <button onClick={() => shareHallOfFameGeneric()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold hover:from-amber-600 hover:to-orange-600 transition-all shadow-sm">
+                  <Share2 className="w-3 h-3" /> Compartir Hall of Fame
+                </button>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Achievement Legend */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-8">
+          <Card className="p-6">
+            <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2"><Award className="w-5 h-5 text-amber-500" />Leyenda de Logros Legendarios</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {data?.legendaryAchievements?.map((ach) => (
+                <div key={ach.key} className={cn("flex items-center gap-3 p-3 rounded-xl border", ACHIEVEMENT_BG[ach.key] || 'bg-gray-50 border-gray-200')}>
+                  <span className="text-2xl">{ach.icon}</span>
+                  <div className="flex-1 min-w-0"><div className="font-semibold text-sm text-gray-800">{ach.title}</div><div className="text-xs text-gray-500 truncate">{ach.description}</div></div>
+                  <div className="text-sm font-bold text-purple-600">+{ach.xpReward}</div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* CTA */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-8 text-center">
+          <Card className="p-8 bg-gradient-to-r from-blue-50 via-cyan-50 to-teal-50 border-blue-200">
+            <h3 className="text-xl font-bold text-gray-800 mb-2">¿Quieres unirte a las leyendas?</h3>
+            <p className="text-gray-500 mb-4">Comienza a aprender hoy y desbloquea logros legendarios para entrar en el Hall of Fame</p>
+            <Link href="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg">
+              Empezar Gratis <ArrowRight className="w-4 h-4" />
+            </Link>
+          </Card>
+        </motion.div>
+      </main>
+    </div>
+  );
+}
