@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Loader2, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { VideoUpload } from '@/components/video-upload';
 import { Input } from '@/components/ui/input';
 import { useClerkAPI } from '@/lib/clerk-api';
 
@@ -61,16 +62,21 @@ export function LessonModal({ isOpen, onClose, onSuccess, moduleId, lesson }: Le
     content: {} as ContentType,
     xpReward: 20,
     order: 0,
+    videoUrl: '',
+    videoTitle: '',
   });
 
   useEffect(() => {
     if (lesson) {
+      const content = typeof lesson.content === 'string' ? JSON.parse(lesson.content) : lesson.content;
       setFormData({
         title: lesson.title,
         type: lesson.type,
-        content: typeof lesson.content === 'string' ? JSON.parse(lesson.content) : lesson.content,
+        content,
         xpReward: lesson.xpReward,
         order: lesson.order,
+        videoUrl: content.videoUrl || '',
+        videoTitle: content.videoTitle || '',
       });
     } else {
       // Default content based on type
@@ -80,6 +86,8 @@ export function LessonModal({ isOpen, onClose, onSuccess, moduleId, lesson }: Le
         content: { question: '', options: ['', '', '', ''], correctIndex: 0 },
         xpReward: 20,
         order: 0,
+        videoUrl: '',
+        videoTitle: '',
       });
     }
   }, [lesson, isOpen]);
@@ -114,10 +122,18 @@ export function LessonModal({ isOpen, onClose, onSuccess, moduleId, lesson }: Le
     setLoading(true);
 
     try {
+      const videoFields = formData.videoUrl
+        ? { videoUrl: formData.videoUrl, videoTitle: formData.videoTitle }
+        : {};
+      const contentWithVideo = {
+        ...formData.content,
+        ...videoFields,
+      };
+
       const payload = {
         title: formData.title,
         type: formData.type,
-        content: formData.content,
+        content: contentWithVideo,
         xpReward: formData.xpReward,
         order: formData.order,
       };
@@ -383,6 +399,21 @@ export function LessonModal({ isOpen, onClose, onSuccess, moduleId, lesson }: Le
               value={formData.order}
               onChange={(e) => setFormData({ ...formData, order: Number(e.target.value) })}
             />
+          </div>
+
+          <div className="border-t pt-4">
+            <label className="block text-sm font-medium mb-2">Video de la lección (opcional)</label>
+            <VideoUpload
+              currentVideoUrl={formData.videoUrl}
+              onUploadComplete={(playbackId, videoUrl) => {
+                setFormData(prev => ({ ...prev, videoUrl, videoTitle: `Video ${playbackId}` }));
+              }}
+            />
+            {formData.videoUrl && (
+              <p className="text-xs text-gray-500 mt-1">
+                Video: {formData.videoUrl.split('/').pop()}
+              </p>
+            )}
           </div>
 
           <div className="border-t pt-4">
