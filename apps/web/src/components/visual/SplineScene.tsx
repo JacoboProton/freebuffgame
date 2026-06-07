@@ -14,6 +14,9 @@ interface SplineSceneProps {
   className?: string;
   style?: React.CSSProperties;
   fallback?: React.ReactNode;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  onMouseMove?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 function SplineLoader() {
@@ -153,6 +156,9 @@ export function SplineScene({
   className = '',
   style,
   fallback,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseMove,
 }: SplineSceneProps) {
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -179,7 +185,13 @@ export function SplineScene({
   // No scene URL provided — show animated fallback
   if (!scene || !scene.includes('spline.design')) {
     return (
-      <div className={`relative ${className}`} style={style}>
+      <div
+        className={`relative ${className}`}
+        style={style}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onMouseMove={onMouseMove}
+      >
         {fallback || <AnimatedFallback />}
       </div>
     );
@@ -188,14 +200,26 @@ export function SplineScene({
   // Error state — show fallback
   if (hasError) {
     return (
-      <div className={`relative ${className}`} style={style}>
+      <div
+        className={`relative ${className}`}
+        style={style}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onMouseMove={onMouseMove}
+      >
         {fallback || <AnimatedFallback />}
       </div>
     );
   }
 
   return (
-    <div className={`relative ${className}`} style={style}>
+    <div
+      className={`relative ${className}`}
+      style={style}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onMouseMove={onMouseMove}
+    >
       <AnimatePresence>
         {isLoading && (
           <motion.div
