@@ -12,6 +12,7 @@ import { JacMascot, ConfettiCelebration, XPPopup } from '@/components/jac-mascot
 import { useClerkAPIs } from '@/lib/clerk-api';
 import { useUserStore } from '@/stores/user-store';
 import { useToast, useLessonCompletion } from '@/components/ui/toast';
+import { MuxVideo } from '@/components/mux-video';
 
 interface LessonContent {
   question?: string;
@@ -19,6 +20,8 @@ interface LessonContent {
   correctIndex?: number;
   correctAnswer?: string;
   hint?: string;
+  videoUrl?: string;
+  videoTitle?: string;
 }
 
 interface Lesson {
@@ -309,6 +312,17 @@ export default function LessonPage() {
           transition={{ delay: 0.1 }}
         >
           <Card className="p-6 md:p-8 relative overflow-hidden">
+            {/* Video player */}
+            {lesson.content.videoUrl && (
+              <div className="mb-6">
+                <MuxVideo
+                  playbackId={lesson.content.videoUrl}
+                  title={lesson.content.videoTitle || lesson.title}
+                  className="rounded-xl"
+                />
+              </div>
+            )}
+
             {/* Type badge */}
             <div className="absolute top-4 right-4">
               <Badge variant="secondary" className="capitalize">
