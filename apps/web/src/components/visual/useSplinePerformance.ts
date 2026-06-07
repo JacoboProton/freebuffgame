@@ -18,6 +18,8 @@ interface UseSplinePerformanceOptions {
   trackFps?: boolean;
   trackMemory?: boolean;
   fpsSampleInterval?: number;
+  fpsThreshold?: number;
+  fpsAlertCooldownMs?: number;
 }
 
 const fpsHistory = new Map<string, number[]>();
@@ -36,6 +38,8 @@ export function useSplinePerformance(
     trackFps = true,
     trackMemory = true,
     fpsSampleInterval = 1000,
+    fpsThreshold = 30,
+    fpsAlertCooldownMs = 5000,
   } = options;
 
   const [metrics, setMetrics] = useState<SplinePerformanceMetrics>({
@@ -56,6 +60,8 @@ export function useSplinePerformance(
   const lastFrameTimeRef = useRef(performance.now());
   const rafIdRef = useRef<number | null>(null);
   const fpsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastAlertTimeRef = useRef<number>(0);
+  const alertCountRef = useRef(0);
 
   const startLoad = useCallback(() => {
     loadStartTime.current = performance.now();
@@ -116,6 +122,19 @@ export function useSplinePerformance(
       fpsHistory.set(sceneId, history);
 
       const avg = history.reduce((a, b) => a + b, 0) / history.length;
+
+      // FPS threshold alert
+      if (currentFps < fpsThreshold && currentFps > 0) {
+        const now = performance.now();
+        if (now - lastAlertTimeRef.current > fpsAlertCooldownMs) {
+          lastAlertTimeRef.current = now;
+          alertCountRef.current++;
+          const severity = currentFps < 15 ? '🔴 CRITICAL' : currentFps < 20 ? '🟠 LOW' : '🟡 WARN';
+          console.warn(
+            `[SplinePerf] ${severity} Scene "${sceneId}" FPS dropped to ${currentFps} (threshold: ${fpsThreshold}) - Alert #${alertCountRef.current}`
+          );
+        }
+      }
 
       setMetrics((prev) => ({
         ...prev,
