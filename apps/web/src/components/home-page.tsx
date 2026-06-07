@@ -56,6 +56,7 @@ export function HomePage() {
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [heroHovered, setHeroHovered] = useState(false);
+  const [coursesHovered, setCoursesHovered] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -261,17 +262,55 @@ export function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="flex justify-center mb-12"
-          >
-            <SplineTiltEffect tiltAmount={10} glareEnabled glareColor="rgba(16, 185, 129, 0.25)" scale={1.02}>
+          >              <SplineTiltEffect tiltAmount={10} glareEnabled glareColor="rgba(16, 185, 129, 0.25)" scale={1.02}>
               <SplineHoverEffect glowColor="rgba(16, 185, 129, 0.2)" glowIntensity={15}>
                 <div className="relative w-full max-w-lg h-64">
                   <SplineScene
                     scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
                     className="w-full h-full"
+                    onMouseEnter={() => setCoursesHovered(true)}
+                    onMouseLeave={() => setCoursesHovered(false)}
                   />
                 </div>
               </SplineHoverEffect>
             </SplineTiltEffect>
+            {/* Courses tooltip on hover */}
+            <AnimatePresence>
+              {coursesHovered && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="absolute -bottom-20 left-1/2 -translate-x-1/2 z-30"
+                >
+                  <div
+                    className="px-5 py-3 rounded-2xl shadow-lg border border-gray-100"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      backdropFilter: 'blur(12px)',
+                    }}
+                  >
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1.5 text-primary">
+                        <BookOpen className="w-4 h-4" />
+                        <span className="font-semibold">200+ Lecciones</span>
+                      </div>
+                      <div className="w-px h-4 bg-gray-200" />
+                      <div className="flex items-center gap-1.5 text-emerald-500">
+                        <Users className="w-4 h-4" />
+                        <span className="font-semibold">50K+ Estudiantes</span>
+                      </div>
+                      <div className="w-px h-4 bg-gray-200" />
+                      <div className="flex items-center gap-1.5 text-amber-500">
+                        <Star className="w-4 h-4" />
+                        <span className="font-semibold">15 Categorías</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           <div className="flex items-end justify-between mb-10">
