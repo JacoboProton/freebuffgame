@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Search, BookOpen, Users, Clock, TrendingUp, ChevronRight, CheckCircle2, Play, Crown, Code, Globe, Brain, DollarSign, ChefHat, Paintbrush, Megaphone, Wrench, Layers } from 'lucide-react';
+import { HerramientasIcon, MaterialesIcon, TecnicasIcon, ProyectosIcon, AvanzadasIcon } from '@/components/carpentry-icons';
 import { CoursePaymentModal } from '@/components/course-payment-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -50,6 +51,15 @@ const categoryConfig: Record<string, { icon: ElementType; color: string }> = {
   'Oficios': { icon: Wrench, color: 'from-orange-600/10 to-orange-700/5' },
   'default': { icon: Layers, color: 'from-primary/10 to-primary/5' },
 };
+
+// Carpentry module icons for course-carpinteria-pro
+const carpentryModuleIcons = [
+  { icon: HerramientasIcon, label: 'Herramientas' },
+  { icon: MaterialesIcon, label: 'Materiales' },
+  { icon: TecnicasIcon, label: 'Técnicas' },
+  { icon: ProyectosIcon, label: 'Proyectos' },
+  { icon: AvanzadasIcon, label: 'Avanzado' },
+];
 
 const difficultyConfig = {
   beginner: { label: 'Principiante', color: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
@@ -211,7 +221,18 @@ export default function CoursesPage() {
                   <Link href={`/learn/${course.id}`}>
                     <Card hoverable className={cn("p-0 overflow-hidden h-full flex flex-col group border border-gray-100 transition-all duration-300", enrolled && "ring-2 ring-primary/20")}>
                       <div className={cn("h-36 relative flex items-center justify-center bg-gradient-to-br p-6", catConfig.color)}>
-                        <CatIcon className="w-12 h-12 text-gray-300 group-hover:scale-110 transition-transform duration-300" />
+                        {course.id === 'course-carpinteria-pro' ? (
+                          <div className="flex items-center gap-1">
+                            {carpentryModuleIcons.map((mod, i) => (
+                              <div key={i} className="flex flex-col items-center gap-0.5 opacity-70 group-hover:opacity-100 transition-all duration-300" style={{ transitionDelay: `${i * 50}ms` }}>
+                                <mod.icon size={28} className="group-hover:scale-110 transition-transform duration-300" />
+                                <span className="text-[8px] text-gray-500 font-medium hidden sm:block">{mod.label}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <CatIcon className="w-12 h-12 text-gray-300 group-hover:scale-110 transition-transform duration-300" />
+                        )}
                         {enrolled && (<div className="absolute top-3 left-3"><Badge className="bg-primary text-white gap-1"><CheckCircle2 className="w-3 h-3" />Enrolled</Badge></div>)}
                         <div className="absolute top-3 right-3 flex gap-2">
                           {course.isPro && (<Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white gap-1 shadow-lg"><Crown className="w-3 h-3" />PRO</Badge>)}
