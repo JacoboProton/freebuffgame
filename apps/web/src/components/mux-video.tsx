@@ -9,6 +9,8 @@ interface MuxVideoProps {
   title?: string;
   className?: string;
   onReady?: () => void;
+  /** Player type: 'video' uses HLS via <video> tag (default), 'iframe' uses Mux's iframe embed */
+  playerType?: 'video' | 'iframe';
 }
 
 export function MuxVideo({
@@ -17,6 +19,7 @@ export function MuxVideo({
   title = '',
   className = '',
   onReady,
+  playerType = 'video',
 }: MuxVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,8 +58,29 @@ export function MuxVideo({
 
   if (!playbackId) return null;
 
-  const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
   const posterUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
+
+  // Iframe embed — no HLS, just an iframe pointing to Mux's player
+  if (playerType === 'iframe') {
+    const params = title
+      ? `?metadata-video-title=${encodeURIComponent(title)}&video-title=${encodeURIComponent(title)}`
+      : '';
+    const iframeSrc = `https://player.mux.com/${playbackId}${params}`;
+    return (
+      <div className={`relative rounded-xl overflow-hidden bg-black ${className}`} style={{ aspectRatio: '16/9' }}>
+        <iframe
+          src={iframeSrc}
+          style={{ width: '100%', height: '100%', border: 'none' }}
+          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+          allowFullScreen
+          onLoad={onReady}
+        />
+      </div>
+    );
+  }
+
+  // HLS video player via <video> tag
+  const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
 
   return (
     <div ref={containerRef} className={`relative rounded-xl overflow-hidden bg-black ${className}`}>
