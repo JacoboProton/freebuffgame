@@ -608,12 +608,13 @@ async function main() {
 
   // ══════════════════════════════════════════════════════
   // Actualizar horas del curso
-  // ══════════════════════════════════════════════════════      const totalLessons = 18 + 12 + 15 + 13 + 12 + 11 + 13 + 13;
+  // ══════════════════════════════════════════════════════
   await prisma.course.update({
     where: { id: course.id },
     data: { estimatedHours: 40 },
   });
 
+  const totalLessons = 18 + 12 + 15 + 13 + 12 + 11 + 13 + 13;
   console.log('');
   console.log('═══════════════════════════════════════════════');
   console.log(`¡Listo! Curso de Carpintería con 8 módulos y ${totalLessons} lecciones.`);
