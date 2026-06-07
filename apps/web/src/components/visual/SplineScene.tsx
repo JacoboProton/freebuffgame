@@ -166,6 +166,7 @@ export function SplineScene({
   const [isVisible, setIsVisible] = useState(priority);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [isDebug, setIsDebug] = useState(false);
   const { metrics, startLoad, endLoad, recordError, recordRender } = useSplinePerformance({ sceneId });
   const containerRef = useCallback((node: HTMLDivElement | null) => {
     if (!node || priority) return;
@@ -184,6 +185,9 @@ export function SplineScene({
 
   useEffect(() => {
     setMounted(true);
+    if (typeof window !== 'undefined' && window.location.search.includes('debug')) {
+      setIsDebug(true);
+    }
   }, []);
 
   // Start load timer when scene becomes visible
@@ -262,7 +266,7 @@ export function SplineScene({
         )}
       </AnimatePresence>
       {isVisible && <Spline scene={scene} onLoad={handleLoad} onError={handleError} />}
-      {showPerformance && process.env.NODE_ENV === 'development' && <SplinePerformanceMonitor metrics={metrics} sceneId={sceneId} />}
+      {showPerformance && (process.env.NODE_ENV === 'development' || isDebug) && <SplinePerformanceMonitor metrics={metrics} sceneId={sceneId} />}
     </div>
   );
 }
