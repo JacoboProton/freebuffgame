@@ -54,11 +54,11 @@ const categoryConfig: Record<string, { icon: ElementType; color: string }> = {
 
 // Carpentry module icons for course-carpinteria-pro
 const carpentryModuleIcons = [
-  { icon: HerramientasIcon, label: 'Herramientas' },
-  { icon: MaterialesIcon, label: 'Materiales' },
-  { icon: TecnicasIcon, label: 'Técnicas' },
-  { icon: ProyectosIcon, label: 'Proyectos' },
-  { icon: AvanzadasIcon, label: 'Avanzado' },
+  { icon: HerramientasIcon, label: 'Herramientas Básicas', lessons: 8 },
+  { icon: MaterialesIcon, label: 'Materiales de Madera', lessons: 7 },
+  { icon: TecnicasIcon, label: 'Técnicas de Corte', lessons: 8 },
+  { icon: ProyectosIcon, label: 'Proyectos Prácticos', lessons: 7 },
+  { icon: AvanzadasIcon, label: 'Técnicas Avanzadas', lessons: 8 },
 ];
 
 const difficultyConfig = {
@@ -224,9 +224,17 @@ export default function CoursesPage() {
                         {course.id === 'course-carpinteria-pro' ? (
                           <div className="flex items-center gap-1">
                             {carpentryModuleIcons.map((mod, i) => (
-                              <div key={i} className="flex flex-col items-center gap-0.5 opacity-70 group-hover:opacity-100 transition-all duration-300" style={{ transitionDelay: `${i * 50}ms` }}>
-                                <mod.icon size={28} className="group-hover:scale-110 transition-transform duration-300" />
-                                <span className="text-[8px] text-gray-500 font-medium hidden sm:block">{mod.label}</span>
+                              <div key={i} className="relative group/icon">
+                                <div className="flex flex-col items-center gap-0.5 opacity-70 group-hover:opacity-100 transition-all duration-300" style={{ transitionDelay: `${i * 50}ms` }}>
+                                  <mod.icon size={28} className="group-hover/icon:scale-110 transition-transform duration-300" />
+                                  <span className="text-[8px] text-gray-500 font-medium hidden sm:block">{mod.label.split(' ')[0]}</span>
+                                </div>
+                                {/* Tooltip */}
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover/icon:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                                  <div className="font-semibold">{mod.label}</div>
+                                  <div className="text-gray-300 text-[10px]">{mod.lessons} lecciones</div>
+                                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+                                </div>
                               </div>
                             ))}
                           </div>
