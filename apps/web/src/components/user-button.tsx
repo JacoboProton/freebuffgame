@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { NotificationsBell } from './notifications-bell';
+import { SoundToggle } from './sound-toggle';
 
 export function UserButtonWithData() {
   const { isSignedIn, user, isLoaded } = useUser();
@@ -25,6 +26,7 @@ export function UserButtonWithData() {
 
   return (
     <div className='flex items-center gap-3'>
+      <SoundToggle />
       <NotificationsBell />
       <Badge variant='secondary' className='gap-1'>
         <Zap className='w-4 h-4 text-yellow-500' />
