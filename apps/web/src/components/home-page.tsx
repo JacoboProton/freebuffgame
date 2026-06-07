@@ -223,6 +223,8 @@ export function HomePage() {
                         className="w-full aspect-square"
                         onMouseEnter={() => { setHeroHovered(true); playSound('hover'); }}
                         onMouseLeave={() => setHeroHovered(false)}
+                        showPerformance
+                        sceneId="hero"
                       />
                     </div>
                   </SplineHoverEffect>
@@ -274,6 +276,8 @@ export function HomePage() {
                     className="w-full h-full"
                     onMouseEnter={() => { setCoursesHovered(true); playSound('hover'); }}
                     onMouseLeave={() => setCoursesHovered(false)}
+                    showPerformance
+                    sceneId="courses"
                   />
                 </div>
               </SplineHoverEffect>

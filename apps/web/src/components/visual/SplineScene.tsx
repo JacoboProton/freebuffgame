@@ -3,6 +3,8 @@
 import dynamic from 'next/dynamic';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSplinePerformance } from './useSplinePerformance';
+import { SplinePerformanceMonitor } from './SplinePerformanceMonitor';
 
 const Spline = dynamic(() => import('@splinetool/react-spline'), {
   ssr: false,
@@ -19,6 +21,8 @@ interface SplineSceneProps {
   onMouseMove?: (e: React.MouseEvent<HTMLDivElement>) => void;
   priority?: boolean;
   rootMargin?: string;
+  showPerformance?: boolean;
+  sceneId?: string;
 }
 
 import { SplineSkeleton } from './SplineSkeleton';
@@ -155,11 +159,14 @@ export function SplineScene({
   onMouseMove,
   priority = false,
   rootMargin = '200px',
+  showPerformance = false,
+  sceneId = 'scene',
 }: SplineSceneProps) {
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(priority);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const { metrics, startLoad, endLoad, recordError, recordRender } = useSplinePerformance({ sceneId });
   const containerRef = useCallback((node: HTMLDivElement | null) => {
     if (!node || priority) return;
     const observer = new IntersectionObserver(
@@ -179,14 +186,24 @@ export function SplineScene({
     setMounted(true);
   }, []);
 
+  // Start load timer when scene becomes visible
+  useEffect(() => {
+    if (isVisible && !hasError) {
+      startLoad();
+    }
+  }, [isVisible, hasError, startLoad]);
+
   const handleLoad = useCallback(() => {
     setIsLoading(false);
-  }, []);
+    endLoad();
+    recordRender();
+  }, [endLoad, recordRender]);
 
   const handleError = useCallback(() => {
     setHasError(true);
     setIsLoading(false);
-  }, []);
+    recordError();
+  }, [recordError]);
 
   // Don't render anything on server
   if (!mounted) {
@@ -245,6 +262,7 @@ export function SplineScene({
         )}
       </AnimatePresence>
       {isVisible && <Spline scene={scene} onLoad={handleLoad} onError={handleError} />}
+      {showPerformance && process.env.NODE_ENV === 'development' && <SplinePerformanceMonitor metrics={metrics} sceneId={sceneId} />}
     </div>
   );
 }
