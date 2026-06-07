@@ -231,6 +231,21 @@ export function HomePage() {
       {/* Featured Courses */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4">
+          {/* 3D Spline scene above courses */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex justify-center mb-12"
+          >
+            <div className="relative w-full max-w-lg h-64">
+              <SplineScene
+                scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
+                className="w-full h-full"
+              />
+            </div>
+          </motion.div>
+
           <div className="flex items-end justify-between mb-10">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-1">Cursos Destacados</h2>
