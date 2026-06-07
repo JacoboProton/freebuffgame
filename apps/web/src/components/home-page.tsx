@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Trophy, Users, BookOpen, ChevronRight, Flame, Star, TrendingUp, ArrowRight, Sparkles } from 'lucide-react';
+import { Zap, Trophy, Users, BookOpen, ChevronRight, Flame, Star, TrendingUp, ArrowRight, Sparkles, Settings } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,6 +17,8 @@ import { SplineTiltEffect } from '@/components/visual/SplineTiltEffect';
 import { Spline3DTooltip } from '@/components/visual/Spline3DTooltip';
 import { useSplineSound } from '@/components/visual/useSplineSound';
 import { SplineOnboarding } from '@/components/visual/SplineOnboarding';
+import { useSplinePreferences } from '@/components/visual/useSplinePreferences';
+import { SplinePreferencesPanel } from '@/components/visual/SplinePreferencesPanel';
 
 interface FeaturedCourse {
   id: string;
@@ -59,7 +61,9 @@ export function HomePage() {
   const [mounted, setMounted] = useState(false);
   const [heroHovered, setHeroHovered] = useState(false);
   const [coursesHovered, setCoursesHovered] = useState(false);
-  const { play: playSound } = useSplineSound();
+  const prefs = useSplinePreferences();
+  const { play: playSound } = useSplineSound({ enabled: prefs.soundEnabled, volume: prefs.soundVolume });
+  const [prefsOpen, setPrefsOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -102,7 +106,23 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SplineOnboarding />
+      <SplinePreferencesPanel isOpen={prefsOpen} onClose={() => setPrefsOpen(false)} />
+      {/* Settings FAB */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1, type: 'spring' }}
+        onClick={() => setPrefsOpen(!prefsOpen)}
+        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200"
+        style={{
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 255, 255, 0.5)',
+        }}
+        title="Preferencias 3D"
+      >
+        <Settings className={`w-5 h-5 text-gray-600 transition-transform duration-300 ${prefsOpen ? 'rotate-90' : ''}`} />
+      </motion.button>
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Gradient mesh background */}
@@ -215,13 +235,13 @@ export function HomePage() {
             >
               <div className="relative w-full max-w-md aspect-square">
                 <div className="absolute inset-8 bg-gradient-to-br from-primary/20 via-emerald-400/10 to-secondary/15 rounded-full blur-2xl" />
-                <SplineTiltEffect tiltAmount={12} glareEnabled glareColor="rgba(34, 197, 94, 0.3)" scale={1.03}>
-                  <SplineHoverEffect glowColor="rgba(34, 197, 94, 0.25)" glowIntensity={25}>
+                <SplineTiltEffect tiltAmount={prefs.tiltEnabled ? prefs.tiltAmount : 0} glareEnabled={prefs.glareEnabled} glareColor={prefs.glareColor} scale={prefs.reducedMotion ? 1 : prefs.hoverScale}>
+                  <SplineHoverEffect glowColor={prefs.glareColor} glowIntensity={25} scale={prefs.reducedMotion ? 1 : 1}>
                     <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shadow-sm">
                       <SplineScene
                         scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
                         className="w-full aspect-square"
-                        onMouseEnter={() => { setHeroHovered(true); playSound('hover'); }}
+                        onMouseEnter={() => { setHeroHovered(true); if (prefs.soundEnabled) playSound('hover'); }}
                         onMouseLeave={() => setHeroHovered(false)}
                         showPerformance
                         sceneId="hero"
@@ -268,13 +288,13 @@ export function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="flex justify-center mb-12"
-          >              <SplineTiltEffect tiltAmount={10} glareEnabled glareColor="rgba(16, 185, 129, 0.25)" scale={1.02}>
-              <SplineHoverEffect glowColor="rgba(16, 185, 129, 0.2)" glowIntensity={15}>
+          >              <SplineTiltEffect tiltAmount={prefs.tiltEnabled ? prefs.tiltAmount * 0.8 : 0} glareEnabled={prefs.glareEnabled} glareColor={prefs.glareColor} scale={prefs.reducedMotion ? 1 : prefs.hoverScale * 0.97}>
+              <SplineHoverEffect glowColor={prefs.glareColor} glowIntensity={15} scale={prefs.reducedMotion ? 1 : 1}>
                 <div className="relative w-full max-w-lg h-64">
                   <SplineScene
                     scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
                     className="w-full h-full"
-                    onMouseEnter={() => { setCoursesHovered(true); playSound('hover'); }}
+                    onMouseEnter={() => { setCoursesHovered(true); if (prefs.soundEnabled) playSound('hover'); }}
                     onMouseLeave={() => setCoursesHovered(false)}
                     showPerformance
                     sceneId="courses"
