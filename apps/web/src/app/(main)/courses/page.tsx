@@ -218,7 +218,7 @@ export default function CoursesPage() {
 
               return (
                 <motion.div key={course.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}>
-                  <Link href={`/learn/${course.id}`}>
+                  <Link href={`/courses/${course.id}`}>
                     <Card hoverable className={cn("p-0 overflow-hidden h-full flex flex-col group border border-gray-100 transition-all duration-300", enrolled && "ring-2 ring-primary/20")}>
                       <div className={cn("h-36 relative flex items-center justify-center bg-gradient-to-br p-6", catConfig.color)}>
                         {course.id === 'course-carpinteria-pro' ? (
