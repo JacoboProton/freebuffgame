@@ -15,6 +15,7 @@ import { SplineScene } from '@/components/visual/SplineScene';
 import { SplineHoverEffect } from '@/components/visual/SplineHoverEffect';
 import { SplineTiltEffect } from '@/components/visual/SplineTiltEffect';
 import { Spline3DTooltip } from '@/components/visual/Spline3DTooltip';
+import { useSplineSound } from '@/components/visual/useSplineSound';
 
 interface FeaturedCourse {
   id: string;
@@ -57,6 +58,7 @@ export function HomePage() {
   const [mounted, setMounted] = useState(false);
   const [heroHovered, setHeroHovered] = useState(false);
   const [coursesHovered, setCoursesHovered] = useState(false);
+  const { play: playSound } = useSplineSound();
 
   useEffect(() => {
     setMounted(true);
@@ -217,7 +219,7 @@ export function HomePage() {
                       <SplineScene
                         scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
                         className="w-full aspect-square"
-                        onMouseEnter={() => setHeroHovered(true)}
+                        onMouseEnter={() => { setHeroHovered(true); playSound('hover'); }}
                         onMouseLeave={() => setHeroHovered(false)}
                       />
                     </div>
@@ -268,7 +270,7 @@ export function HomePage() {
                   <SplineScene
                     scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
                     className="w-full h-full"
-                    onMouseEnter={() => setCoursesHovered(true)}
+                    onMouseEnter={() => { setCoursesHovered(true); playSound('hover'); }}
                     onMouseLeave={() => setCoursesHovered(false)}
                   />
                 </div>
