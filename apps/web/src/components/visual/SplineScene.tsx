@@ -17,6 +17,8 @@ interface SplineSceneProps {
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   onMouseMove?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  priority?: boolean;
+  rootMargin?: string;
 }
 
 import { SplineSkeleton } from './SplineSkeleton';
@@ -151,10 +153,27 @@ export function SplineScene({
   onMouseEnter,
   onMouseLeave,
   onMouseMove,
+  priority = false,
+  rootMargin = '200px',
 }: SplineSceneProps) {
   const [mounted, setMounted] = useState(false);
+  const [isVisible, setIsVisible] = useState(priority);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const containerRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node || priority) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [priority, rootMargin]);
 
   useEffect(() => {
     setMounted(true);
@@ -206,6 +225,7 @@ export function SplineScene({
 
   return (
     <div
+      ref={containerRef}
       className={`relative ${className}`}
       style={style}
       onMouseEnter={onMouseEnter}
@@ -213,7 +233,7 @@ export function SplineScene({
       onMouseMove={onMouseMove}
     >
       <AnimatePresence>
-        {isLoading && (
+        {isLoading && isVisible && (
           <motion.div
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -224,7 +244,7 @@ export function SplineScene({
           </motion.div>
         )}
       </AnimatePresence>
-      <Spline scene={scene} onLoad={handleLoad} onError={handleError} />
+      {isVisible && <Spline scene={scene} onLoad={handleLoad} onError={handleError} />}
     </div>
   );
 }
