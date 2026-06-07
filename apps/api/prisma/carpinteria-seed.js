@@ -33,7 +33,13 @@ async function main() {
     data: [
       {
         id: 'lesson-carp-1', moduleId: mod1.id, title: 'El Martillo', type: 'multiple_choice', order: 1, xpReward: 20,
-        content: JSON.stringify({ question: '¿Para qué se usa un martillo de carpintero?', options: ['Cortar madera', 'Golpear clavos y piezas', 'Medir dimensiones', 'Lijar superficies'], correctIndex: 1 }),
+        content: JSON.stringify({
+          question: '¿Para qué se usa un martillo de carpintero?',
+          options: ['Cortar madera', 'Golpear clavos y piezas', 'Medir dimensiones', 'Lijar superficies'],
+          correctIndex: 1,
+          videoUrl: 'https://stream.mux.com/JAvSKKI4A7g9012e0000kqkV5P1DsKMVBMEdi201UosVxQA.m3u8',
+          videoTitle: 'El Martillo - Introducción',
+        }),
       },
       {
         id: 'lesson-carp-2', moduleId: mod1.id, title: 'El Serrucho', type: 'true_false', order: 2, xpReward: 15,
@@ -76,7 +82,13 @@ async function main() {
     data: [
       {
         id: 'lesson-carp-9', moduleId: mod2.id, title: 'Tipos de Madera', type: 'multiple_choice', order: 1, xpReward: 20,
-        content: JSON.stringify({ question: '¿Cuál de estas es una madera dura?', options: ['Pino', 'Roble', 'Cedro', 'Álamo'], correctIndex: 1 }),
+        content: JSON.stringify({
+          question: '¿Cuál de estas es una madera dura?',
+          options: ['Pino', 'Roble', 'Cedro', 'Álamo'],
+          correctIndex: 1,
+          videoUrl: 'https://stream.mux.com/JAvSKKI4A7g9012e0000kqkV5P1DsKMVBMEdi201UosVxQA.m3u8',
+          videoTitle: 'Tipos de Madera',
+        }),
       },
       {
         id: 'lesson-carp-10', moduleId: mod2.id, title: 'Madera Contrachapada', type: 'multiple_choice', order: 2, xpReward: 20,
