@@ -12,6 +12,7 @@ import { ProgressBar } from '@/components/ui/progress';
 import { useUserStore, calculateLevel, xpToNextLevel, progressToNextLevel } from '@/stores/user-store';
 import { coursesAPI } from '@/lib/api-client';
 import { SplineScene } from '@/components/visual/SplineScene';
+import { SplineHoverEffect } from '@/components/visual/SplineHoverEffect';
 
 interface FeaturedCourse {
   id: string;
@@ -206,9 +207,11 @@ export function HomePage() {
             >
               <div className="relative w-full max-w-md aspect-square">
                 <div className="absolute inset-8 bg-gradient-to-br from-primary/20 via-emerald-400/10 to-secondary/15 rounded-full blur-2xl" />
-                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shadow-sm">
-                  <SplineScene scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/" className="w-full aspect-square" />
-                </div>
+                <SplineHoverEffect scale={1.03} glowColor="rgba(34, 197, 94, 0.25)" glowIntensity={25}>
+                  <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shadow-sm">
+                    <SplineScene scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/" className="w-full aspect-square" />
+                  </div>
+                </SplineHoverEffect>
                 {isSignedIn && stats && (
                   <motion.div
                     initial={{ scale: 0 }}
@@ -238,12 +241,14 @@ export function HomePage() {
             viewport={{ once: true }}
             className="flex justify-center mb-12"
           >
-            <div className="relative w-full max-w-lg h-64">
-              <SplineScene
-                scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
-                className="w-full h-full"
-              />
-            </div>
+            <SplineHoverEffect scale={1.02} glowColor="rgba(16, 185, 129, 0.2)" glowIntensity={15}>
+              <div className="relative w-full max-w-lg h-64">
+                <SplineScene
+                  scene="https://my.spline.design/3ddesigntextcopycopy-h9G3IVhzqKXyfwE41VP5fPBr-yd3/"
+                  className="w-full h-full"
+                />
+              </div>
+            </SplineHoverEffect>
           </motion.div>
 
           <div className="flex items-end justify-between mb-10">
