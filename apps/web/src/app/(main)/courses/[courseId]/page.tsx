@@ -13,6 +13,7 @@ import { useClerkAPIs } from '@/lib/clerk-api';
 import { useUser } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { HerramientasIcon, MaterialesIcon, TecnicasIcon, ProyectosIcon, AvanzadasIcon } from '@/components/carpentry-icons';
+import { CourseReviews } from '@/components/course-reviews';
 
 interface Module {
   id: string;
@@ -222,8 +223,8 @@ export default function CourseDetailPage() {
         </motion.div>
 
         {/* Modules Grid */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Módulos del Curso</h2>
+        <div className="mb-8">                <h2 className="text-xl font-bold text-gray-900 mb-6">Módulos del Curso</h2>
+          <p className="text-sm text-gray-400 mb-6">{course.modules?.length || 0} módulos · {totalLessons} lecciones · {course.estimatedHours}h de contenido</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {(course.modules || [])
               .slice()
@@ -324,6 +325,82 @@ export default function CourseDetailPage() {
                 );
               })}
           </div>
+        </div>
+
+        {/* Course Overview & Instructor Info */}
+        <div className="mb-8">
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* What you'll learn */}
+            <div className="md:col-span-2">
+              <Card className="p-6">
+                <h3 className="font-bold text-gray-900 mb-4">¿Qué aprenderás?</h3>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {[
+                    'Fundamentos y conceptos esenciales',
+                    'Técnicas prácticas y ejercicios',
+                    'Proyectos reales para tu portafolio',
+                    'Mejores prácticas de la industria',
+                    'Herramientas y recursos recomendados',
+                    'Certificado de completación',
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                      <span className="text-sm text-gray-600">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+
+            {/* Course Info Card */}
+            <div>
+              <Card className="p-6">
+                <h3 className="font-bold text-gray-900 mb-4">Información del Curso</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Duración</span>
+                    <span className="font-medium">{course.estimatedHours} horas</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Nivel</span>
+                    <Badge className={difficulty.color} variant="secondary">{difficulty.label}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Módulos</span>
+                    <span className="font-medium">{course.modules?.length || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Lecciones</span>
+                    <span className="font-medium">{totalLessons}</span>
+                  </div>
+                  {course.isPro && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Precio</span>
+                      <span className="font-bold text-primary">${((course.price || 0) / 100).toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary to-emerald-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">DJ</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">Duobi-Jac</p>
+                      <p className="text-xs text-gray-400">Instructor</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Reseñas del Curso</h2>
+          <CourseReviews courseId={courseId} isEnrolled={enrolled} />
         </div>
       </main>
     </div>
