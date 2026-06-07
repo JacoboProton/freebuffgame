@@ -23,6 +23,7 @@ import { weeklyLeaderboardRouter } from './routes/weekly-leaderboard.js';
 import { instructorsRouter } from './routes/instructors.js';
 import { adminVerifyRouter } from './routes/admin-verify.js';
 import { inngestRouter } from './routes/inngest.js';
+import { videoRouter } from './routes/video.js';
 import { errorHandler } from './middlewares/error.js';
 import { startCronService, triggerDailyEmails } from './services/cron.js';
 
@@ -105,6 +106,7 @@ app.use('/api/weekly-leaderboard', weeklyLeaderboardRouter);
 app.use('/api/instructors', instructorsRouter);
 app.use('/api/admin-auth', adminVerifyRouter);
 app.use('/api/inngest', inngestRouter);
+app.use('/api/video', videoRouter);
 
 // Error handler
 app.use(errorHandler);
