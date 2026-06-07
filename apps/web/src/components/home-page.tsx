@@ -16,6 +16,7 @@ import { SplineHoverEffect } from '@/components/visual/SplineHoverEffect';
 import { SplineTiltEffect } from '@/components/visual/SplineTiltEffect';
 import { Spline3DTooltip } from '@/components/visual/Spline3DTooltip';
 import { useSplineSound } from '@/components/visual/useSplineSound';
+import { SplineOnboarding } from '@/components/visual/SplineOnboarding';
 
 interface FeaturedCourse {
   id: string;
@@ -101,6 +102,7 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SplineOnboarding />
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Gradient mesh background */}
