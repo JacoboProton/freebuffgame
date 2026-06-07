@@ -506,8 +506,16 @@ export function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-12 text-center"
           >
+            <BeamCard
+              dark
+              beamColor="#22c55e"
+              corner="all"
+              variant="gradient-sweep"
+              duration={6}
+              glowIntensity="medium"
+              className="p-12 text-center"
+            >
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full blur-3xl" />
@@ -528,6 +536,7 @@ export function HomePage() {
                 </Link>
               )}
             </div>
+            </BeamCard>
           </motion.div>
         </div>
       </section>

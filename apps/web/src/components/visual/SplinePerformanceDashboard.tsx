@@ -90,14 +90,14 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="p-4 rounded-2xl bg-white border border-gray-100 shadow-sm">
+    <div className="p-4 rounded-2xl bg-gray-900/60 border border-gray-800 shadow-sm backdrop-blur-sm">
       <div className="flex items-center gap-3 mb-2">
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>
           {icon}
         </div>
-        <span className="text-sm font-medium text-gray-500">{label}</span>
+        <span className="text-sm font-medium text-gray-400">{label}</span>
       </div>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
+      <div className="text-2xl font-bold text-white">{value}</div>
     </div>
   );
 }
@@ -134,26 +134,25 @@ export function SplinePerformanceDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <div>              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-primary" />
             Performance Dashboard
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             Monitoreo de rendimiento de escenas 3D Spline en tiempo real
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleExport}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors"
           >
             <Download className="w-4 h-4" />
             Exportar JSON
           </button>
           <button
             onClick={clearHistory}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-rose-400 bg-rose-950 hover:bg-rose-900 rounded-xl transition-colors"
           >
             <Trash2 className="w-4 h-4" />
             Limpiar
@@ -195,9 +194,8 @@ export function SplinePerformanceDashboard() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 p-4 rounded-2xl bg-rose-50 border border-rose-200"
-        >
-          <AlertTriangle className="w-5 h-5 text-rose-500" />
-          <span className="text-sm font-medium text-rose-700">
+        >              <AlertTriangle className="w-5 h-5 text-rose-400" />
+          <span className="text-sm font-medium text-rose-300">
             {totalErrors} error{totalErrors > 1 ? 'es' : ''} detectado{totalErrors > 1 ? 's' : ''} en las escenas 3D
           </span>
         </motion.div>
@@ -206,10 +204,10 @@ export function SplinePerformanceDashboard() {
       {/* Scene cards */}
       {summaries.length === 0 ? (
         <div className="text-center py-16">
-          <BarChart3 className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-400 mb-2">Sin datos aún</h3>
-          <p className="text-sm text-gray-300 max-w-md mx-auto">
-            Navega a la página principal con <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">?debug</code> en la URL para comenzar a recopilar métricas de rendimiento.
+          <BarChart3 className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-500 mb-2">Sin datos aún</h3>
+          <p className="text-sm text-gray-600 max-w-md mx-auto">
+            Navega a la página principal con <code className="bg-gray-800 px-1.5 py-0.5 rounded text-xs text-gray-300">?debug</code> en la URL para comenzar a recopilar métricas de rendimiento.
           </p>
         </div>
       ) : (
@@ -223,15 +221,15 @@ export function SplinePerformanceDashboard() {
                 key={summary.sceneId}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                className="rounded-2xl border border-gray-800 bg-gray-900/60 shadow-sm overflow-hidden backdrop-blur-sm"
               >
                 {/* Scene header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
                   <div className="flex items-center gap-3">
                     <Layers className="w-5 h-5 text-primary" />
                     <div>
-                      <h3 className="font-bold text-gray-900">{summary.sceneId}</h3>
-                      <span className="text-xs text-gray-400">
+                      <h3 className="font-bold text-white">{summary.sceneId}</h3>
+                      <span className="text-xs text-gray-500">
                         {summary.snapshots.length} muestras · {summary.totalRenders} renders
                       </span>
                     </div>
@@ -242,7 +240,7 @@ export function SplinePerformanceDashboard() {
                       <div className={`text-2xl font-bold font-mono ${getFpsColor(latest?.fps ?? 0)}`}>
                         {latest?.fps ?? 0}
                       </div>
-                      <div className="text-[10px] text-gray-400">FPS actual</div>
+                      <div className="text-[10px] text-gray-500">FPS actual</div>
                     </div>
                   </div>
                 </div>
@@ -250,25 +248,25 @@ export function SplinePerformanceDashboard() {
                 {/* Metrics grid */}
                 <div className="px-5 py-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
-                    <div className="text-xs text-gray-400 mb-1">FPS Promedio</div>
+                    <div className="text-xs text-gray-500 mb-1">FPS Promedio</div>
                     <div className={`text-lg font-bold font-mono ${getFpsColor(summary.avgFps)}`}>
                       {summary.avgFps}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-400 mb-1">Carga Promedio</div>
+                    <div className="text-xs text-gray-500 mb-1">Carga Promedio</div>
                     <div className={`text-lg font-bold font-mono ${getLoadTimeColor(summary.avgLoadTime)}`}>
                       {summary.avgLoadTime !== null ? `${summary.avgLoadTime}ms` : '—'}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-400 mb-1">Pico Memoria</div>
+                    <div className="text-xs text-gray-500 mb-1">Pico Memoria</div>
                     <div className="text-lg font-bold font-mono text-purple-500">
                       {summary.peakMemory !== null ? `${summary.peakMemory}MB` : '—'}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-400 mb-1">Errores</div>
+                    <div className="text-xs text-gray-500 mb-1">Errores</div>
                     <div className={`text-lg font-bold font-mono ${summary.totalErrors > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
                       {summary.totalErrors}
                     </div>
@@ -277,12 +275,12 @@ export function SplinePerformanceDashboard() {
 
                 {/* FPS chart */}
                 <div className="px-5 pb-4">
-                  <div className="text-xs text-gray-400 mb-2">FPS (últimas {fpsData.length} muestras)</div>
-                  <div className="p-3 rounded-xl bg-gray-50">
+                  <div className="text-xs text-gray-500 mb-2">FPS (últimas {fpsData.length} muestras)</div>
+                  <div className="p-3 rounded-xl bg-gray-800/50">
                     <MiniFpsChart data={fpsData} height={50} />
                     <div className="flex justify-between mt-1">
-                      <span className="text-[9px] text-gray-300">-30s</span>
-                      <span className="text-[9px] text-gray-300">ahora</span>
+                      <span className="text-[9px] text-gray-600">-30s</span>
+                      <span className="text-[9px] text-gray-600">ahora</span>
                     </div>
                   </div>
                 </div>

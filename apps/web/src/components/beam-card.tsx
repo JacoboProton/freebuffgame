@@ -15,6 +15,7 @@ interface BeamCardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'single' | 'dual' | 'gradient-sweep' | 'rainbow' | 'pulse';
   duration?: number;
   glowIntensity?: 'none' | 'low' | 'medium' | 'high';
+  dark?: boolean;
 }
 
 function BeamCard({
@@ -23,6 +24,7 @@ function BeamCard({
   variant = 'single',
   duration = 4,
   glowIntensity = 'low',
+  dark = false,
   className,
   children,
   ...props
@@ -34,7 +36,7 @@ function BeamCard({
       variant={variant}
       duration={duration}
       glowIntensity={glowIntensity}
-      bgColor="white"
+      bgColor={dark ? '#111827' : 'white'}
       className={cn('rounded-xl', className)}
       {...props}
     >
