@@ -105,15 +105,12 @@ export default function CourseDetailPage() {
           if (purchases.some((p: any) => p.courseId === courseId)) {
             setPurchased(true);
           }
-        } catch { /* continue */ }
-        try {
           const enrollmentsResponse = await coursesAPI.getEnrollments();
           const enrollments = enrollmentsResponse.enrollments || [];
           const isEnrolled = enrollments.some((e: any) => e.courseId === courseId);
           setEnrolled(isEnrolled);
 
           if (isEnrolled) {
-            // Fetch current lesson to get progress data including completed lesson IDs
             const currentResponse = await coursesAPI.getCurrentLesson(courseId).catch(() => null) as any;
             if (currentResponse?.completedLessonIds) {
               setCompletedLessonIds(new Set(currentResponse.completedLessonIds));
