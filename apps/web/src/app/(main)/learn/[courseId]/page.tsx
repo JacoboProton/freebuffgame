@@ -13,6 +13,7 @@ import { useClerkAPIs } from '@/lib/clerk-api';
 import { useUserStore } from '@/stores/user-store';
 import { useToast, useLessonCompletion } from '@/components/ui/toast';
 import { MuxVideo } from '@/components/mux-video';
+import { extractPlaybackId } from '@/lib/utils';
 
 interface LessonContent {
   question?: string;
@@ -316,7 +317,7 @@ export default function LessonPage() {
             {lesson.content.videoUrl && (
               <div className="mb-6">
                 <MuxVideo
-                  playbackId={lesson.content.videoUrl}
+                  playbackId={extractPlaybackId(lesson.content.videoUrl)}
                   title={lesson.content.videoTitle || lesson.title}
                   className="rounded-xl"
                 />

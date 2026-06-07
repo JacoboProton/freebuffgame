@@ -22,3 +22,12 @@ export function formatTime(seconds: number): string {
   const hours = Math.floor(minutes / 60);
   return `${hours}h ${minutes % 60}m`;
 }
+
+export function extractPlaybackId(url: string): string {
+  // Handles:
+  // - https://stream.mux.com/{playbackId}.m3u8
+  // - https://player.mux.com/{playbackId}
+  // - raw playbackId
+  const match = url.match(/\/([A-Za-z0-9_-]+)(?:\.m3u8)?(?:\/|$)/);
+  return match ? match[1] : url;
+}
