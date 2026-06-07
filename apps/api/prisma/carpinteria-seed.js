@@ -2,6 +2,14 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
+  console.log('Limpiando datos existentes del curso de Carpintería...');
+
+  // Delete existing data in reverse order of dependencies
+  await prisma.lesson.deleteMany({ where: { module: { courseId: 'course-carpinteria-pro' } } });
+  await prisma.module.deleteMany({ where: { courseId: 'course-carpinteria-pro' } });
+  await prisma.course.deleteMany({ where: { id: 'course-carpinteria-pro' } });
+  console.log('✅ Datos anteriores eliminados');
+
   console.log('Creando curso de Carpintería...');
 
   const course = await prisma.course.create({
