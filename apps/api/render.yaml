@@ -8,7 +8,7 @@ services:
     region: oregon
     plan: free
     # rootDir removed - we work from repo root to resolve workspace packages
-    buildCommand: cd apps/api && bun install && bunx prisma generate && bunx prisma db push --skip-generate
+    buildCommand: curl -fsSL https://bun.sh/install | bash && export BUN_INSTALL="$HOME/.bun" && PATH="$BUN_INSTALL/bin:$PATH" && cd apps/api && bun install && bunx prisma generate && bunx prisma db push --skip-generate
     startCommand: cd apps/api && npx tsx src/index.ts
     healthCheckPath: /health
     envVars:
