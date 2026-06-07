@@ -38,7 +38,7 @@ export function UserButtonWithData() {
         <Zap className='w-4 h-4 text-yellow-500' />
         {user.primaryEmailAddress?.emailAddress || user.firstName || 'Usuario'}
       </Badge>
-      <UserButton afterSignOutUrl='/' />
+      <UserButton />
     </div>
   );
 }

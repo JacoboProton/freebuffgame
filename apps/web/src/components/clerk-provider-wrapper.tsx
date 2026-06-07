@@ -7,8 +7,8 @@ export function ClerkProviderWrapper({ children }: { children: React.ReactNode }
     <ClerkProvider
       signInUrl="/login"
       signUpUrl="/register"
-      afterSignInUrl="/dashboard"
-      afterSignUpUrl="/dashboard"
+      signInFallbackRedirectUrl="/dashboard"
+      signUpFallbackRedirectUrl="/dashboard"
       allowedRedirectOrigins={[
         'http://localhost:3000',
         'https://freebuffgame-web.onrender.com',
