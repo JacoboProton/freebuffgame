@@ -8,8 +8,8 @@ services:
     region: oregon
     plan: free
     rootDir: apps/web
-    # Copy prisma schema from API before generating client
-    buildCommand: export NODE_OPTIONS="--max-old-space-size=512" && cp -r ../api/prisma ./prisma-copy && rm -f ./prisma-copy/seed.ts && npm install --prefer-offline && npm run build
+    # Build uses schema at ../api/prisma/schema.prisma (relative to rootDir apps/web)
+    buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
       - key: NODE_ENV
