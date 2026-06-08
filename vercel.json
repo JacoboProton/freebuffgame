@@ -1,9 +1,13 @@
 {
   "framework": "nextjs",
-  "rootDirectory": "apps/web",
-  "buildCommand": "bun run build",
-  "outputDirectory": ".next",
-  "installCommand": "bun install",
-  "devCommand": "bun run dev",
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "installCommand": "cd apps/web && bun install",
+  "buildCommand": "cd apps/web && bun run build",
+  "devCommand": "cd apps/web && bun run dev",
   "regions": ["iad1"]
 }
