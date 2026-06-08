@@ -49,6 +49,16 @@ lessonsRouter.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
       where: { userId_lessonId: { userId: req.user!.id, lessonId: lesson.id } },
     });
 
+    // Parse content if it's stored as JSON string (from JSON.stringify in seed)
+    let parsedContent = lesson.content;
+    if (typeof lesson.content === 'string') {
+      try {
+        parsedContent = JSON.parse(lesson.content);
+      } catch (e) {
+        console.error('Failed to parse lesson content JSON:', e);
+      }
+    }
+
     res.json({
       status: 'success',
       data: {
@@ -56,7 +66,7 @@ lessonsRouter.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
           id: lesson.id,
           title: lesson.title,
           type: lesson.type,
-          content: lesson.content,
+          content: parsedContent,
           xpReward: lesson.xpReward,
           order: lesson.order,
           moduleTitle: lesson.module.title,
