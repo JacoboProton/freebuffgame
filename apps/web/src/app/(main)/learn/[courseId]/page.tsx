@@ -377,6 +377,92 @@ export default function LessonPage() {
               </div>
             )}
 
+            {/* Reading / Practice */}
+            {lesson.type === 'reading' && (
+              <div>
+                {/* Show the question/reading content */}
+                {lesson.content.question && (
+                  <div className="bg-gray-50 p-4 rounded-xl mb-6 text-lg">
+                    {lesson.content.question}
+                  </div>
+                )}
+                
+                {/* Show hint if available */}
+                {lesson.content.hint && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="flex items-center gap-2 p-3 bg-yellow-100 rounded-lg text-yellow-700 mb-4"
+                  >
+                    <Lightbulb className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm">{lesson.content.hint}</span>
+                  </motion.div>
+                )}
+
+                {/* Show result if already answered */}
+                {showResult && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 rounded-xl flex items-center gap-3 bg-green-100 text-green-700"
+                  >
+                    <Check className="w-6 h-6" />
+                    <span className="font-medium">¡Lección completada!</span>
+                  </motion.div>
+                )}
+
+                {/* Complete button if not already completed */}
+                {!showResult && (
+                  <Button 
+                    onClick={async () => {
+                      // Mark as completed locally
+                      setShowResult(true);
+                      setIsCorrect(true);
+                      setJacMood('celebrating');
+                      setJacMessage('¡Excelente lectura! 📖 ¡Vamos a la siguiente!');
+                      setXpAmount(lesson?.xpReward || 0);
+                      setShowXP(true);
+                      setShowConfetti(true);
+                      
+                      // Submit progress to API
+                      if (!lesson || !progress?.completed) {
+                        const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+                        try {
+                          const response = await lessonsAPI.submitProgress(lesson.id, { score: 100, timeSpent });
+                          setProgress(response.progress);
+                          
+                          if (response.user) {
+                            updateLocalStats({
+                              xp: response.user.xp,
+                              coins: response.user.coins,
+                              level: response.user.level,
+                            });
+                          }
+
+                          if (response.leveledUp && response.newLevel) {
+                            setLeveledUp(true);
+                            showLevelUp(response.newLevel);
+                          }
+
+                          if (response.courseCompleted) {
+                            setCourseCompleted(true);
+                            showCourseComplete(lesson?.courseTitle || 'este curso');
+                          } else {
+                            showLessonComplete(lesson?.title || 'Lección', response.progress?.xpEarned ?? lesson?.xpReward ?? 0);
+                          }
+                        } catch (err) {
+                          console.error('Error submitting reading progress:', err);
+                        }
+                      }
+                    }}
+                    className="mt-4"
+                  >
+                    Completar lección
+                  </Button>
+                )}
+              </div>
+            )}
+
             {/* Fill in the Blank */}
             {lesson.type === 'fill_blank' && (
               <div>
