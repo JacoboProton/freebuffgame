@@ -560,6 +560,386 @@ export default function LessonPage() {
               </div>
             )}
 
+            {/* Video lesson type */}
+            {lesson.type === 'video' && (
+              <div>
+                {/* Video content is rendered above in MuxVideo section */}
+                {lesson.content.question && (
+                  <div className="bg-gray-50 p-4 rounded-xl mb-6 text-lg">
+                    {lesson.content.question}
+                  </div>
+                )}
+
+                {/* Show result if already completed */}
+                {showResult && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 rounded-xl flex items-center gap-3 bg-green-100 text-green-700"
+                  >
+                    <Check className="w-6 h-6" />
+                    <span className="font-medium">¡Video visto! Lección completada.</span>
+                  </motion.div>
+                )}
+
+                {/* Complete button if not already completed */}
+                {!showResult && (
+                  <Button 
+                    onClick={async () => {
+                      setShowResult(true);
+                      setIsCorrect(true);
+                      setJacMood('celebrating');
+                      setJacMessage('¡Excelente! 📹 ¡Sigue así!');
+                      setXpAmount(lesson?.xpReward || 0);
+                      setShowXP(true);
+                      setShowConfetti(true);
+
+                      if (!progress?.completed) {
+                        const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+                        try {
+                          const response = await lessonsAPI.submitProgress(lesson.id, { score: 100, timeSpent });
+                          setProgress(response.progress);
+                          
+                          if (response.user) {
+                            updateLocalStats({ xp: response.user.xp, coins: response.user.coins, level: response.user.level });
+                          }
+
+                          if (response.leveledUp && response.newLevel) {
+                            setLeveledUp(true);
+                            showLevelUp(response.newLevel);
+                          }
+
+                          if (response.courseCompleted) {
+                            setCourseCompleted(true);
+                            showCourseComplete(lesson?.courseTitle || 'este curso');
+                          } else {
+                            showLessonComplete(lesson?.title || 'Lección', response.progress?.xpEarned ?? lesson?.xpReward ?? 0);
+                          }
+                        } catch (err) {
+                          console.error('Error submitting video progress:', err);
+                        }
+                      }
+                    }}
+                    className="mt-4"
+                  >
+                    Marcar como vista
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Coding lesson type */}
+            {lesson.type === 'coding' && (
+              <div>
+                {lesson.content.question && (
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-xl mb-6 font-mono text-sm overflow-x-auto">
+                    <pre className="whitespace-pre-wrap">{lesson.content.question}</pre>
+                  </div>
+                )}
+
+                {/* Code input area */}
+                {!showResult && (
+                  <>
+                    <textarea
+                      value={inputAnswer}
+                      onChange={(e) => setInputAnswer(e.target.value)}
+                      placeholder="Escribe tu código aquí..."
+                      className="w-full h-40 p-4 rounded-xl border-2 border-gray-700 bg-gray-900 text-green-400 font-mono text-sm focus:border-primary focus:outline-none mb-4"
+                    />
+                    <p className="text-sm text-gray-500 mb-4">
+                      Escribe la respuesta correcta para el ejercicio de código.
+                    </p>
+                    <Button 
+                      onClick={() => {
+                        const correct = inputAnswer.toLowerCase().trim() === String(lesson?.content.correctAnswer).toLowerCase().trim();
+                        setIsCorrect(correct);
+                        setShowResult(true);
+
+                        if (correct) {
+                          setJacMood('celebrating');
+                          setJacMessage('¡Perfecto! 💻 ¡Eres un crack del código!');
+                          setXpAmount(lesson?.xpReward || 0);
+                          setShowXP(true);
+                          setShowConfetti(true);
+                        } else {
+                          setJacMood('thinking');
+                          setJacMessage(`La respuesta era: ${lesson?.content.correctAnswer}. ¡Sigue practicando! 💪`);
+                        }
+                      }}
+                      disabled={!inputAnswer.trim()}
+                      className="mt-2"
+                    >
+                      Verificar código
+                    </Button>
+                  </>
+                )}
+
+                {/* Result */}
+                {/* Result with auto-submit */}
+                {showResult && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`p-4 rounded-xl flex items-center gap-3 ${isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                  >
+                    {isCorrect ? <Check className="w-6 h-6" /> : <X className="w-6 h-6" />}
+                    <span className="font-medium">
+                      {isCorrect ? '¡Código correcto! ¡Bien hecho!' : `Incorrecto. La respuesta era: ${lesson.content.correctAnswer}`}
+                    </span>
+                  </motion.div>
+                )}
+
+                {/* Auto-submit progress after result shown */}
+                {showResult && !progress?.completed && (
+                  <Button 
+                    onClick={async () => {
+                      if (!progress?.completed) {
+                        const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+                        try {
+                          const response = await lessonsAPI.submitProgress(lesson.id, { score: isCorrect ? 100 : 0, timeSpent });
+                          setProgress(response.progress);
+                          
+                          if (response.user) {
+                            updateLocalStats({ xp: response.user.xp, coins: response.user.coins, level: response.user.level });
+                          }
+
+                          if (response.leveledUp && response.newLevel) {
+                            setLeveledUp(true);
+                            showLevelUp(response.newLevel);
+                          }
+
+                          if (response.courseCompleted) {
+                            setCourseCompleted(true);
+                            showCourseComplete(lesson?.courseTitle || 'este curso');
+                          } else if (isCorrect) {
+                            showLessonComplete(lesson?.title || 'Lección', response.progress?.xpEarned ?? lesson?.xpReward ?? 0);
+                          }
+                        } catch (err) {
+                          console.error('Error submitting coding progress:', err);
+                        }
+                      }
+                    }}
+                    className="mt-4"
+                  >
+                    Guardar progreso
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Project lesson type */}
+            {lesson.type === 'project' && (
+              <div>
+                {lesson.content.question && (
+                  <div className="bg-blue-50 p-4 rounded-xl mb-6 text-lg border border-blue-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">📋</span>
+                      <span className="font-semibold text-blue-800">Instrucciones del Proyecto</span>
+                    </div>
+                    <div className="text-blue-700">{lesson.content.question}</div>
+                  </div>
+                )}
+
+                {lesson.content.hint && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="flex items-center gap-2 p-3 bg-yellow-100 rounded-lg text-yellow-700 mb-4"
+                  >
+                    <Lightbulb className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm">{lesson.content.hint}</span>
+                  </motion.div>
+                )}
+
+                {showResult && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 rounded-xl flex items-center gap-3 bg-green-100 text-green-700"
+                  >
+                    <Check className="w-6 h-6" />
+                    <span className="font-medium">¡Proyecto entregado! ¡Excelente trabajo! 🏗️</span>
+                  </motion.div>
+                )}
+
+                {!showResult && (
+                  <Button 
+                    onClick={async () => {
+                      setShowResult(true);
+                      setIsCorrect(true);
+                      setJacMood('celebrating');
+                      setJacMessage('¡Proyecto entregado! 🏗️ ¡Gran trabajo!');
+                      setXpAmount(lesson?.xpReward || 0);
+                      setShowXP(true);
+                      setShowConfetti(true);
+
+                      if (!progress?.completed) {
+                        const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+                        try {
+                          const response = await lessonsAPI.submitProgress(lesson.id, { score: 100, timeSpent });
+                          setProgress(response.progress);
+                          
+                          if (response.user) {
+                            updateLocalStats({ xp: response.user.xp, coins: response.user.coins, level: response.user.level });
+                          }
+
+                          if (response.leveledUp && response.newLevel) {
+                            setLeveledUp(true);
+                            showLevelUp(response.newLevel);
+                          }
+
+                          if (response.courseCompleted) {
+                            setCourseCompleted(true);
+                            showCourseComplete(lesson?.courseTitle || 'este curso');
+                          } else {
+                            showLessonComplete(lesson?.title || 'Lección', response.progress?.xpEarned ?? lesson?.xpReward ?? 0);
+                          }
+                        } catch (err) {
+                          console.error('Error submitting project progress:', err);
+                        }
+                      }
+                    }}
+                    className="mt-4"
+                  >
+                    Entregar proyecto
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Practice lesson type */}
+            {lesson.type === 'practice' && (
+              <div>
+                {lesson.content.question && (
+                  <div className="bg-purple-50 p-4 rounded-xl mb-6 text-lg border border-purple-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">🎯</span>
+                      <span className="font-semibold text-purple-800">Ejercicio de Práctica</span>
+                    </div>
+                    <div className="text-purple-700">{lesson.content.question}</div>
+                  </div>
+                )}
+
+                {lesson.content.hint && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="flex items-center gap-2 p-3 bg-yellow-100 rounded-lg text-yellow-700 mb-4"
+                  >
+                    <Lightbulb className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm">{lesson.content.hint}</span>
+                  </motion.div>
+                )}
+
+                {showResult && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 rounded-xl flex items-center gap-3 bg-green-100 text-green-700"
+                  >
+                    <Check className="w-6 h-6" />
+                    <span className="font-medium">¡Práctica completada! 🎯</span>
+                  </motion.div>
+                )}
+
+                {!showResult && (
+                  <Button 
+                    onClick={async () => {
+                      setShowResult(true);
+                      setIsCorrect(true);
+                      setJacMood('celebrating');
+                      setJacMessage('¡Muy bien! 🎯 ¡Sigue practicando!');
+                      setXpAmount(lesson?.xpReward || 0);
+                      setShowXP(true);
+                      setShowConfetti(true);
+
+                      if (!progress?.completed) {
+                        const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+                        try {
+                          const response = await lessonsAPI.submitProgress(lesson.id, { score: 100, timeSpent });
+                          setProgress(response.progress);
+                          
+                          if (response.user) {
+                            updateLocalStats({ xp: response.user.xp, coins: response.user.coins, level: response.user.level });
+                          }
+
+                          if (response.leveledUp && response.newLevel) {
+                            setLeveledUp(true);
+                            showLevelUp(response.newLevel);
+                          }
+
+                          if (response.courseCompleted) {
+                            setCourseCompleted(true);
+                            showCourseComplete(lesson?.courseTitle || 'este curso');
+                          } else {
+                            showLessonComplete(lesson?.title || 'Lección', response.progress?.xpEarned ?? lesson?.xpReward ?? 0);
+                          }
+                        } catch (err) {
+                          console.error('Error submitting practice progress:', err);
+                        }
+                      }
+                    }}
+                    className="mt-4"
+                  >
+                    Completar práctica
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Fallback for any other unimplemented lesson types */}
+            {!['multiple_choice', 'reading', 'fill_blank', 'video', 'coding', 'project', 'practice'].includes(lesson.type) && (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">🚧</div>
+                <h3 className="text-xl font-semibold mb-2">Tipo de lección no implementado</h3>
+                <p className="text-gray-500 mb-4">
+                  Este tipo de lección (<span className="font-mono bg-gray-100 px-2 py-1 rounded">{lesson.type}</span>) aún no tiene contenido interactivo.
+                </p>
+                {!showResult && (
+                  <Button 
+                    onClick={async () => {
+                      setShowResult(true);
+                      setIsCorrect(true);
+                      setJacMood('encouraging');
+                      setJacMessage('¡Sigue aprendiendo! 🚀');
+                      setXpAmount(lesson?.xpReward || 0);
+                      setShowXP(true);
+                      setShowConfetti(true);
+
+                      if (!progress?.completed) {
+                        const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+                        try {
+                          const response = await lessonsAPI.submitProgress(lesson.id, { score: 100, timeSpent });
+                          setProgress(response.progress);
+                          
+                          if (response.user) {
+                            updateLocalStats({ xp: response.user.xp, coins: response.user.coins, level: response.user.level });
+                          }
+
+                          if (response.leveledUp && response.newLevel) {
+                            setLeveledUp(true);
+                            showLevelUp(response.newLevel);
+                          }
+
+                          if (response.courseCompleted) {
+                            setCourseCompleted(true);
+                            showCourseComplete(lesson?.courseTitle || 'este curso');
+                          } else {
+                            showLessonComplete(lesson?.title || 'Lección', response.progress?.xpEarned ?? lesson?.xpReward ?? 0);
+                          }
+                        } catch (err) {
+                          console.error('Error submitting fallback progress:', err);
+                        }
+                      }
+                    }}
+                    className="mt-2"
+                  >
+                    Continuar de todas formas
+                  </Button>
+                )}
+              </div>
+            )}
+
             {/* Completed state */}
             {showResult && progress?.completed && (
               <motion.div 
