@@ -6,4 +6,4 @@
   "installCommand": "bun install",
   "devCommand": "bun run dev",
   "regions": ["iad1"]
-}
+}# Trigger Vercel redeploy
