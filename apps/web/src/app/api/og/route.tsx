@@ -1,7 +1,5 @@
 import { ImageResponse } from 'next/og';
 
-export const runtime = 'edge';
-
 // Renders a per-user Hall of Fame OG card when userName+rank are provided,
 // or the generic Hall of Fame card when they are not.
 export async function GET(request: Request) {

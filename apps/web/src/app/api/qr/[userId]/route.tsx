@@ -1,7 +1,5 @@
 import QRCode from 'qrcode';
 
-export const runtime = 'edge';
-
 const BASE_URL = 'https://rxktk3y4.insforge.site';
 
 export async function GET(
