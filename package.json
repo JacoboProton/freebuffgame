@@ -23,6 +23,14 @@
     "typescript": "^5.4.0",
     "web-push": "^3.6.7"
   },
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "canvas-confetti": "^1.9.4",
+    "inngest": "^4.5.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "prisma": "5.22.0"
+  },
   "engines": {
     "node": ">=18"
   }
