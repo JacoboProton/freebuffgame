@@ -14,3 +14,12 @@
 .trae
 .windsurf
 .vercel
+
+# Build artifacts
+bun.lock
+tsconfig.tsbuildinfo
+next-env.d.ts
+nul
+
+# Local prisma copies
+prisma-copy/

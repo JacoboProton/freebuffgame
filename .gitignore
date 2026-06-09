@@ -21,6 +21,7 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+nul
 
 # Python (temporary fix scripts)
 *.py
@@ -29,6 +30,9 @@ __pycache__/
 # Logs
 *.log
 npm-debug.log*
+
+# Lockfiles (use bun)
+package-lock.json
 
 # Turbo
 .turbo/
