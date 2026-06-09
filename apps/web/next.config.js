@@ -5,8 +5,8 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
   // Disable trailing slash handling
   trailingSlash: false,
-  // Increase static page generation timeout
-  staticPageGenerationTimeout: 30,
+  // Increase static page generation timeout (default is 60s)
+  staticPageGenerationTimeout: 120,
   // Generate a consistent build ID to avoid cache issues
   generateBuildId: () => `build-${Date.now()}`,
   async rewrites() {
