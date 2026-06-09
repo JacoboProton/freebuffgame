@@ -5,6 +5,7 @@
       "src": "apps/web/package.json",
       "use": "@vercel/next"
     }
-  ],    "buildCommand": "bun run build",    "devCommand": "bun run dev",
+  ],    "buildCommand": "npm run build",
+    "devCommand": "npm run dev",
   "regions": ["iad1"]
 }
