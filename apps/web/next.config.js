@@ -3,8 +3,12 @@ const nextConfig = {
   // Skip type checking and linting during build (passes locally)
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
-  // Try disabling the trailing slash redirect that might interfere with SSG
+  // Disable trailing slash handling
   trailingSlash: false,
+  // Increase static page generation timeout
+  staticPageGenerationTimeout: 30,
+  // Generate a consistent build ID to avoid cache issues
+  generateBuildId: () => `build-${Date.now()}`,
   async rewrites() {
     return [
       {
