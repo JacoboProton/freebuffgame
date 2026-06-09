@@ -24,7 +24,7 @@
     "clsx": "^2.1.0",
     "framer-motion": "^11.0.0",
     "inngest": "^4.5.0",
-    "lucide-react": "^0.356.0",
+    "lucide-react": "^1.17.0",
     "mux-embed": "^5.18.1",
     "next": "15.5.9",
     "qrcode": "^1.5.4",
