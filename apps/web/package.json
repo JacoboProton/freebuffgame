@@ -34,6 +34,10 @@
     "zod": "^3.22.4",
     "zustand": "^4.5.0"
   },
+  "overrides": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20.11.0",
