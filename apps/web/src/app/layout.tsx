@@ -1,10 +1,5 @@
 import type { Metadata } from 'next';
-import { ClerkProviderWrapper } from '@/components/clerk-provider-wrapper';
 import { Inter, Nunito, JetBrains_Mono } from 'next/font/google';
-import { QueryProvider } from '@/lib/query-provider';
-import { ToastProvider } from '@/components/ui/toast';
-import { PushProvider } from '@/components/push-provider';
-import { ThemeProvider } from '@/components/theme-toggle';
 import './globals.css';
 
 const inter = Inter({ 
@@ -43,22 +38,15 @@ export const metadata: Metadata = {
   },
 };
 
+// TEMPORARY: Simplified layout for debugging SSG error on Vercel
+// If build passes, we'll add providers back one by one
+// to identify which one causes the "Objects are not valid as React child" error
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProviderWrapper>
-      <html lang='es'>
-        <body className={`${inter.variable} ${nunito.variable} ${jetbrainsMono.variable}`}>
-          <QueryProvider>
-            <ToastProvider>
-                  <PushProvider>
-                <ThemeProvider>
-                  {children}
-                </ThemeProvider>
-              </PushProvider>
-            </ToastProvider>
-          </QueryProvider>
-        </body>
-      </html>
-    </ClerkProviderWrapper>
+    <html lang='es'>
+      <body className={`${inter.variable} ${nunito.variable} ${jetbrainsMono.variable}`}>
+        {children}
+      </body>
+    </html>
   );
 }
