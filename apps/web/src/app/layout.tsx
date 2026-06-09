@@ -20,6 +20,9 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-mono',
 });
 
+// Force dynamic rendering to avoid SSG errors on Vercel
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: {
     default: 'Duobi-Jac - Aprende Jugando',
