@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Fix: Tell Next.js the correct workspace root for monorepo
-  outputFileTracingRoot: __dirname,
   // Skip type checking and linting during build (passes locally)
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
+  // Try disabling the trailing slash redirect that might interfere with SSG
+  trailingSlash: false,
   async rewrites() {
     return [
       {
