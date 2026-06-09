@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Fix: Tell Next.js the correct workspace root for monorepo
+  outputFileTracingRoot: __dirname,
   async rewrites() {
     return [
       {
