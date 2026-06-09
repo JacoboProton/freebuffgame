@@ -2,6 +2,8 @@
 const nextConfig = {
   // Skip type checking during build (passes locally)
   typescript: { ignoreBuildErrors: true },
+  // Disable ESLint errors during build (lint is for dev feedback, CI has separate lint jobs)
+  eslint: { ignoreDuringBuilds: true },
   // Disable trailing slash handling
   trailingSlash: false,
   // Increase static page generation timeout (default is 60s)
@@ -20,4 +22,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
