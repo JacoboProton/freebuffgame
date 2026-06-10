@@ -27,12 +27,12 @@ export function JacMascot({
     lg: 'w-32 h-32',
   };
 
-  const getAnimation = () => {
+  const getAnimation = (): any => {
     switch (mood) {
       case 'idle':
         return {
           y: [0, -4, 0],
-          transition: { repeat: Infinity, duration: 2, ease: 'easeInOut' }
+          transition: { repeat: Infinity, duration: 2, ease: 'easeInOut' as const }
         };
       case 'happy':
         return {

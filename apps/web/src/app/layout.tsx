@@ -1,24 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Nunito, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
-
-const inter = Inter({ 
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-});
-
-const nunito = Nunito({ 
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-nunito',
-});
-
-const jetbrainsMono = JetBrains_Mono({ 
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-mono',
-});
 
 // Force dynamic rendering to avoid SSG errors on Vercel
 export const dynamic = 'force-dynamic';
@@ -50,7 +31,7 @@ import { ThemeProvider } from '@/components/theme-toggle';
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='es'>
-      <body className={`${inter.variable} ${nunito.variable} ${jetbrainsMono.variable}`}>
+      <body>
         <ClerkProviderWrapper>
           <QueryProvider>
             <ToastProvider>

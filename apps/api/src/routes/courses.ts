@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
-import { authenticate, AuthRequest } from '../middlewares/auth.js';
+import { authenticate, optionalAuth, AuthRequest } from '../middlewares/auth.js';
 import { AppError } from '../middlewares/error.js';
 
 export const coursesRouter = Router();
@@ -54,138 +54,6 @@ coursesRouter.get('/', async (req, res, next) => {
     }));
 
     res.json({ status: 'success', data: { courses: coursesWithStats } });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// Get course by ID with modules and lessons (public info, protected content)
-coursesRouter.get('/:id', async (req, res, next) => {
-  try {
-    const course = await prisma.course.findUnique({
-      where: { id: req.params.id },
-      include: {
-        modules: {
-          orderBy: { order: 'asc' },
-          include: {
-            lessons: {
-              orderBy: { order: 'asc' },
-              select: {
-                id: true,
-                title: true,
-                type: true,
-                xpReward: true,
-                order: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!course || !course.isPublished) {
-      throw new AppError('Curso no encontrado', 404);
-    }
-
-    const response: any = {
-      course: {
-        id: course.id,
-        title: course.title,
-        description: course.description,
-        category: course.category,
-        imageUrl: course.imageUrl,
-        difficulty: course.difficulty,
-        estimatedHours: course.estimatedHours,
-        isPro: course.isPro,
-        price: course.price,
-        requiredLevel: course.requiredLevel,
-      },
-    };
-
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      try {
-        const token = authHeader.split(' ')[1];
-        const jwt = require('jsonwebtoken');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { id: string };
-
-        const user = await prisma.user.findUnique({
-          where: { id: decoded.id },
-          select: { level: true },
-        });
-
-        const purchase = await prisma.coursePurchase.findUnique({
-          where: {
-            userId_courseId: {
-              userId: decoded.id,
-              courseId: course.id,
-            },
-          },
-        });
-
-        const hasAccess = !course.isPro || !!purchase || (course.requiredLevel > 0 && user && user.level >= course.requiredLevel);
-
-        response.access = {
-          hasAccess,
-          needsPurchase: course.isPro && !purchase,
-          userLevel: user?.level || 1,
-          requiredLevel: course.requiredLevel,
-          isPro: course.isPro,
-          price: course.price,
-        };
-
-        if (hasAccess) {
-          response.course.modules = course.modules;
-        } else {
-          response.course.modules = course.modules.slice(0, 1).map((m: any) => ({
-            ...m,
-            lessons: m.lessons.slice(0, 1),
-          }));
-          response.previewOnly = true;
-        }
-      } catch (err) {
-        response.access = { hasAccess: !course.isPro, needsPurchase: course.isPro };
-      }
-    } else {
-      response.access = { hasAccess: !course.isPro, needsPurchase: course.isPro };
-    }
-
-    res.json({ status: 'success', data: response });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// Enroll in a course
-coursesRouter.post('/:id/enroll', authenticate, async (req: AuthRequest, res, next) => {
-  try {
-    const course = await prisma.course.findUnique({
-      where: { id: req.params.id },
-      select: { id: true },
-    });
-
-    if (!course) {
-      throw new AppError('Curso no encontrado', 404);
-    }
-
-    const existing = await prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId: req.user!.id, courseId: course.id } },
-    });
-
-    if (existing) {
-      throw new AppError('Ya estás enrolled en este curso', 400);
-    }
-
-    const enrollment = await prisma.enrollment.create({
-      data: { userId: req.user!.id, courseId: course.id },
-    });
-
-    await prisma.user.update({
-      where: { id: req.user!.id },
-      data: { coins: { increment: 10 } },
-    });
-
-    res.status(201).json({ status: 'success', data: { enrollment } });
   } catch (err) {
     next(err);
   }
@@ -249,6 +117,132 @@ coursesRouter.get('/user/enrollments', authenticate, async (req: AuthRequest, re
     );
 
     res.json({ status: 'success', data: { enrollments: enrollmentsWithProgress } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Get course by ID with modules and lessons (public info, protected content)
+coursesRouter.get('/:id', optionalAuth, async (req: AuthRequest, res, next) => {
+  try {
+    const course = await prisma.course.findUnique({
+      where: { id: req.params.id },
+      include: {
+        modules: {
+          orderBy: { order: 'asc' },
+          include: {
+            lessons: {
+              orderBy: { order: 'asc' },
+              select: {
+                id: true,
+                title: true,
+                type: true,
+                xpReward: true,
+                order: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!course || !course.isPublished) {
+      throw new AppError('Curso no encontrado', 404);
+    }
+
+    const modulesCount = course.modules.length;
+    const lessonsCount = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
+    const previewModules = course.modules.slice(0, 1).map((m: any) => ({
+      ...m,
+      lessons: m.lessons.slice(0, 1),
+    }));
+
+    const response: any = {
+      course: {
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        category: course.category,
+        imageUrl: course.imageUrl,
+        difficulty: course.difficulty,
+        estimatedHours: course.estimatedHours,
+        isPro: course.isPro,
+        price: course.price,
+        requiredLevel: course.requiredLevel,
+        modulesCount,
+        lessonsCount,
+      },
+    };
+
+    const authUser = req.user;
+    let user: { level: number } | null = null;
+    let purchase = null;
+
+    if (authUser?.id) {
+      user = await prisma.user.findUnique({
+        where: { id: authUser.id },
+        select: { level: true },
+      });
+
+      purchase = await prisma.coursePurchase.findUnique({
+        where: {
+          userId_courseId: {
+            userId: authUser.id,
+            courseId: course.id,
+          },
+        },
+      });
+    }
+
+    const hasAccess = !course.isPro || !!purchase || (course.requiredLevel > 0 && user && user.level >= course.requiredLevel);
+
+    response.access = {
+      hasAccess,
+      needsPurchase: course.isPro && !purchase && !hasAccess,
+      userLevel: user?.level || 1,
+      requiredLevel: course.requiredLevel,
+      isPro: course.isPro,
+      price: course.price,
+    };
+    response.course.modules = hasAccess ? course.modules : previewModules;
+    response.previewOnly = !hasAccess;
+
+    res.json({ status: 'success', data: response });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Enroll in a course
+coursesRouter.post('/:id/enroll', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const course = await prisma.course.findUnique({
+      where: { id: req.params.id },
+      select: { id: true },
+    });
+
+    if (!course) {
+      throw new AppError('Curso no encontrado', 404);
+    }
+
+    const existing = await prisma.enrollment.findUnique({
+      where: { userId_courseId: { userId: req.user!.id, courseId: course.id } },
+    });
+
+    if (existing) {
+      throw new AppError('Ya estás enrolled en este curso', 400);
+    }
+
+    const enrollment = await prisma.enrollment.create({
+      data: { userId: req.user!.id, courseId: course.id },
+    });
+
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { coins: { increment: 10 } },
+    });
+
+    res.status(201).json({ status: 'success', data: { enrollment } });
   } catch (err) {
     next(err);
   }

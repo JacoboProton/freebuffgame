@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, X, Lightbulb, Trophy } from 'lucide-react';
@@ -41,7 +41,9 @@ type JacMood = 'idle' | 'happy' | 'sad' | 'celebrating' | 'thinking' | 'encourag
 export default function LessonPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const courseId = params.courseId as string;
+  const requestedLessonId = searchParams.get('lesson');
   const { updateLocalStats, fetchStats } = useUserStore();
   const { lessonsAPI, userAPI, coursesAPI } = useClerkAPIs();
 
@@ -73,20 +75,28 @@ export default function LessonPage() {
       try {
         setLoading(true);
         setError(null);
+        setLesson(null);
+        setProgress(null);
+        setSelectedOption(null);
+        setInputAnswer('');
+        setShowResult(false);
+        setIsCorrect(false);
+        setShowHint(false);
         
         // First, try to get current lesson for this course (continue where left off)
         const currentLessonResponse = await coursesAPI.getCurrentLesson(courseId).catch((err) => err);
         
         if (currentLessonResponse?.currentLesson) {
-          // User is enrolled and has a current lesson
-          const lessonId = currentLessonResponse.currentLesson.id;
+          const lessonId = requestedLessonId || currentLessonResponse.currentLesson.id;
           const response = await lessonsAPI.getById(lessonId).catch(() => null);
           
           if (response?.lesson) {
             setLesson(response.lesson);
             setProgress(response.progress);
             setCourseProgress(currentLessonResponse.progress);
-            setJacMessage(`¡Sigue así! Vamos a continuar con: ${response.lesson.moduleTitle || 'esta lección'}`);
+            setJacMessage(requestedLessonId
+              ? `Vamos con: ${response.lesson.title}`
+              : `¡Sigue así! Vamos a continuar con: ${response.lesson.moduleTitle || 'esta lección'}`);
           } else {
             throw new Error('No se pudo cargar el contenido de la lección');
           }
@@ -134,7 +144,7 @@ export default function LessonPage() {
     if (courseId) {
       loadLesson();
     }
-  }, [courseId, coursesAPI, lessonsAPI]);
+  }, [courseId, requestedLessonId, coursesAPI, lessonsAPI]);
 
   // Jac reactions based on user actions
   const updateJacReaction = (mood: JacMood, message: string) => {
@@ -977,4 +987,4 @@ export default function LessonPage() {
       </main>
     </div>
   );
-}
+}

@@ -33,8 +33,18 @@ interface CourseDetail {
   isPro?: boolean;
   price?: number;
   modules?: Module[];
+  modulesCount?: number;
   lessonsCount?: number;
   studentsCount?: number;
+}
+
+interface CourseAccess {
+  hasAccess: boolean;
+  needsPurchase: boolean;
+  userLevel?: number;
+  requiredLevel?: number;
+  isPro?: boolean;
+  price?: number;
 }
 
 // Carpentry module icons mapped by order
@@ -83,6 +93,8 @@ export default function CourseDetailPage() {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [purchased, setPurchased] = useState(false);
   const [userLevel, setUserLevel] = useState(1);
+  const [access, setAccess] = useState<CourseAccess | null>(null);
+  const [previewOnly, setPreviewOnly] = useState(false);
 
   useEffect(() => {
     if (courseId) loadCourse();
@@ -93,6 +105,8 @@ export default function CourseDetailPage() {
       setLoading(true);
       const response = await coursesAPI.getById(courseId);
       setCourse(response.course);
+      setAccess((response as any).access || null);
+      setPreviewOnly(Boolean((response as any).previewOnly));
 
       if (isSignedIn) {
         try {
@@ -143,9 +157,12 @@ export default function CourseDetailPage() {
   };
 
   const isCarpentry = courseId === 'course-carpinteria-pro';
-  const totalLessons = course?.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || 0;
+  const visibleLessons = course?.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || 0;
+  const totalLessons = course?.lessonsCount ?? visibleLessons;
+  const totalModules = course?.modulesCount ?? course?.modules?.length ?? 0;
   const completedTotal = completedLessonIds.size;
   const overallProgress = totalLessons > 0 ? Math.round((completedTotal / totalLessons) * 100) : 0;
+  const isPreviewOnly = previewOnly || Boolean(course?.isPro && access && !access.hasAccess && !purchased);
 
   if (loading) {
     return (
@@ -197,8 +214,22 @@ export default function CourseDetailPage() {
           <div className="flex items-center gap-6 mt-6 text-sm text-gray-400">
             <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" />{course.estimatedHours}h estimadas</span>
             <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4" />{totalLessons} lecciones</span>
-            <span className="flex items-center gap-1.5"><Layers className="w-4 h-4" />{course.modules?.length || 0} módulos</span>
+            <span className="flex items-center gap-1.5"><Layers className="w-4 h-4" />{totalModules} módulos</span>
           </div>
+
+          {isPreviewOnly && (
+            <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              <div className="flex items-start gap-3">
+                <Lock className="w-5 h-5 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-semibold text-amber-900">Vista previa del curso PRO</p>
+                  <p className="mt-1">
+                    Estás viendo {visibleLessons} de {totalLessons} lecciones. Desbloquea el curso para acceder a todos los módulos y continuar el aprendizaje completo.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Overall Progress */}
           {enrolled && totalLessons > 0 && (
@@ -247,7 +278,11 @@ export default function CourseDetailPage() {
 
         {/* Modules Grid */}
         <div className="mb-8">                <h2 className="text-xl font-bold text-gray-900 mb-6">Módulos del Curso</h2>
-          <p className="text-sm text-gray-400 mb-6">{course.modules?.length || 0} módulos · {totalLessons} lecciones · {course.estimatedHours}h de contenido</p>
+          <p className="text-sm text-gray-400 mb-6">
+            {isPreviewOnly
+              ? `Vista previa: ${course.modules?.length || 0} de ${totalModules} módulos · ${visibleLessons} de ${totalLessons} lecciones`
+              : `${totalModules} módulos · ${totalLessons} lecciones · ${course.estimatedHours}h de contenido`}
+          </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {(course.modules || [])
               .slice()
@@ -255,11 +290,13 @@ export default function CourseDetailPage() {
               .map((mod, index) => {
                 const ModuleIcon = isCarpentry ? carpentryIcons[mod.order] : null;
                 const color = moduleColors[index % moduleColors.length];
-                const lessonCount = mod.lessons?.length || 0;
-                const completedCount = mod.lessons?.filter(l => completedLessonIds.has(l.id)).length || 0;
+                const sortedLessons = (mod.lessons || []).slice().sort((a, b) => a.order - b.order);
+                const lessonCount = sortedLessons.length;
+                const completedCount = sortedLessons.filter(l => completedLessonIds.has(l.id)).length;
                 const moduleCompleted = lessonCount > 0 && completedCount === lessonCount;
                 const moduleCompletedCount = completedCount;
                 const moduleProgressPct = lessonCount > 0 ? Math.round((completedCount / lessonCount) * 100) : 0;
+                const firstLessonId = sortedLessons[0]?.id;
 
                 return (
                   <motion.div
@@ -312,33 +349,41 @@ export default function CourseDetailPage() {
                             </div>
                           )}
 
-                          {(mod.lessons || [])
-                            .sort((a, b) => a.order - b.order)
-                            .slice(0, 5)
-                            .map((lesson, li) => {
+                          {sortedLessons.map((lesson) => {
                               const isCompleted = completedLessonIds.has(lesson.id);
-                              return (
-                                <div key={lesson.id} className="flex items-center gap-2 text-sm">
+                              const content = (
+                                <>
                                   {isCompleted ? (
                                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                  ) : isPreviewOnly ? (
+                                    <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                                   ) : (
                                     <span className="text-xs">{lessonTypeIcons[lesson.type] || '📖'}</span>
                                   )}
                                   <span className={cn("truncate flex-1", isCompleted ? "text-gray-400 line-through" : "text-gray-600")}>{lesson.title}</span>
                                   <span className="text-[10px] text-amber-500 font-medium shrink-0">+{lesson.xpReward} XP</span>
+                                </>
+                              );
+
+                              return enrolled && !isPreviewOnly ? (
+                                <Link
+                                  key={lesson.id}
+                                  href={`/learn/${courseId}?lesson=${lesson.id}`}
+                                  className="flex items-center gap-2 text-sm rounded-lg px-2 py-1.5 -mx-2 hover:bg-gray-50 transition-colors"
+                                >
+                                  {content}
+                                </Link>
+                              ) : (
+                                <div key={lesson.id} className="flex items-center gap-2 text-sm">
+                                  {content}
                                 </div>
                               );
                             })}
-                          {lessonCount > 5 && (
-                            <div className="text-xs text-gray-400 text-center pt-1">
-                              +{lessonCount - 5} lecciones más
-                            </div>
-                          )}
                         </div>
 
                         {/* Module Footer */}
-                        {enrolled && (
-                          <Link href={`/learn/${courseId}`} className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-center gap-1 text-sm font-medium text-primary hover:text-primary-dark transition-colors">
+                        {enrolled && !isPreviewOnly && firstLessonId && (
+                          <Link href={`/learn/${courseId}?lesson=${firstLessonId}`} className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-center gap-1 text-sm font-medium text-primary hover:text-primary-dark transition-colors">
                             Comenzar módulo <ChevronRight className="w-4 h-4" />
                           </Link>
                         )}

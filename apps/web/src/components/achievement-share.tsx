@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Share2, Twitter, Facebook, Linkedin, Link2, Check, X } from 'lucide-react';
+import { Share2, Link2, Check, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 
@@ -93,21 +93,21 @@ export function AchievementShare({ achievement, isOpen, onClose }: AchievementSh
             onClick={() => window.open(shareUrls.twitter, '_blank')}
             className="bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white"
           >
-            <Twitter className="w-4 h-4 mr-2" />
+            <Share2 className="w-4 h-4 mr-2" />
             Twitter
           </Button>
           <Button
             onClick={() => window.open(shareUrls.facebook, '_blank')}
             className="bg-[#4267B2] hover:bg-[#4267B2]/90 text-white"
           >
-            <Facebook className="w-4 h-4 mr-2" />
+            <Share2 className="w-4 h-4 mr-2" />
             Facebook
           </Button>
           <Button
             onClick={() => window.open(shareUrls.linkedin, '_blank')}
             className="bg-[#0077B5] hover:bg-[#0077B5]/90 text-white"
           >
-            <Linkedin className="w-4 h-4 mr-2" />
+            <Share2 className="w-4 h-4 mr-2" />
             LinkedIn
           </Button>
           <Button

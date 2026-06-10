@@ -31,9 +31,9 @@ const config: Config = {
         success: '#22C55E',
       },
       fontFamily: {
-        heading: ['Nunito', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        heading: ['Nunito', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        body: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'monospace'],
       },
       borderRadius: {
         sm: '8px',
