@@ -7,6 +7,7 @@
     "build": "echo 'API build skipped' && exit 0",
     "start": "node dist/index.js",
     "lint": "eslint src/",
+    "test:e2e": "playwright test",
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts"
   },
@@ -31,6 +32,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
     "@types/cookie-session": "^2.0.49",
