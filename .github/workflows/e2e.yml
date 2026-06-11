@@ -63,7 +63,15 @@ jobs:
         # still initializing when pg_isready passes). The `exit 0` inside
         # the loop and `exit 1` after ensure the step fails if all
         # retries fail (a trailing `sleep 5` would otherwise mask it).
+        # The leading `git config` commands work around an unrelated repo
+        # issue: the `saucectl-testcafe-example` submodule is in an
+        # inconsistent state (untracked content), which makes Prisma's
+        # `git rev-parse` fail with exit 128. `safe.directory '*'`
+        # whitelists the mounted repo, and `GIT_TERMINAL_PROMPT=0`
+        # prevents any interactive prompts from hanging the step.
         run: |
+          git config --global --add safe.directory '*'
+          export GIT_TERMINAL_PROMPT=0
           npx prisma --version
           for i in 1 2 3; do
             npx prisma db push --skip-generate && exit 0
