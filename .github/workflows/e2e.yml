@@ -54,7 +54,20 @@ jobs:
 
       - name: Push Prisma schema
         working-directory: apps/api
-        run: npx prisma db push --skip-generate
+        # The version log makes any version-mismatch or schema/extension
+        # issue diagnosable from the Actions UI. The 3-retry loop absorbs
+        # the most likely transient flake (service container Postgres
+        # still initializing when pg_isready passes). The `exit 0` inside
+        # the loop and `exit 1` after ensure the step fails if all
+        # retries fail (a trailing `sleep 5` would otherwise mask it).
+        run: |
+          npx prisma --version
+          for i in 1 2 3; do
+            npx prisma db push --skip-generate && exit 0
+            echo "::warning::prisma db push attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
+          exit 1
 
       - name: Run Playwright e2e tests
         id: playwright
