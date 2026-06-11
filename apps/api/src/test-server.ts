@@ -16,7 +16,7 @@
  * set, so /api/test/* write endpoints can't accidentally be exposed in
  * production.
  *
- * Started by playwright.config.ts → webServer.command before any spec runs.
+ * Started by apps/api/playwright.config.ts → webServer.command before any spec runs.
  */
 import express from 'express';
 import cors from 'cors';

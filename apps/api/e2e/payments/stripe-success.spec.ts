@@ -9,8 +9,8 @@
  *
  * Also covers: ownership check (403), missing data (400), and idempotency.
  *
- * Run from apps/api:  npx playwright test
- * (or from the root:  cd apps/api && npm run test:e2e)
+ * Run from apps/api:  npm run test:e2e
+ *   (config lives in apps/api/playwright.config.ts)
  */
 import { test, expect } from '@playwright/test';
 
@@ -23,8 +23,11 @@ test.describe('Stripe success flow — POST /api/payments/confirm', () => {
   const MOCK_AMOUNT = 9900; // $99.00
 
   test.beforeEach(async ({ request }) => {
-    // Wipe any prior DB rows + mock state for this user/course, then
-    // re-create the test user, test course, and mock Stripe session.
+    // Defense-in-depth: full reset first to clear any mock sessions and
+    // Inngest events left behind by other specs (e.g. concurrent-purchase).
+    // This makes the suite robust regardless of execution order. The scoped
+    // cleanup below also deletes any DB rows from previous runs of this spec.
+    await request.delete(`${API}/api/test/cleanup`);
     await request.delete(`${API}/api/test/cleanup`, {
       data: { userId: TEST_USER, courseId: TEST_COURSE },
     });

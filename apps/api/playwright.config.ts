@@ -1,6 +1,7 @@
 // Playwright config for the API integration tests.
-// Runs from project root: `cd apps/api && npx playwright test`
-// (Playwright walks up to find this config.)
+// Lives next to its dependencies in apps/api/, so @playwright/test resolves
+// naturally and no Windows directory junctions are required.
+// Run:  cd apps/api && npm run test:e2e
 import { defineConfig } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -8,7 +9,8 @@ import * as path from 'path';
 // Read apps/api/.env so the test server gets DATABASE_URL etc.
 // We don't pull in a dotenv dep just for this — simple manual parser.
 function loadApiEnv(): Record<string, string> {
-  const envPath = path.join(__dirname, 'apps', 'api', '.env');
+  // Config lives in apps/api/, so ./.env is apps/api/.env.
+  const envPath = path.join(__dirname, '.env');
   if (!fs.existsSync(envPath)) return {};
   const out: Record<string, string> = {};
   for (const raw of fs.readFileSync(envPath, 'utf-8').split('\n')) {
@@ -32,7 +34,10 @@ function loadApiEnv(): Record<string, string> {
 const apiEnv = loadApiEnv();
 
 export default defineConfig({
-  testDir: './e2e',
+  // e2e/ lives next to this config (apps/api/e2e/), so all dependencies
+  // (including @playwright/test in apps/api/node_modules) resolve naturally
+  // and no Windows directory junctions are required.
+  testDir: path.resolve(__dirname, './e2e'),
   // Tests only use the `request` fixture — no browser needed, so we don't
   // configure any projects. Playwright will not launch a browser for these
   // tests, and chromium binaries are not required to run them.
@@ -50,11 +55,12 @@ export default defineConfig({
     },
   },
   webServer: {
-    // `cd` is required because the test server lives in apps/api and needs
-    // its local node_modules + prisma schema. We also run prisma generate
-    // so the client is up-to-date even if the user just cloned the repo.
+    // We're already in apps/api/ (the config's __dirname), so no `cd` is
+    // needed and the prisma schema is found at the relative path below.
+    // `prisma generate` keeps the client up-to-date even if the user just
+    // cloned the repo.
     command:
-      'cd apps/api && npx prisma generate --schema=prisma/schema.prisma && npx tsx src/test-server.ts',
+      'npx prisma generate --schema=prisma/schema.prisma && npx tsx src/test-server.ts',
     port: 3001,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
