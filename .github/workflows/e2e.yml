@@ -63,15 +63,22 @@ jobs:
         # still initializing when pg_isready passes). The `exit 0` inside
         # the loop and `exit 1` after ensure the step fails if all
         # retries fail (a trailing `sleep 5` would otherwise mask it).
-        # The leading `git config` commands work around an unrelated repo
-        # issue: the `saucectl-testcafe-example` submodule is in an
-        # inconsistent state (untracked content), which makes Prisma's
-        # `git rev-parse` fail with exit 128. `safe.directory '*'`
-        # whitelists the mounted repo, and `GIT_TERMINAL_PROMPT=0`
-        # prevents any interactive prompts from hanging the step.
+        #
+        # The leading git/submodule workarounds handle the broken
+        # `saucectl-testcafe-example` submodule: actions/checkout doesn't
+        # init submodules by default, so the submodule's `.git` file
+        # points to a non-existent `.git/modules/<name>` path. Any git
+        # command that touches the submodule (Prisma calls `git rev-parse`
+        # internally) fails with exit 128. `safe.directory '*'` handles
+        # ownership, `GIT_TERMINAL_PROMPT=0` disables prompts, and the
+        # `submodule deinit + rm -rf` neutralizes the broken pointer.
+        # The proper fix is a separate commit that either initializes or
+        # removes the submodule from the parent repo.
         run: |
           git config --global --add safe.directory '*'
           export GIT_TERMINAL_PROMPT=0
+          git submodule deinit -f saucectl-testcafe-example 2>/dev/null || true
+          rm -rf saucectl-testcafe-example
           npx prisma --version
           for i in 1 2 3; do
             npx prisma db push --skip-generate && exit 0
