@@ -2,8 +2,8 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, AuthRequest, requireAdmin } from '../middlewares/auth.js';
 import { AppError } from '../middlewares/error.js';
-import { createCourseCheckoutSession, verifyPaymentSession, isStripeConfigured, stripe } from '../services/stripe.js';
-import { sendPurchaseConfirmationEmail, isEmailConfigured } from '../services/email.js';
+import { createCourseCheckoutSession, verifyPaymentSession, isStripeConfigured, stripe, constructWebhookEvent } from '../services/stripe.js';
+import { isEmailConfigured } from '../services/email.js';
 import { inngest } from '../services/inngest.js';
 
 export const paymentsRouter = Router();
@@ -168,20 +168,19 @@ paymentsRouter.post('/webhook', async (req: AuthRequest, res) => {
   try {
     // Use the rawBody that was stored by the json middleware's verify callback
     const rawBody = (req as any).rawBody;
-    
+
     if (!rawBody) {
       console.error('No raw body available for webhook verification');
       return res.json({ received: true });
     }
 
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
-    const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    const event = constructWebhookEvent(rawBody, signature);
 
     // Handle the event
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as any;
-        
+
         if (session.payment_status === 'paid') {
           const courseId = session.metadata?.courseId;
           const userId = session.metadata?.userId;
@@ -216,15 +215,20 @@ paymentsRouter.post('/webhook', async (req: AuthRequest, res) => {
 
             console.log(`✅ Purchase completed: User ${userId} purchased course ${courseId}`);
 
-            // Dispatch Inngest event for background job processing
+            // Dispatch Inngest event — the handleCoursePurchase function is
+            // the single source of truth for sending the confirmation email
+            // and awarding XP. Using a deterministic id dedupes duplicate
+            // dispatches (e.g. when /confirm also fires for the same session).
             try {
               await inngest.send({
                 name: 'stripe/checkout.session.completed',
+                id: `stripe-${session.id}`,
                 data: {
                   userId,
                   courseId,
                   amount: session.amount_total || 0,
                   paymentIntentId: session.payment_intent,
+                  isManual: false,
                 },
               });
               console.log(`[INNGEST] Event dispatched: stripe/checkout.session.completed for user ${userId}`);
@@ -275,7 +279,27 @@ paymentsRouter.post('/confirm', authenticate, async (req: AuthRequest, res, next
       throw new AppError('El pago no fue exitoso', 400);
     }
 
-    // Record the purchase
+    // Security: ensure the Stripe session belongs to the authenticated user.
+    // Reject if the session has no userId metadata OR if it points to a
+    // different account — otherwise an attacker can claim any paid sessionId.
+    if (!payment.userId || payment.userId !== req.user!.id) {
+      throw new AppError('Esta sesión de pago no pertenece a tu cuenta', 403);
+    }
+
+    // Check if the purchase already exists (likely created by the Stripe
+    // webhook) so we can avoid sending a duplicate confirmation email /
+    // dispatching a duplicate Inngest event when both paths run.
+    const existingPurchase = await prisma.coursePurchase.findUnique({
+      where: {
+        userId_courseId: {
+          userId: req.user!.id,
+          courseId: courseId,
+        },
+      },
+    });
+    const isNewPurchase = !existingPurchase;
+
+    // Record the purchase (idempotent)
     const purchase = await prisma.coursePurchase.upsert({
       where: {
         userId_courseId: {
@@ -296,7 +320,7 @@ paymentsRouter.post('/confirm', authenticate, async (req: AuthRequest, res, next
       },
     });
 
-    // Auto-enroll the user in the course
+    // Auto-enroll the user in the course (idempotent)
     const enrollment = await prisma.enrollment.upsert({
       where: {
         userId_courseId: {
@@ -310,6 +334,28 @@ paymentsRouter.post('/confirm', authenticate, async (req: AuthRequest, res, next
         courseId: courseId,
       },
     });
+
+    // Dispatch Inngest event only on the FIRST time the purchase is recorded.
+    // The handleCoursePurchase function sends the email + awards XP; using
+    // the same deterministic id (`stripe-${sessionId}`) as the webhook
+    // dedupes duplicate dispatches at the Inngest platform level.
+    if (isNewPurchase) {
+      try {
+        await inngest.send({
+          name: 'stripe/checkout.session.completed',
+          id: `stripe-${sessionId}`,
+          data: {
+            userId: req.user!.id,
+            courseId,
+            amount: payment.amount || 0,
+            paymentIntentId: payment.paymentId,
+            isManual: false,
+          },
+        });
+      } catch (inngestErr) {
+        console.error('[INNGEST] Failed to dispatch event from /confirm:', inngestErr);
+      }
+    }
 
     res.json({
       status: 'success',
@@ -506,25 +552,22 @@ paymentsRouter.post('/admin/verify-purchase', authenticate, requireAdmin, async 
 
       purchaseData = { purchase, enrolled: true };
 
-      // Get user and course info for email notification
-      const [userForEmail, courseForEmail] = await Promise.all([
-        prisma.user.findUnique({ where: { id: resolvedUserId }, select: { name: true, email: true } }),
-        prisma.course.findUnique({ where: { id: resolvedCourseId }, select: { title: true, category: true, id: true } }),
-      ]);
-
-      // Send purchase confirmation email (async - don't block if email fails)
-      if (userForEmail && courseForEmail && isEmailConfigured()) {
-        void sendPurchaseConfirmationEmail({
-          userName: userForEmail.name,
-          userEmail: userForEmail.email,
-          courseTitle: courseForEmail.title,
-          courseCategory: courseForEmail.category,
-          courseId: courseForEmail.id,
-          amountPaid: session.amount_total || 0,
-          paymentId: session.payment_intent as string || session.id,
-          purchaseDate: new Date().toLocaleString('es-ES'),
-          isManual: false,
-        }).catch((err) => console.error('Failed to send purchase email:', err));
+      // Dispatch Inngest event — same id as the webhook would have used, so
+      // any later webhook/confirm dispatch for this session is deduped.
+      try {
+        await inngest.send({
+          name: 'stripe/checkout.session.completed',
+          id: `stripe-${sessionId}`,
+          data: {
+            userId: resolvedUserId,
+            courseId: resolvedCourseId,
+            amount: session.amount_total || 0,
+            paymentIntentId: session.payment_intent,
+            isManual: false,
+          },
+        });
+      } catch (inngestErr) {
+        console.error('[INNGEST] Failed to dispatch event from /admin/verify-purchase:', inngestErr);
       }
     }
     // Otherwise, manually create purchase without Stripe verification
@@ -565,19 +608,28 @@ paymentsRouter.post('/admin/verify-purchase', authenticate, requireAdmin, async 
 
       purchaseData = { purchase, enrolled: true };
 
-      // Send purchase confirmation email for manual verification (async - don't block if email fails)
-      if (isEmailConfigured()) {
-        void sendPurchaseConfirmationEmail({
-          userName: user.name,
-          userEmail: user.email,
-          courseTitle: course.title,
-          courseCategory: course.category,
-          courseId: course.id,
-          amountPaid: course.price,
-          paymentId: 'manual-test-' + Date.now(),
-          purchaseDate: new Date().toLocaleString('es-ES'),
-          isManual: true,
-        }).catch((err) => console.error('Failed to send purchase email:', err));
+      // Dispatch Inngest event so the handleCoursePurchase function sends
+      // the manual confirmation email + awards XP. Stable id (no timestamp)
+      // so re-running this endpoint for the same user/course dedupes via
+      // Inngest and the user doesn't get a duplicate email.
+      // Note: there is no built-in escape hatch to re-send the manual email
+      // for the same user/course — Inngest will dedupe any second dispatch.
+      // If a user claims they didn't receive the email, an admin would need
+      // to either wait for Inngest's retry policy or add a forceResend flag.
+      try {
+        await inngest.send({
+          name: 'stripe/checkout.session.completed',
+          id: `manual-${userId}-${courseId}`,
+          data: {
+            userId,
+            courseId,
+            amount: course.price,
+            paymentIntentId: 'manual-test-' + Date.now(),
+            isManual: true,
+          },
+        });
+      } catch (inngestErr) {
+        console.error('[INNGEST] Failed to dispatch manual event from /admin/verify-purchase:', inngestErr);
       }
     }
 

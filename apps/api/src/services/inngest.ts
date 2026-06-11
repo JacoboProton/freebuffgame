@@ -137,7 +137,9 @@ export const handleCoursePurchase = inngest.createFunction(
       return { message: 'User or course not found' };
     }
 
-    // Step 2: Send purchase confirmation email
+    // Step 2: Send purchase confirmation email (single source of truth for
+    // all purchase paths — Stripe webhook, /confirm fallback, and the
+    // admin/verify-purchase endpoint all dispatch this same event).
     await step.run('send-email', async () => {
       if (isEmailConfigured()) {
         await sendPurchaseConfirmationEmail({
@@ -149,7 +151,7 @@ export const handleCoursePurchase = inngest.createFunction(
           amountPaid: amount,
           paymentId: event.data.paymentIntentId || 'unknown',
           purchaseDate: new Date().toLocaleString('es-ES'),
-          isManual: false,
+          isManual: event.data.isManual === true,
         });
       }
     });
