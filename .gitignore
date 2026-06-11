@@ -34,6 +34,12 @@ npm-debug.log*
 # Lockfiles (use bun)
 package-lock.json
 
+# apps/api uses npm (not bun) for its CI e2e workflow, so its lockfile
+# is the source of truth for `npm ci` and must be committed. This is the
+# only exception to the "use bun" rule above; new apps should default to
+# bun and follow the same pattern if they need npm.
+!apps/api/package-lock.json
+
 # Turbo
 .turbo/
 
