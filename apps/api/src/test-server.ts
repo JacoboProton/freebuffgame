@@ -2,32 +2,26 @@
 /**
  * Self-contained test API server for Playwright e2e tests.
  *
- * ⚠️  MUST stay in sync with `routes/payments.ts` POST /confirm handler.
- * Last reviewed: 2026-06-11. If you change the real route, mirror the change
- * here. The cleanest long-term fix is to refactor the real route to a
- * `createConfirmHandler({ verifyPaymentSession, inngest, authenticate })`
- * factory so the test server can compose the real handler with stubs.
- *
- * Mirrors the /payments/confirm AND /payments/webhook logic from
- * routes/payments.ts but with:
- *   - Stripe.verifyPaymentSession  → in-memory map of mock sessions
- *   - Stripe.constructWebhookEvent → plain JSON body parse (no signature)
- *   - Clerk `authenticate`         → header-based test auth (x-test-user-id)
- *   - Inngest.send                 → in-memory event recorder
+ * Uses the real createCoursePurchaseRouter factory from
+ * routes/course-purchase-handler.ts, composed with stub dependencies:
+ *   - verifyPaymentSession  → in-memory map of mock sessions
+ *   - constructWebhookEvent → plain JSON parse (no signature verification)
+ *   - Inngest.send          → in-memory event recorder
+ *   - authenticate          → header-based test auth (x-test-user-id)
  *
  * Real Prisma is used to write/read CoursePurchase + Enrollment rows so the
  * tests can assert that a purchase was actually recorded in the database.
  *
- * Atomicity: the test server mirrors the real route's try/catch create+update
- * pattern (P2002 catch) so the e2e tests exercise the same race-free code
- * path that production does.
+ * Safety: refuses to start unless NODE_ENV=test or ENABLE_TEST_ENDPOINTS is
+ * set, so /api/test/* write endpoints can't accidentally be exposed in
+ * production.
  *
  * Started by playwright.config.ts → webServer.command before any spec runs.
  */
 import express from 'express';
 import cors from 'cors';
-import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
+import { createCoursePurchaseRouter } from './routes/course-purchase-handler.js';
 
 // Safety guard: refuse to start unless explicitly enabled. Prevents accidental
 // production deploys from exposing the /api/test/* write endpoints.
@@ -43,18 +37,11 @@ const PORT = Number(process.env.TEST_API_PORT || 3001);
 app.use(cors());
 app.use(express.json());
 
-// ----- Test auth middleware ---------------------------------------------------
-// In production, /payments/confirm uses the `authenticate` middleware which
-// verifies a Clerk JWT or app JWT. For tests, we accept a simple header that
-// the test spec sets per-request.
+// Mirror the real index.ts rawBody capture so the factory's webhook handler
+// can call constructWebhookEvent(req.rawBody, signature).
 app.use((req, _res, next) => {
-  const testUserId = req.headers['x-test-user-id'];
-  if (typeof testUserId === 'string' && testUserId.length > 0) {
-    req.user = {
-      id: testUserId,
-      email: `${testUserId}@test.local`,
-      role: 'user',
-    };
+  if (req.body && typeof req.body === 'object') {
+    (req as any).rawBody = JSON.stringify(req.body);
   }
   next();
 });
@@ -69,186 +56,55 @@ function registerMockSession(sessionId: string, userId: string, courseId: string
   MOCK_SESSIONS[sessionId] = { userId, courseId, amount };
 }
 
-// ----- POST /api/payments/webhook (mirrors production with mocks) -------------
-// Mocks Stripe signature verification: the test spec sends a plain JSON event
-// body. Only the `checkout.session.completed` branch is implemented; other
-// event types are no-ops (matching the real handler which logs them and
-// returns 200).
-app.post('/api/payments/webhook', async (req, res) => {
-  try {
-    const event = req.body;
-    if (event?.type !== 'checkout.session.completed') {
-      return res.json({ received: true });
-    }
-    const session = event.data?.object;
-    if (session?.payment_status !== 'paid') {
-      return res.json({ received: true });
-    }
-    const courseId = session.metadata?.courseId;
-    const userId = session.metadata?.userId;
-    if (!courseId || !userId) {
-      return res.json({ received: true });
-    }
+// ----- Stub implementations of the factory's dependencies --------------------
 
-    // Atomic create-or-update — same pattern as /confirm. Whichever handler
-    // wins the create race sets isNewPurchase=true; the loser hits P2002 and
-    // stays false. Only the winner dispatches the Inngest event, so the
-    // /confirm + webhook race produces exactly 1 event (which Inngest would
-    // dedupe to 1 function execution → 1 email in production).
-    let isNewPurchase = false;
-    try {
-      await prisma.coursePurchase.create({
-        data: {
-          userId,
-          courseId,
-          stripePaymentId: session.payment_intent,
-          amountPaid: session.amount_total || 0,
-        },
-      });
-      isNewPurchase = true;
-    } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-        await prisma.coursePurchase.update({
-          where: { userId_courseId: { userId, courseId } },
-          data: {
-            stripePaymentId: session.payment_intent,
-            amountPaid: session.amount_total || 0,
-            purchasedAt: new Date(),
-          },
-        });
-      } else {
-        throw err;
-      }
-    }
-
-    // Upsert enrollment (idempotent)
-    await prisma.enrollment.upsert({
-      where: { userId_courseId: { userId, courseId } },
-      update: {},
-      create: { userId, courseId },
-    });
-
-    // MOCK: inngest.send — same deterministic id as /confirm would use.
-    if (isNewPurchase) {
-      inngestEvents.push({
-        name: 'stripe/checkout.session.completed',
-        id: `stripe-${session.id}`,
-        data: {
-          userId,
-          courseId,
-          amount: session.amount_total || 0,
-          paymentIntentId: session.payment_intent,
-          isManual: false,
-        },
-      });
-    }
-
-    return res.json({ received: true });
-  } catch (err: any) {
-    console.error('[/api/payments/webhook] error:', err);
-    // Match real route: return 200 to prevent Stripe retries for validation errors
-    return res.json({ received: true });
+/** Sets req.user from x-test-user-id header, rejects with 401 if missing. */
+const testAuthMiddleware = (req: any, res: any, next: any) => {
+  const testUserId = req.headers['x-test-user-id'];
+  if (typeof testUserId !== 'string' || testUserId.length === 0) {
+    return res.status(401).json({ status: 'error', message: 'Unauthorized' });
   }
-});
+  req.user = {
+    id: testUserId,
+    email: `${testUserId}@test.local`,
+    role: 'user',
+  };
+  next();
+};
 
-// ----- POST /api/payments/confirm (mirrors production with mocks) --------------
-app.post('/api/payments/confirm', async (req, res) => {
-  try {
-    const { sessionId, courseId } = req.body ?? {};
+const mockVerifyPaymentSession = async (sessionId: string) => {
+  const session = MOCK_SESSIONS[sessionId];
+  if (!session) return { success: false };
+  return {
+    success: true,
+    userId: session.userId,
+    courseId: session.courseId,
+    paymentId: `pi_mock_${sessionId}`,
+    amount: session.amount,
+  };
+};
 
-    if (!sessionId || !courseId) {
-      return res.status(400).json({ status: 'error', message: 'Datos incompletos' });
-    }
-    if (!req.user) {
-      return res.status(401).json({ status: 'error', message: 'No auth' });
-    }
+const mockConstructWebhookEvent = (rawBody: string | Buffer) => {
+  return JSON.parse(rawBody.toString());
+};
 
-    // MOCK: verifyPaymentSession
-    const mockSession = MOCK_SESSIONS[sessionId];
-    const payment = mockSession
-      ? {
-          success: true as const,
-          userId: mockSession.userId,
-          courseId: mockSession.courseId,
-          paymentId: `pi_mock_${sessionId}`,
-          amount: mockSession.amount,
-        }
-      : { success: false as const };
+const mockInngest = {
+  send: async (event: { name: string; id?: string; data: any }) => {
+    inngestEvents.push(event);
+  },
+};
 
-    if (!payment.success) {
-      return res.status(400).json({ status: 'error', message: 'El pago no fue exitoso' });
-    }
-
-    // Security: session must belong to authenticated user
-    if (!payment.userId || payment.userId !== req.user.id) {
-      return res.status(403).json({ status: 'error', message: 'Esta sesión de pago no pertenece a tu cuenta' });
-    }
-
-    // Atomic create-or-update — mirrors routes/payments.ts exactly: try to
-    // create the purchase; if (userId, courseId) unique constraint fires
-    // (P2002), fall through to an idempotent update. Eliminates the TOCTOU
-    // window that findUnique + upsert would have, and keeps the e2e test
-    // exercising the same code path as production.
-    let purchase;
-    let isNewPurchase = false;
-    try {
-      purchase = await prisma.coursePurchase.create({
-        data: {
-          userId: req.user.id,
-          courseId,
-          stripePaymentId: payment.paymentId,
-          amountPaid: payment.amount,
-        },
-      });
-      isNewPurchase = true;
-    } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-        purchase = await prisma.coursePurchase.update({
-          where: { userId_courseId: { userId: req.user.id, courseId } },
-          data: {
-            stripePaymentId: payment.paymentId,
-            amountPaid: payment.amount,
-            purchasedAt: new Date(),
-          },
-        });
-      } else {
-        throw err;
-      }
-    }
-
-    // Upsert enrollment (idempotent)
-    await prisma.enrollment.upsert({
-      where: { userId_courseId: { userId: req.user.id, courseId } },
-      update: {},
-      create: { userId: req.user.id, courseId },
-    });
-
-    // MOCK: inngest.send — only fire on the first purchase so the test can
-    // assert exactly-one-event semantics (matching the deterministic id
-    // dedupe that production Inngest provides).
-    if (isNewPurchase) {
-      inngestEvents.push({
-        name: 'stripe/checkout.session.completed',
-        id: `stripe-${sessionId}`,
-        data: {
-          userId: req.user.id,
-          courseId,
-          amount: payment.amount,
-          paymentIntentId: payment.paymentId,
-          isManual: false,
-        },
-      });
-    }
-
-    return res.json({
-      status: 'success',
-      data: { purchased: true, purchaseId: purchase.id },
-    });
-  } catch (err: any) {
-    console.error('[/api/payments/confirm] error:', err);
-    return res.status(500).json({ status: 'error', message: err.message });
-  }
-});
+// ----- Mount the real factory with stub dependencies --------------------------
+app.use(
+  '/api/payments',
+  createCoursePurchaseRouter({
+    verifyPaymentSession: mockVerifyPaymentSession,
+    constructWebhookEvent: mockConstructWebhookEvent,
+    inngest: mockInngest,
+    prisma,
+    authenticate: testAuthMiddleware,
+  }),
+);
 
 // ----- Test-only endpoints ----------------------------------------------------
 

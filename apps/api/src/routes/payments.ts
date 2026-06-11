@@ -6,6 +6,7 @@ import { AppError } from '../middlewares/error.js';
 import { createCourseCheckoutSession, verifyPaymentSession, isStripeConfigured, stripe, constructWebhookEvent } from '../services/stripe.js';
 import { isEmailConfigured } from '../services/email.js';
 import { inngest } from '../services/inngest.js';
+import { createCoursePurchaseRouter } from './course-purchase-handler.js';
 
 export const paymentsRouter = Router();
 
@@ -157,235 +158,19 @@ paymentsRouter.post('/course/:courseId/checkout', authenticate, async (req: Auth
   }
 });
 
-// Handle Stripe webhook (called by Stripe after payment)
-// Note: This route needs raw body parsing, handled in index.ts
-paymentsRouter.post('/webhook', async (req: AuthRequest, res) => {
-  const signature = req.headers['stripe-signature'] as string;
-
-  if (!signature || !isStripeConfigured()) {
-    return res.json({ received: true });
-  }
-
-  try {
-    // Use the rawBody that was stored by the json middleware's verify callback
-    const rawBody = (req as any).rawBody;
-
-    if (!rawBody) {
-      console.error('No raw body available for webhook verification');
-      return res.json({ received: true });
-    }
-
-    const event = constructWebhookEvent(rawBody, signature);
-
-    // Handle the event
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as any;
-
-        if (session.payment_status === 'paid') {
-          const courseId = session.metadata?.courseId;
-          const userId = session.metadata?.userId;
-
-          if (courseId && userId) {
-            // Atomic create-or-update: try to create the purchase; if the
-            // (userId, courseId) unique constraint fires (webhook + /confirm
-            // race, or duplicate webhook delivery), fall through to an
-            // idempotent update. Eliminates the TOCTOU window that
-            // findUnique + upsert would have.
-            try {
-              await prisma.coursePurchase.create({
-                data: {
-                  userId,
-                  courseId,
-                  stripePaymentId: session.payment_intent,
-                  amountPaid: session.amount_total || 0,
-                },
-              });
-            } catch (err) {
-              if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-                await prisma.coursePurchase.update({
-                  where: {
-                    userId_courseId: { userId, courseId },
-                  },
-                  data: {
-                    stripePaymentId: session.payment_intent,
-                    amountPaid: session.amount_total || 0,
-                    purchasedAt: new Date(),
-                  },
-                });
-              } else {
-                throw err;
-              }
-            }
-
-            // Auto-enroll the user in the course
-            await prisma.enrollment.upsert({
-              where: {
-                userId_courseId: { userId, courseId },
-              },
-              update: {},
-              create: { userId, courseId },
-            });
-
-            console.log(`✅ Purchase completed: User ${userId} purchased course ${courseId}`);
-
-            // Dispatch Inngest event — the handleCoursePurchase function is
-            // the single source of truth for sending the confirmation email
-            // and awarding XP. Using a deterministic id dedupes duplicate
-            // dispatches (e.g. when /confirm also fires for the same session).
-            try {
-              await inngest.send({
-                name: 'stripe/checkout.session.completed',
-                id: `stripe-${session.id}`,
-                data: {
-                  userId,
-                  courseId,
-                  amount: session.amount_total || 0,
-                  paymentIntentId: session.payment_intent,
-                  isManual: false,
-                },
-              });
-              console.log(`[INNGEST] Event dispatched: stripe/checkout.session.completed for user ${userId}`);
-            } catch (inngestErr) {
-              console.error('[INNGEST] Failed to dispatch event:', inngestErr);
-            }
-          }
-        }
-        break;
-      }
-
-      case 'payment_intent.succeeded': {
-        console.log('PaymentIntent succeeded:', event.data.object);
-        break;
-      }
-
-      case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object as any;
-        console.log('Payment failed:', paymentIntent.id);
-        break;
-      }
-
-      default:
-        console.log(`Unhandled event type: ${event.type}`);
-    }
-
-    res.json({ received: true });
-  } catch (err: any) {
-    console.error('Webhook error:', err.message);
-    // Return 200 to prevent Stripe retries for validation errors
-    res.json({ received: true });
-  }
-});
-
-// Confirm payment manually (called after successful Stripe redirect)
-paymentsRouter.post('/confirm', authenticate, async (req: AuthRequest, res, next) => {
-  try {
-    const { sessionId, courseId } = req.body;
-
-    if (!sessionId || !courseId) {
-      throw new AppError('Datos incompletos', 400);
-    }
-
-    // Verify the payment with Stripe
-    const payment = await verifyPaymentSession(sessionId);
-
-    if (!payment.success) {
-      throw new AppError('El pago no fue exitoso', 400);
-    }
-
-    // Security: ensure the Stripe session belongs to the authenticated user.
-    // Reject if the session has no userId metadata OR if it points to a
-    // different account — otherwise an attacker can claim any paid sessionId.
-    if (!payment.userId || payment.userId !== req.user!.id) {
-      throw new AppError('Esta sesión de pago no pertenece a tu cuenta', 403);
-    }
-
-    // Atomic create-or-update: eliminates the TOCTOU race window that
-    // existed with findUnique + upsert (where the Stripe webhook could
-    // fire between the check and the write). If the purchase already
-    // exists for this (userId, courseId), the create() throws Prisma
-    // error P2002 and we fall through to an idempotent update.
-    let purchase;
-    let isNewPurchase = false;
-    try {
-      purchase = await prisma.coursePurchase.create({
-        data: {
-          userId: req.user!.id,
-          courseId: courseId,
-          stripePaymentId: payment.paymentId,
-          amountPaid: payment.amount || 0,
-        },
-      });
-      isNewPurchase = true;
-    } catch (err) {
-      // P2002 = unique constraint violation on (userId, courseId)
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-        purchase = await prisma.coursePurchase.update({
-          where: {
-            userId_courseId: {
-              userId: req.user!.id,
-              courseId: courseId,
-            },
-          },
-          data: {
-            stripePaymentId: payment.paymentId,
-            amountPaid: payment.amount || 0,
-            purchasedAt: new Date(),
-          },
-        });
-      } else {
-        throw err;
-      }
-    }
-
-    // Auto-enroll the user in the course (idempotent)
-    const enrollment = await prisma.enrollment.upsert({
-      where: {
-        userId_courseId: {
-          userId: req.user!.id,
-          courseId: courseId,
-        },
-      },
-      update: {},
-      create: {
-        userId: req.user!.id,
-        courseId: courseId,
-      },
-    });
-
-    // Dispatch Inngest event only on the FIRST time the purchase is recorded.
-    // The handleCoursePurchase function sends the email + awards XP; using
-    // the same deterministic id (`stripe-${sessionId}`) as the webhook
-    // dedupes duplicate dispatches at the Inngest platform level.
-    if (isNewPurchase) {
-      try {
-        await inngest.send({
-          name: 'stripe/checkout.session.completed',
-          id: `stripe-${sessionId}`,
-          data: {
-            userId: req.user!.id,
-            courseId,
-            amount: payment.amount || 0,
-            paymentIntentId: payment.paymentId,
-            isManual: false,
-          },
-        });
-      } catch (inngestErr) {
-        console.error('[INNGEST] Failed to dispatch event from /confirm:', inngestErr);
-      }
-    }
-
-    res.json({
-      status: 'success',
-      data: {
-        purchased: true,
-        enrollment,
-      },
-    });
-  } catch (err) {
-    next(err);
-  }
-});
+// Handle Stripe webhook (called by Stripe after payment) + /confirm (called by
+// the frontend after Stripe redirects back). Both routes are extracted into a
+// factory (./course-purchase-handler.ts) so the e2e test server can compose
+// the same logic with stubbed dependencies instead of duplicating ~100 lines.
+paymentsRouter.use(
+  createCoursePurchaseRouter({
+    verifyPaymentSession,
+    constructWebhookEvent,
+    inngest,
+    prisma,
+    authenticate,
+  }),
+);
 
 // Get user's purchased courses
 paymentsRouter.get('/purchases', authenticate, async (req: AuthRequest, res, next) => {
