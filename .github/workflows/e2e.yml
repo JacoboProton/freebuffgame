@@ -57,35 +57,25 @@ jobs:
 
       - name: Push Prisma schema
         working-directory: apps/api
-        # The version log makes any version-mismatch or schema/extension
-        # issue diagnosable from the Actions UI. The 3-retry loop absorbs
-        # the most likely transient flake (service container Postgres
-        # still initializing when pg_isready passes). The `exit 0` inside
-        # the loop and `exit 1` after ensure the step fails if all
-        # retries fail (a trailing `sleep 5` would otherwise mask it).
-        #
-        # The leading git/submodule workarounds handle the broken
-        # `saucectl-testcafe-example` submodule: actions/checkout doesn't
-        # init submodules by default, so the submodule's `.git` file
-        # points to a non-existent `.git/modules/<name>` path. Any git
-        # command that touches the submodule (Prisma calls `git rev-parse`
-        # internally) fails with exit 128. `safe.directory '*'` handles
-        # ownership, `GIT_TERMINAL_PROMPT=0` disables prompts, and the
-        # `submodule deinit + rm -rf` neutralizes the broken pointer.
-        # The proper fix is a separate commit that either initializes or
-        # removes the submodule from the parent repo.
+        # Diagnostic block — four prior fix attempts (b2fcb79, 3552b2e,
+        # 4667bd8, 85618cb) failed with the generic
+        # `git failed with exit code 128` and the actual failing git
+        # invocation was hidden. The probes below log the repo's git
+        # state (so we can see ownership, identity, and any submodule
+        # shenanigans), and `set -x` traces the prisma invocation.
+        # Together they turn "exit 128" into an actionable diagnosis.
+        # Remove the entire block once the prisma step is green.
         run: |
-          git config --global --add safe.directory '*'
-          export GIT_TERMINAL_PROMPT=0
-          git submodule deinit -f saucectl-testcafe-example 2>/dev/null || true
-          rm -rf saucectl-testcafe-example
-          npx prisma --version
-          for i in 1 2 3; do
-            npx prisma db push --skip-generate && exit 0
-            echo "::warning::prisma db push attempt $i failed, retrying in 5s..."
-            sleep 5
-          done
-          exit 1
+          set -x
+          git --version
+          git rev-parse --show-toplevel
+          git rev-parse HEAD
+          git rev-parse --abbrev-ref HEAD
+          git config --get user.email
+          git config --get user.name
+          git status --short || true
+          git submodule status || true
+          npx prisma db push --skip-generate 2>&1 | tee /tmp/prisma.log
 
       - name: Run Playwright e2e tests
         id: playwright
