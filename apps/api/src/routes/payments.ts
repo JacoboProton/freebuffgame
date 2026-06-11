@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, AuthRequest, requireAdmin } from '../middlewares/auth.js';
 import { AppError } from '../middlewares/error.js';
@@ -186,23 +187,36 @@ paymentsRouter.post('/webhook', async (req: AuthRequest, res) => {
           const userId = session.metadata?.userId;
 
           if (courseId && userId) {
-            // Record the purchase (idempotent - using upsert)
-            await prisma.coursePurchase.upsert({
-              where: {
-                userId_courseId: { userId, courseId },
-              },
-              update: {
-                stripePaymentId: session.payment_intent,
-                amountPaid: session.amount_total || 0,
-                purchasedAt: new Date(),
-              },
-              create: {
-                userId,
-                courseId,
-                stripePaymentId: session.payment_intent,
-                amountPaid: session.amount_total || 0,
-              },
-            });
+            // Atomic create-or-update: try to create the purchase; if the
+            // (userId, courseId) unique constraint fires (webhook + /confirm
+            // race, or duplicate webhook delivery), fall through to an
+            // idempotent update. Eliminates the TOCTOU window that
+            // findUnique + upsert would have.
+            try {
+              await prisma.coursePurchase.create({
+                data: {
+                  userId,
+                  courseId,
+                  stripePaymentId: session.payment_intent,
+                  amountPaid: session.amount_total || 0,
+                },
+              });
+            } catch (err) {
+              if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+                await prisma.coursePurchase.update({
+                  where: {
+                    userId_courseId: { userId, courseId },
+                  },
+                  data: {
+                    stripePaymentId: session.payment_intent,
+                    amountPaid: session.amount_total || 0,
+                    purchasedAt: new Date(),
+                  },
+                });
+              } else {
+                throw err;
+              }
+            }
 
             // Auto-enroll the user in the course
             await prisma.enrollment.upsert({
@@ -286,39 +300,43 @@ paymentsRouter.post('/confirm', authenticate, async (req: AuthRequest, res, next
       throw new AppError('Esta sesión de pago no pertenece a tu cuenta', 403);
     }
 
-    // Check if the purchase already exists (likely created by the Stripe
-    // webhook) so we can avoid sending a duplicate confirmation email /
-    // dispatching a duplicate Inngest event when both paths run.
-    const existingPurchase = await prisma.coursePurchase.findUnique({
-      where: {
-        userId_courseId: {
+    // Atomic create-or-update: eliminates the TOCTOU race window that
+    // existed with findUnique + upsert (where the Stripe webhook could
+    // fire between the check and the write). If the purchase already
+    // exists for this (userId, courseId), the create() throws Prisma
+    // error P2002 and we fall through to an idempotent update.
+    let purchase;
+    let isNewPurchase = false;
+    try {
+      purchase = await prisma.coursePurchase.create({
+        data: {
           userId: req.user!.id,
           courseId: courseId,
+          stripePaymentId: payment.paymentId,
+          amountPaid: payment.amount || 0,
         },
-      },
-    });
-    const isNewPurchase = !existingPurchase;
-
-    // Record the purchase (idempotent)
-    const purchase = await prisma.coursePurchase.upsert({
-      where: {
-        userId_courseId: {
-          userId: req.user!.id,
-          courseId: courseId,
-        },
-      },
-      update: {
-        stripePaymentId: payment.paymentId,
-        amountPaid: payment.amount || 0,
-        purchasedAt: new Date(),
-      },
-      create: {
-        userId: req.user!.id,
-        courseId: courseId,
-        stripePaymentId: payment.paymentId,
-        amountPaid: payment.amount || 0,
-      },
-    });
+      });
+      isNewPurchase = true;
+    } catch (err) {
+      // P2002 = unique constraint violation on (userId, courseId)
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        purchase = await prisma.coursePurchase.update({
+          where: {
+            userId_courseId: {
+              userId: req.user!.id,
+              courseId: courseId,
+            },
+          },
+          data: {
+            stripePaymentId: payment.paymentId,
+            amountPaid: payment.amount || 0,
+            purchasedAt: new Date(),
+          },
+        });
+      } else {
+        throw err;
+      }
+    }
 
     // Auto-enroll the user in the course (idempotent)
     const enrollment = await prisma.enrollment.upsert({
@@ -523,23 +541,33 @@ paymentsRouter.post('/admin/verify-purchase', authenticate, requireAdmin, async 
         throw new AppError('No se encontró courseId o userId en los metadatos', 400);
       }
 
-      // Record the purchase
-      const purchase = await prisma.coursePurchase.upsert({
-        where: {
-          userId_courseId: { userId: resolvedUserId, courseId: resolvedCourseId },
-        },
-        update: {
-          stripePaymentId: session.payment_intent as string,
-          amountPaid: session.amount_total || 0,
-          purchasedAt: new Date(),
-        },
-        create: {
-          userId: resolvedUserId,
-          courseId: resolvedCourseId,
-          stripePaymentId: session.payment_intent as string,
-          amountPaid: session.amount_total || 0,
-        },
-      });
+      // Atomic create-or-update (same pattern as /confirm and the webhook)
+      let purchase;
+      try {
+        purchase = await prisma.coursePurchase.create({
+          data: {
+            userId: resolvedUserId,
+            courseId: resolvedCourseId,
+            stripePaymentId: session.payment_intent as string,
+            amountPaid: session.amount_total || 0,
+          },
+        });
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+          purchase = await prisma.coursePurchase.update({
+            where: {
+              userId_courseId: { userId: resolvedUserId, courseId: resolvedCourseId },
+            },
+            data: {
+              stripePaymentId: session.payment_intent as string,
+              amountPaid: session.amount_total || 0,
+              purchasedAt: new Date(),
+            },
+          });
+        } else {
+          throw err;
+        }
+      }
 
       // Auto-enroll
       await prisma.enrollment.upsert({
@@ -582,21 +610,32 @@ paymentsRouter.post('/admin/verify-purchase', authenticate, requireAdmin, async 
         throw new AppError('Curso no encontrado', 404);
       }
 
-      const purchase = await prisma.coursePurchase.upsert({
-        where: {
-          userId_courseId: { userId, courseId },
-        },
-        update: {
-          amountPaid: course.price,
-          purchasedAt: new Date(),
-        },
-        create: {
-          userId,
-          courseId,
-          stripePaymentId: 'manual-test-' + Date.now(),
-          amountPaid: course.price,
-        },
-      });
+      // Atomic create-or-update (same pattern as /confirm and the webhook)
+      let purchase;
+      try {
+        purchase = await prisma.coursePurchase.create({
+          data: {
+            userId,
+            courseId,
+            stripePaymentId: 'manual-test-' + Date.now(),
+            amountPaid: course.price,
+          },
+        });
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+          purchase = await prisma.coursePurchase.update({
+            where: {
+              userId_courseId: { userId, courseId },
+            },
+            data: {
+              amountPaid: course.price,
+              purchasedAt: new Date(),
+            },
+          });
+        } else {
+          throw err;
+        }
+      }
 
       await prisma.enrollment.upsert({
         where: {
