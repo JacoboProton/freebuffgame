@@ -57,8 +57,26 @@ jobs:
         run: npx prisma db push --skip-generate
 
       - name: Run Playwright e2e tests
+        id: playwright
         working-directory: apps/api
         # Equivalent to `cd apps/api && npx playwright test`. The webServer
         # in playwright.config.ts will spin up the test server, run all
         # specs in apps/api/e2e/, and tear the server down on exit.
         run: npx playwright test
+
+      - name: Upload test artifacts on failure
+        if: failure() && steps.playwright.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          # test-results/ has per-test traces, screenshots, and videos for
+          # failed specs. playwright-report/ has the self-contained HTML
+          # report (with embedded traces) that can be opened locally via
+          # `npx playwright show-report` after downloading the artifact.
+          # Block scalar preserves the newline so upload-artifact sees two
+          # separate paths, not one string with embedded newlines.
+          path: |
+            apps/api/test-results/
+            apps/api/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore

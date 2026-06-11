@@ -45,7 +45,12 @@ export default defineConfig({
   expect: { timeout: 5_000 },
   fullyParallel: false,
   workers: 1, // tests share DB rows; run serially
-  reporter: [['list']],
+  // The list reporter keeps CI logs readable; the html reporter writes a
+  // self-contained HTML report to playwright-report/ (with traces, videos,
+  // and screenshots) that the CI workflow uploads as an artifact on
+  // failure. `open: 'never'` prevents Playwright from trying to open the
+  // report in a browser (which would fail in CI).
+  reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: 'http://localhost:3001',
     extraHTTPHeaders: {

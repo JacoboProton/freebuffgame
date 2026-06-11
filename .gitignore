@@ -61,3 +61,7 @@ insforge.toml
 
 # Build info
 *.tsbuildinfo
+
+# Playwright
+apps/api/test-results/
+apps/api/playwright-report/
