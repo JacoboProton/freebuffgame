@@ -1,5 +1,6 @@
 # Duobi-Jac - Plataforma Educativa Gamificada
 
+[![e2e](https://github.com/JacoboProton/freebuffgame/actions/workflows/e2e.yml/badge.svg)](https://github.com/JacoboProton/freebuffgame/actions/workflows/e2e.yml)
 ![Duobi-Jac](https://img.shields.io/badge/Status-En%20Desarrollo-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
