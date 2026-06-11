@@ -35,6 +35,13 @@ test.describe('Concurrent /confirm + webhook (P2002 race)', () => {
     });
   });
 
+  test.afterAll(async ({ request }) => {
+    // Full reset so the next test file (e.g. stripe-success.spec.ts) starts
+    // with a clean mock state. Without this, the concurrent test's MOCK_SESSIONS
+    // and inngestEvents leak into the other spec.
+    await request.delete(`${API}/api/test/cleanup`);
+  });
+
   test('only one Inngest event is dispatched when /confirm and /webhook race', async ({ request }) => {
     const testStartTime = Date.now();
 

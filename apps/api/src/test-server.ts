@@ -20,7 +20,7 @@
  */
 import express from 'express';
 import cors from 'cors';
-import { prisma } from '../lib/prisma.js';
+import { prisma } from './lib/prisma.js';
 import { createCoursePurchaseRouter } from './routes/course-purchase-handler.js';
 
 // Safety guard: refuse to start unless explicitly enabled. Prevents accidental
@@ -162,9 +162,23 @@ app.delete('/api/test/cleanup', async (req, res) => {
       await prisma.enrollment
         .deleteMany({ where: { userId, courseId } })
         .catch(() => undefined);
+      // Scoped cleanup: only remove mock sessions and Inngest events that
+      // belong to this (userId, courseId). This lets the ownership test
+      // register a session for OTHER_USER, then clean up TEST_USER without
+      // nuking OTHER_USER's mock session.
+      for (const [sid, s] of Object.entries(MOCK_SESSIONS)) {
+        if (s.userId === userId) delete MOCK_SESSIONS[sid];
+      }
+      inngestEvents.splice(
+        0,
+        inngestEvents.length,
+        ...inngestEvents.filter((e) => e.data?.userId !== userId),
+      );
+    } else {
+      // Full reset (no userId/courseId provided)
+      for (const k of Object.keys(MOCK_SESSIONS)) delete MOCK_SESSIONS[k];
+      inngestEvents.length = 0;
     }
-    for (const k of Object.keys(MOCK_SESSIONS)) delete MOCK_SESSIONS[k];
-    inngestEvents.length = 0;
     return res.json({ status: 'success' });
   } catch (err: any) {
     return res.status(500).json({ status: 'error', message: err.message });
