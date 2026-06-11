@@ -50,6 +50,41 @@ purpose-built test double that:
    cd apps/api && npm install -D @playwright/test
    ```
 
+## Local setup (Windows workaround)
+
+> **⚠️ Only needed on Windows.** The `playwright.config.ts` lives at the
+> project root, but `@playwright/test` is installed in
+> `apps/api/node_modules`. Node's module resolution from the project root
+> looks for `node_modules/@playwright/test` (which doesn't exist), so the
+> config fails to load. On macOS/Linux, the `npm install -D @playwright/test`
+> step above puts it in `apps/api/node_modules` and `npx` finds it via the
+> `apps/api` working directory. On Windows, you also need the root to be
+> able to resolve the module.
+
+Create two directory junctions at the project root (run from the project root):
+
+```bash
+# Junction node_modules/@playwright → apps/api/node_modules/@playwright
+cmd //c "mklink /J node_modules\@playwright apps\api\node_modules\@playwright"
+
+# Junction node_modules/playwright → apps/api/node_modules/playwright
+cmd //c "mklink /J node_modules\playwright apps\api\node_modules\playwright"
+```
+
+**Important:** these junctions are **local-only** — they are not committed
+to git and will be wiped on any `npm install` at the project root or in
+`apps/api`. Recreate them after a fresh install.
+
+**`.bin` junction fails** because `node_modules/.bin` already exists at the
+root. Two workarounds:
+- Run the CLI via Node directly: `node node_modules/playwright/cli.js test`
+- Or add a one-off PATH entry: `PATH="$(pwd)/node_modules/.bin:$PATH" npm run test:e2e` (from `apps/api`)
+
+**Long-term fix:** install `@playwright/test` at the project root
+(`npm install -D @playwright/test` from the root). This is currently blocked
+by workspace protocol deps in the root `package.json`; either resolve those
+or move `playwright.config.ts` into `apps/api/`.
+
 ## Running
 
 ```bash
